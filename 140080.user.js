@@ -189,7 +189,7 @@ function main() {
 			tmp.hideSeenRaids = (typeof tmp.hideSeenRaids == 'boolean'?tmp.hideSeenRaids:false);
 			tmp.FPXmarkRightClick = (typeof tmp.FPXmarkRightClick == 'boolean'?tmp.FPXmarkRightClick:false);
 			tmp.markMyRaidsVisted = (typeof tmp.markMyRaidsVisted == 'boolean'?tmp.markMyRaidsVisted:false);
-			tmp.whisperSpam = (typeof tmp.whisperSpam == 'boolean'?tmp.whisperSpam:false);
+			tmp.whisperSpam = false;
 			tmp.autoWhisper = (typeof tmp.autoWhisper == 'boolean'?tmp.autoWhisper:false);
 			tmp.markImportedVisited = (typeof tmp.markImportedVisited == 'boolean'?tmp.markImportedVisited:false);
 			tmp.prettyPost = (typeof tmp.prettyPost == 'boolean'?tmp.prettyPost:false);
@@ -829,10 +829,6 @@ function main() {
 				return r.shortname + ' ' + r.diffShortText + ' ' + url				
 			},
 			FPXprettyPost: function () {
-				if(SRDotDX.config.whisperSpam && ((SRDotDX.config.whisperTo||"") == "")){
-					alert("You must select a user to whisper to if whispering is selected.");
-					return false;
-				}
 				console.log("[SRDotDX]::{FPX}:: Pretty post...");
 				try
 				{						
@@ -915,7 +911,7 @@ function main() {
 				console.log("[SRDotDX]::{FPX}:: SPAMMER CANCELLED...");
 			},
 			FPXspamRaids: function () {
-				if(c && ((SRDotDX.config.whisperTo||"") == "")){
+				if(SRDotDX.config.whisperSpam && ((SRDotDX.config.whisperTo||"") == "")){
 					alert("You must select a user to whisper to if whispering is selected.");
 					return false;
 				}
