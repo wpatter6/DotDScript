@@ -977,7 +977,9 @@ function main() {
 				var roomSwitch = document.FPXRaidFilterForm.FPXRoomNameSwitch.value;
 				var roomFilter = document.FPXRaidFilterForm.FPXRoomNameFilter.value;
 				
-				var re = new RegExp(document.FPXRaidFilterForm.FPXRaidBossNameFilter.value, "i");
+				var str = (!(typeof SRDotDX.zoneRaidRegex[document.FPXRaidFilterForm.FPXRaidBossNameFilter.value]==='undefined')?SRDotDX.zoneRaidRegex[document.FPXRaidFilterForm.FPXRaidBossNameFilter.value]:document.FPXRaidFilterForm.FPXRaidBossNameFilter.value);
+				
+				var re = new RegExp(str, "i");
 				var p_re = new RegExp(document.FPXRaidFilterForm.FPXPostedNameFilter.value, "i");
 				
 				for(i=0; i< raidList.length; i++)
@@ -2331,6 +2333,17 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 				SRDotDX.gui.toggleRaid("visited",r.id,true);
 				SRDotDX.gui.raidListItemUpdate(r.id);
 			}
+		},
+		zoneRaidRegex:{
+			z1: 'horgrak|mazalu|grune',
+			z2: 'ataxes|alice|lurking',
+			z3: 'briareus|scylla|gravlok|erebus',
+			z4: 'bloodmane|kerberos|hydra|cai|tyranthius',
+			z5: 'ironclad|zombie|stein|bogstench|nalagarst',
+			z6: 'gunnar|nidhogg|kang|ulfrik|kalaxia',
+			z7: 'maraak|erakka|wexxa|guilbert|bellarius',
+			z8: 'hargamesh|grimsly|rift|sisters|mardachus',
+			z9: 'mesyra|nimrod|phaedra|tenebra|valanazes'
 		},
 		raids: {
 			agony:{name: 'Agony', shortname: 'Agony',  id: 'agony', stat: 'H', size:100, duration:168, health: [700000000,875000000,1120000000,1400000000,,]},
