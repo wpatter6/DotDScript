@@ -879,13 +879,12 @@ function main() {
 								bossStr += bossArray[i];
 							}
 							finalOutput[0] = finalOutput[0] + bossStr;
-							var timer = 500, ttw=1600;
+							var timer = 500, ttw=3000;
 							for(var i=0; i<finalOutput.length; i++){
 								if(!SRDotDX.gui.doPosting) break;
 								var link = finalOutput[i];
-								if((i+1)%10==0)timer+=5000;
 								(function(param1) {return setTimeout(function() {if(!SRDotDX.gui.doPosting)return; SRDotDX.gui.FPXdoWork(param1, SRDotDX.config.whisperSpam, SRDotDX.config.whisperTo);},timer); })(link);
-								timer+=ttw+Math.floor(Math.random()*1500);								
+								timer+=ttw;								
 							}
 						}
 					}
@@ -934,14 +933,12 @@ function main() {
 						document.FPXRaidSpamForm.FPXRaidSpamInput.value="";
 						var patt = new RegExp("http...www.kongregate.com.games.5thPlanetGames.dawn.of.the.dragons.[\\w\\s\\d_=&]+[^,]", "ig");
 						var link;
-						var timer=500,ttw=1600,i=1;
+						var timer=500,ttw=3000;
 						
 						while((link = patt.exec(linklist)) && SRDotDX.gui.doPosting)
 						{
-							if(i%10==0)timer+=5000;
 							(function(param1) {return setTimeout(function() {if(!SRDotDX.gui.doPosting)return; SRDotDX.gui.FPXdoWork(SRDotDX.gui.FPXformatRaidOutput(param1), SRDotDX.config.whisperSpam, SRDotDX.config.whisperTo);},timer); })(link);
-							timer+=ttw+Math.floor(Math.random()*1500);
-							i+=1;
+							timer+=ttw;
 						}
 					}
 					setTimeout(function() {						
