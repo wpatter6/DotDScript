@@ -762,6 +762,8 @@ function main() {
 			},
 			FPXimportRaids: function(){
 				var linklist=document.FPXRaidSpamForm.FPXRaidSpamInput.value;
+				var total = document.getElementById('raid_list').childNodes.length;
+				var imct = 0;
 				if(linklist.length>10)
 				{
 					document.FPXRaidSpamForm.FPXRaidSpamInput.value="";
@@ -770,8 +772,11 @@ function main() {
 					
 					while(link = patt.exec(linklist))
 					{
+						imct++;
 						SRDotDX.getRaidDetails(String(link), 'Direct import', SRDotDX.config.markImportedVisited, SRDotDX.config.markImportedVisited);
 					}
+					var diff = document.getElementById('raid_list').childNodes.length - total;
+					document.getElementById('FPXImportCount').innerHTML = 'Import complete, ' + diff + ' of ' + imct + ' new raids.';
 				}
 			},
 			deleteRaid: function (ele,id) {
@@ -1382,7 +1387,8 @@ function main() {
 													<input name="Submit2"  type="submit" tabIndex="-1" value="Import to Raid Tab" onClick="SRDotDX.gui.FPXimportRaids();return false;"/> (<a href="#" onclick="return false" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will add any new raids in the share box below to the raid tab.\');">?</a>)\
 													<input name="Submit3"  type="submit" tabIndex="-1" value="Refresh Raid Tab" onClick="SRDotDX.gui.FPXdeleteAllRaids();SRDotDX.gui.FPXimportRaids();return false;"/>(<a href="#" onclick="return false" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids on the raid tab and refresh the data with any raids in the share box below.\');">?</a>)<br> \
 													<input name="Submit4" type="submit" tabIndex="-1" value="Import Pastebin" onClick="SRDotDX.gui.FPXImportPasteBin();return false;"> <input type="text" id="SRDotDX_FPX_ImportPastebin"><br> \
-													<input type="checkbox" id="SRDotDX_options_markImportedRaidsVisited"> Mark imported raids visited \
+													<input type="checkbox" id="SRDotDX_options_markImportedRaidsVisited"> Mark imported raids visited <br> \
+													<span id="FPXImportCount">&nbsp;</span> \
 												<hr></div> \
 											</div> \
 											<textarea id="FPXRaidSpamTA" name="FPXRaidSpamInput" ></textarea><br> \
