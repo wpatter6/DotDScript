@@ -1,10 +1,10 @@
-// ==UserScript==
-// @name           SRDotDX - wpatter6
+﻿// ==UserScript==
+// @name           SRDotDX - wpatter6/JHunz
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        0.1.3
-// @date           07.08.2012
+// @version        0.1.5
+// @date           08.14.2012
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
 // ==/UserScript==
@@ -174,7 +174,7 @@ function main() {
 			clip: null,
 			initialized: false
 		},
-		version: {major: "0.1.4", minor: "wpatter6"},
+		version: {major: "0.1.5", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -784,16 +784,20 @@ function main() {
 					delete SRDotDX.config.raidList[id];
 				}
 				setTimeout(function(ele) {
-					var e = ele.nextSibling;
-					while (e) {
-						if (e.getAttribute("style").indexOf('background-color:#e0e0e0') > -1) {
-							e.setAttribute("style","");
-						}
-						else {
-							e.setAttribute("style",'background-color:#e0e0e0');
-						}
-						e = e.nextSibling;
-					}
+					
+					// Commenting out the grey-white re-arranging code since with filtering enabled it looks funky anyway, and it's slow
+
+					//var e = ele.nextSibling;
+					//while (e) {
+					//	if (e.getAttribute("style").indexOf('background-color:#e0e0e0') > -1) {
+					//		e.setAttribute("style","");
+					//	}
+					//	else {
+					//		e.setAttribute("style",'background-color:#e0e0e0');
+					//	}
+					//	e = e.nextSibling;
+					//}
+
 					//delete the element
 					ele.parentNode.removeChild(ele);
 				},1,ele.parentNode.parentNode.parentNode)
@@ -1128,6 +1132,26 @@ function main() {
 				}
 				console.log("[SRDotDX] Finished deleting hidden raids");
 			},
+			DeleteUnvisitedRaids: function () {
+				console.log("[SRDotDX] Deleting unvisited raids");
+				var raidList = document.getElementById('raid_list').childNodes;
+
+				for(i=0; i<raidList.length; i+=1) {
+					var item = raidList[i];
+	
+					var raidid = item.getAttribute("raidid");
+					
+					if (SRDotDX.config.raidList[raidid]) {
+						try {
+							var raid = SRDotDX.config.raidList[raidid];
+							if (!raid.visited) {
+								console.log("[SRDotDX] Deleting raid " + raidid);
+								SRDotDX.gui.deleteRaid(item.getElementsByClassName("FPXDeleteLink")[0], raidid);
+							}
+						} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
+					}
+				}
+			},
 			DeleteVisibleRaids: function () {
 				console.log("[SRDotDX] Deleting visible raids");
 				var raidList=document.getElementById('raid_list').childNodes,raidName;
@@ -1325,6 +1349,7 @@ function main() {
 											<input name="QuickDump" tabIndex="-1" type="button" value="Quick Share Visible Raids" onClick="SRDotDX.gui.DumpVisibleRaidsToShare();SRDotDX.gui.FPXspamRaids();return false;"/> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will immediately begin posting all visible raids in the order shown.\');">?</a>) <br>\
 											<input name="DeleteVisible" tabIndex="-1" type="button" value="Delete All Visible Raids" onClick="SRDotDX.gui.DeleteVisibleRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids currently visible.\');">?</a>) <br>\
 											<input name="DeleteHidden" tabIndex="-1" type="button" value="Delete All Hidden Raids" onClick="SRDotDX.gui.DeleteHiddenRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids that are currently not visible.\');">?</a>) <br>\
+											<input name="DeleteUnvisited" tabIndex="-1" type="button" value="Delete All Unvisited Raids" onClick="SRDotDX.gui.DeleteUnvisitedRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids that you have not visited.\');">?</a>) <br>\
 										</div> \
 									</div> \
 									<div id="SRDotDX_clipboard"><span id="SRDotDX_clipboardButton"></span></div> \
