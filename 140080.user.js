@@ -880,7 +880,7 @@ function main() {
 								bossStr += bossArray[i];
 							}
 							finalOutput[0] = finalOutput[0] + bossStr;
-							var timer = 500, ttw=2500;
+							var timer = 500, ttw=3000;
 							for(var i=0; i<finalOutput.length; i++){
 								if(!SRDotDX.gui.isPosting) break;
 								var link = finalOutput[i];
@@ -938,7 +938,7 @@ function main() {
 							document.FPXRaidSpamForm.FPXRaidSpamInput.value="";
 							var patt = new RegExp("http...www.kongregate.com.games.5thPlanetGames.dawn.of.the.dragons.[\\w\\s\\d_=&]+[^,]", "ig");
 							var link, i=0;
-							var timer=500,ttw=2500;
+							var timer=500,ttw=3000;
 							
 							while((link = patt.exec(linklist)) && SRDotDX.gui.isPosting)
 							{
