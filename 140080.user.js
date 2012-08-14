@@ -1,4 +1,4 @@
-// ==UserScript==
+﻿// ==UserScript==
 // @name           SRDotDX - wpatter6/JHunz
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
@@ -1780,7 +1780,7 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 								parentTable.attach('to','FPXRaidFilterWhatPersonal');
 							} else if (raid.stat == 'H' || raid.stat == 'h') {
 								parentTable.attach('to','FPXRaidFilterWhatGuild');
-							} else if (raid.size == 10) {
+							} else if (raid.size == 10 || raid.size == 13) {
 								parentTable.attach('to','FPXRaidFilterWhatSmall');
 							} else if (raid.size == 50) {
 								parentTable.attach('to','FPXRaidFilterWhatMedium');
