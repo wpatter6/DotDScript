@@ -884,28 +884,33 @@ function main() {
 							for(var i=0; i<finalOutput.length; i++){
 								if(!SRDotDX.gui.isPosting) break;
 								var link = finalOutput[i];
-								(function(param1) {return setTimeout(function() {if(!SRDotDX.gui.isPosting)return; SRDotDX.gui.FPXdoWork(param1, SRDotDX.config.whisperSpam, SRDotDX.config.whisperTo);},timer); })(link);
+								(function(param1) {return SRDotDX.gui.FPXTimerArray[i]=setTimeout(function() {if(!SRDotDX.gui.isPosting)return; SRDotDX.gui.FPXdoWork(param1, SRDotDX.config.whisperSpam, SRDotDX.config.whisperTo);},timer); })(link);
 								timer+=ttw;								
 							}
 						}
 					}
-					setTimeout(function() {	SRDotDX.gui.FPXEndPosting();console.log("[SRDotDX]::{FPX}:: Pretty post finished"); },timer);
+					SRDotDX.gui.FPXTimerArray[SRDotDX.gui.FPXTimerArray.length] = setTimeout(function() {	SRDotDX.gui.FPXEndPosting();console.log("[SRDotDX]::{FPX}:: Pretty post finished"); },timer);
 					
 				}catch(error){console.log("[SRDotDX]::{FPX}::ERROR:: "+error);}
 			},
 			isPosting:false,
+			FPXTimerArray: [],
 			FPXStopPosting: function(){
 				SRDotDX.gui.FPXEndPosting();
 				console.log("[SRDotDX]::{FPX}:: SPAMMER CANCELLED...");
 				SRDotDX.echo('Raid posting cancelled');
 			},
 			FPXEndPosting: function(){
+				for(var i=0;i<SRDotDX.gui.FPXTimerArray.length;i++){
+					clearTimeout(SRDotDX.gui.FPXTimerArray[i]);
+				}
 				SRDotDX.gui.isPosting = false;
 				document.FPXRaidSpamForm.Submit.disabled=false;
 				document.FPXRaidSpamForm.Submit1.disabled=true;
 				document.FPXRaidSpamForm.Submit2.disabled=false;
 				document.FPXRaidSpamForm.Submit3.disabled=false;
 				document.getElementById("FPXShareTab").innerHTML="Share";
+				SRDotDX.gui.FPXTimerArray = [];
 			},
 			FPXStartPosting: function() {
 				SRDotDX.gui.isPosting = true;
@@ -932,16 +937,17 @@ function main() {
 						{
 							document.FPXRaidSpamForm.FPXRaidSpamInput.value="";
 							var patt = new RegExp("http...www.kongregate.com.games.5thPlanetGames.dawn.of.the.dragons.[\\w\\s\\d_=&]+[^,]", "ig");
-							var link;
+							var link, i=0;
 							var timer=500,ttw=2500;
 							
 							while((link = patt.exec(linklist)) && SRDotDX.gui.isPosting)
 							{
-								(function(param1) {return setTimeout(function() {if(!SRDotDX.gui.isPosting)return; SRDotDX.gui.FPXdoWork(SRDotDX.gui.FPXformatRaidOutput(param1), SRDotDX.config.whisperSpam, SRDotDX.config.whisperTo);},timer); })(link);
+								(function(param1) {return SRDotDX.gui.FPXTimerArray[i]=setTimeout(function() {if(!SRDotDX.gui.isPosting)return; SRDotDX.gui.FPXdoWork(SRDotDX.gui.FPXformatRaidOutput(param1), SRDotDX.config.whisperSpam, SRDotDX.config.whisperTo);},timer); })(link);
 								timer+=ttw;
+								i++;
 							}
 						}
-						setTimeout(function() {	SRDotDX.gui.FPXEndPosting(); console.log("[SRDotDX]::{FPX}:: SPAMMER FINISHED..."); },timer);
+						SRDotDX.gui.FPXTimerArray[SRDotDX.gui.FPXTimerArray.length]=setTimeout(function() {	SRDotDX.gui.FPXEndPosting(); console.log("[SRDotDX]::{FPX}:: SPAMMER FINISHED..."); },timer);
 					}catch(error)
 					{
 						console.log("[SRDotDX]::{FPX}::ERROR:: "+error);
