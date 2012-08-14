@@ -1,0 +1,105 @@
+This is a fork of the ForceProjectX Easier DotD script with some additional features for raiding and raid sharing.
+<br/>
+His script is <a href="http://userscripts.org/scripts/show/132408">here</a>, and SReject's original version is <a href="http://userscripts.org/scripts/show/129700">here</a>.  I've taken much of his description as well.
+<br/><br/>
+<h3><b>About</b></h3>
+<p><b>What it Does</b>:<br />
+This script makes interactions between Kong and Dawn of the Dragons easier in a number of ways.<br /><b>1:</b> It customizes the way raid links are displayed so instead of getting the DOTD image and name you get information about the raid such as raid name, difficulty, fair share, optimal share and more!<br /><b>2:</b> Allows for certain raids to be hidden, such as those seen before, those you have already clicked on, or all raids.<br /><b>3:</b> Adds a tab to kongregate&#39;s chat to make toggling options easier and to view the raids you have seen posted in chat.<br /><b>4:</b> Adds a few commands to the chat input box to make things a little easier. These commands include, /clear, /toggle, /raid, and many more :D<br /><br /><b>What&#39;s On This Page</b>:<br />
+			
+Changelog: Information about script updates.<br/>
+Installation: Information on how to install the script.<br />
+Chat Commands: These are commands that can be used in chat<br />
+Contact Me: A list of ways to contact me for whatever reasons<br />
+&nbsp;</p>
+<h3><b>Changelog</b></h3><p>
+<b>0.1.5</b>
+1) Prince Obyron's health values have been corrected
+2) A button has been added to delete all unvisited raids
+<!-- TODO -->
+<b>0.1.0</b>
+<br/>
+1) Raid info has been added for the world raid Corrupted Erebus, and updated for Kessov Castle and Echthros.<br/>
+2) FS/OS information for Dragon's Lair has been updated to accurately reflect the damage tiers.<br/>
+3) A new option has been added to allow filtering of visited raids in the raid list.<br/>
+4) Per-raid filtering has now been enhanced to allow filtering by raid and difficulty, instead of simply by raid.<br/>
+5) A new command has been added.  <code>/spit [raid id]</code> to show your disdain for a Lord Tyranthius, Sir Cai, or Mazalu.<br/>
+6) Mark visited on right click functionality has been updated so that all right clicks obey the right click delay parameter.  A bug preventing changes to this parameter has also been fixed.<br/>
+7) Added an option to display new raids at the top of the raid list rather than the bottom.<br/>
+8) A raid's difficulty is now displayed (color-coded) in the header of its listing in the raid list<br/>
+9) Fixed a bug with strange behavior when pressing tab in the chatbox in Chrome or Opera
+<br/><br/>
+
+<b>0.0.9</b>
+<br/>
+1) A filtering tab has been added which allows you to select which raids you want to be filtered out.  You can choose the filtering to be on or off for each individual raid, and select whether you want to filter for chat links and/or the raid list tab.
+<br/>
+2) I've added a button on the raid list tab titled "Dump Raids to Share", which takes the list of currently visible raids in the raid list, and dumps all of the links to the Share Raids tab, ready to share out.
+<br/></p>
+
+<h3><b>Installation</b></h3><p><b>Google Chrome</b>:<br />
+Click the green button that says &quot;Install&quot; at the top right of the screen then refresh the DotD Page<br />
+<b>Note:</b> Newer versions of Chrome may give you an error stating that extensions may only be installed from the Chrome Webstore.  If you get this error, you will need to use the following steps instead:<br/>1) Download the userscript to your computer<br/>2) Open the url chrome://chrome/extensions/<br/>3)Drag the saved .user.js file and drop it to the page above.<br/><br />
+<b>Firefox</b>:<br />
+You need <a href="https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/">Grease Monkey for Firefox</a> before installing this script.<br />
+Click the green button that says &quot;Install&quot; at the top right of your screen then refresh the DotD Page<br /><br /><b>Opera</b>:<br />
+If you haven&#39;t done so, you will need to setup a userscript directory in Opera before you can install this script:<br /><b>Mac Users</b>: Click O Menu &gt; Preferences &gt; Advanced &gt; Content &gt; JavaScript Options<br /><b>Windows &amp; *nix</b>: Click O Menu &gt; Settings &gt; Preferences &gt; Advanced &gt; Content &gt; JavaScript options<br />
+Select the directory where you will put your User JavaScript files.<br /><br />
+Right Click the green button that says &quot;Install&quot; at the top right of this page<br />
+Click &quot;Save Target As&quot; and save the file as SRDOTDXJHunz.user.js in your user script directory<br />
+Reload Opera<br /><br /><b>Internet Explorer</b>:<br />
+Get a better browser that support userscripts, then follow the instructions above for the appropriate browser.<br /><br />
+&nbsp;</p>
+<h3><b>Chat Commands</b></h3><p><b>Command</b>: <code>/clear</code><br />
+Clears the currently active chat window<br /><i>Example: /clear</i><br /><br /><b>Command</b>: <code>/version</code><br />
+Displays current script version information<br /><i>Example: /version</i><br /><br /><b>Command</b>: <code>/update</code><br />
+Download and Installs latest version of script<br /><i>Example: /update</i><br /><br /><b>Command</b>: <code>/reload</code><br />
+Reloads the game without refreshing the page<br /><i>Example: /reload</i><br /><br /><b>Command</b>: <code>/lr [raidurl]</code><br /><b>Command</b>: <code>/loadraid [raidurl]</code><br />
+Loads the specified raid url without refreshing the page<br /><i>Example: /lr <a href="http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons?kv_action_type=raidhelp&amp;amp;amp;kv_difficulty=4&amp;amp;amp;kv_hash=rY98Mv05p5&amp;amp;amp;kv_raid_boss=batman&amp;amp;amp;kv_raid_id=5839">http://www.kongregate.com/games/5thPlanetGames/...</a></i><br /><br /><b>Command</b>: <code>/toggle</code><br />
+Displays if seen and visited raids are shown/hidden<br /><i>Example: /toggle</i><br /><br /><b>Command</b>: <code>/toggle [seen|visited]</code><br />
+Displays if seen/visited raids are shown/hidden<br /><i>Example: /toggle seen</i><br /><br /><b>Command</b>: <code>/toggle [seen|visited] [show|hide]</code><br />
+Sets seen/visited raids to shown or hidden<br /><i>Example: /toggle seen show</i><br /><br /><b>Command</b>: <code>/raid [raidname]</code><br />
+Displays information about the specified raid<br /><code>[raidname]</code> can be a partial name of a raid. Information will be displayed for each matching raid<br /><i>Example: /raid tele</i><br /><br /><b>Command</b>: <code>/raid [raidname] [difficulty]</code><br />
+Displays information about the specified raid at the specified difficulty<br /><code>[raidname]</code> can be a partial name of a raid. Information will be displayed for each matching raid<br /><code>[difficulty]</code> is a number between 1 and 4, where 1 is normal, 2 is hard, 3 is legendary and 4 is nightmare<br /><i>Example: /raid tele 4</i><br /><br /><b>Command</b>: <code>/raidformat [on|off]</code><br />
+Toggles raid link formatting on or off<br /><i>Example: <code>/raidformat on</code></i><br /><br />
+<b>Command</b>: <code>/spit [raid id]</code><br />
+Generates a message showing your disdain for the cruddy raid someone has posted.<br /><i>Example:<code>/spit 608926</code></i><br/><br/>
+<b>Command</b>: <code>/raidformat [format]</code><br />
+Changes your current raid format to the one you specify<br /><i>Example: <code>/raidformat &lt;visited:(v) &gt;&lt;name&gt; - &lt;diff&gt; &lt;fs&gt;/&lt;os&gt;</code></i><br />
+&nbsp;</p><table><tr><th>
+Tag name</th><th>
+Description</th></tr><tr><td><center><code>&lt;seen:text&gt;</code></center></td><td>
+If a raid has been seen before, &quot;text&quot; will be displayed</td></tr><tr><td><center><code>&lt;visited:text&gt;</code></center></td><td>
+If a raid has been visited before, &quot;text&quot; will be displayed</td></tr><tr><td><center><code>&lt;image&gt;</code></center></td><td>
+Displays the Legacy of a Thousand Suns&#39; icon</td></tr><tr><td><center><code>&lt;name&gt;</code></center></td><td>
+Display&#39;s the raid boss&#39;s name</td></tr><tr><td><code>&lt;shortname&gt;</code></td><td>
+Display&#39;s the short version of raid boss&#39;s name (eg. Erebus instead of Erebus the Black)</td></tr><tr><td><center><code>&lt;diff&gt;</code></center></td><td>
+Displays the raid&#39;s difficulty in short format(&quot;N&quot; for normal, &quot;H&quot; for hard, and so on)</td></tr><tr><td><center><code>&lt;diff:num&gt;</code></center></td><td>
+Displays the raid&#39;s difficulty in number format(&quot;1&quot; for normal, &quot;2&quot; for hard, and so on)</td></tr><tr><td><center><code>&lt;diff:long&gt;</code></center></td><td>
+Displays the raid&#39;s difficulty in long format(&quot;Normal&quot; for normal, &quot;Hard&quot; for hard, and so on)</td></tr><tr><td><center><code>&lt;size&gt;</code></center></td><td>
+Displays the maximum amount of players that can hit the raid</td></tr><tr><td><center><code>&lt;dur&gt;</code></center></td><td>
+Displays the maximum duration the raid will last(ie: 72hrs)</td></tr><tr><td><center><code>&lt;dur:num&gt;</code></center></td><td>
+Displays the maximum duration but without &quot;hrs&quot; appended to it</td></tr><tr><td><center><code>&lt;stat&gt;</code></center></td><td>
+Displays what stats can be used to hit the raid in short format(&quot;S&quot; for stamina, &quot;H&quot; for Honor, &quot;E&quot; for Energy)</td></tr><tr><td><center><code>&lt;stat&gt;</code></center></td><td>
+Displays what stats can be used to hit the raid in long format(&quot;Stamina&quot;, &quot;Honor&quot;, &quot;Energy&quot;)</td></tr><tr><td><center><code>&lt;health&gt;</code></center></td><td>
+Displays the maximum health for the raid</td></tr><tr><td><center><code>&lt;health:num&gt;</code></center></td><td>
+Displays the maximum health for a raid as a number</td></tr><tr><td><center><code>&lt;fs&gt;</code></center></td><td>
+Displays fair share for the raid</td></tr><tr><td><center><code>&lt;fs:Num&gt;</code></center></td><td>
+Displays fair share for the raid as a number</td></tr><tr><td><center><code>&lt;os&gt;</code></center></td><td>
+Displays optimal share for the raid</td></tr><tr><td><center><code>&lt;os:Num&gt;</code></center></td><td>
+Displays optimal share for the raid as a number</td></tr><tr><td><center><code>&lt;bossId&gt;</code></center></td><td>
+Displays the bossId taken from kv_raid_boss=... in the raid link</td></tr><tr><td><center><code>&lt;raidId&gt;</code></center></td><td>
+Displays the raid link&#39;s unique Id.</td></tr><tr><td><center><code>&lt;hash&gt;</code></center></td><td>
+Displays the raid link&#39;s hash code.</td></tr></tbody></table><br /><br />
+</p>
+<h3><b>Contact Me</b></h3><p>
+If you wish to contact me for any reason about this script, please do so on Kongregate.<br/>
+I use the name JHunz there as well, feel free to send me a PM.  Or, if I'm online and playing DotD, you can find me in chat room 5.</p>
+<h3><b>To-Do List</b></h3><p>
+* I've been thinking about various forms of export functionality.  CSV export would be nice, and some sort of web export/import would be <b>really</b> nice.<br/>
+* I've noticed some performance issues with the new version, especially upon loading the page.  I'm not sure what I did, but I'll work on fixing it.<br/>
+* It would be cool if any raids bounced back by the Kong bot during raid spamming were automatically re-queued for sending<br/>
+* Sorting options for the raid list<br/>
+* Some way to delete multiple raids at a time without deleting all<br/>
+* Searching the raid list by poster name<br/>
+* Auto-delete after x hours functionality<br/>
+* Clipboard listener functionality to add a raid to script as visited automatically as soon as rallying cry is clicked (See http://code.google.com/p/js-clipboard/downloads/detail?name=clipboard.js&can=2&q=)<br/>
