@@ -13,8 +13,48 @@ Contact Me: A list of ways to contact me for whatever reasons<br />
 &nbsp;</p>
 <h3><b>Changelog</b></h3><p>
 <b>0.1.5</b>
+<br/>
 1) Prince Obyron's health values have been corrected
 2) A button has been added to delete all unvisited raids
+
+<br/>
+<b>0.1.4</b>
+<br/>
+1) Reorganized UI options 
+2) Gives a count of the number of new raids when importing. 
+3) Changed so it won't get blocked by kong chat spam filter
+4) Can now filter by raid zone (ex: "z9" will show all quest zone 9 raids) 
+5) Added "/stop" command to cancel posting from chat window.
+
+<br/>
+
+<b>0.1.3</b> 
+<br/>
+1) Direct raid importing added with some features 
+2) Direct import from pastebin url 
+3) Allows whisper to specified user 
+4) Added option to automatically sort and count raids when posting. 
+5) Added multiple sorting options to the raid tab 
+6) Added buttons on Share tab, Import will add the list to the raid tab, Refresh will clear raid tab and add list of raids. 
+7) Added buttons in the raid actions section of the raid list tab to delete all visible or hidden raids to help clear unwanted raids and improve performance. 
+8) Filtering slowness fixed 
+
+<b>0.1.2</b>
+<br/>
+1) More advanced filtering options 
+2) Quick share button on raid tab 
+3) Delete visible raids button on raid tab 
+4) Delete and repost on share raids tab 
+5) Option to format spammed raid links to show raid short name and difficulty
+
+<b>0.1.1</b>
+<br/>
+1) Tracking time when the raid was added on each raid 
+2) Tracking on the room the raid was added in 
+3) Added one click copy button (and option to enable/disable on options tab, works in FireFox only) 
+4) Added quick link to raid tab (and option to enable/disable on options tab) 
+5) Added option to mark raids posted by me as visited
+
 <!-- TODO -->
 <b>0.1.0</b>
 <br/>
