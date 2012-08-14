@@ -105,6 +105,8 @@ Toggles raid link formatting on or off<br /><i>Example: <code>/raidformat on</co
 Generates a message showing your disdain for the cruddy raid someone has posted.<br /><i>Example:<code>/spit 608926</code></i><br/><br/>
 <b>Command</b>: <code>/raidformat [format]</code><br />
 Changes your current raid format to the one you specify<br /><i>Example: <code>/raidformat &lt;visited:(v) &gt;&lt;name&gt; - &lt;diff&gt; &lt;fs&gt;/&lt;os&gt;</code></i><br />
+<b>Command</b>: <code>/stop</code><br />
+Cancels raid posting. <br /><i>Example: <code>/stop</code></i><br />
 &nbsp;</p><table><tr><th>
 Tag name</th><th>
 Description</th></tr><tr><td><center><code>&lt;seen:text&gt;</code></center></td><td>
