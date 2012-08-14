@@ -1,10 +1,10 @@
 // ==UserScript==
-// @name           SRDotDX - wpatter6
+// @name           SRDotDX - wpatter6/JHunz
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        0.1.3
-// @date           07.08.2012
+// @version        0.1.5
+// @date           08.14.2012
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
 // ==/UserScript==
@@ -174,7 +174,7 @@ function main() {
 			clip: null,
 			initialized: false
 		},
-		version: {major: "0.1.4", minor: "wpatter6"},
+		version: {major: "0.1.5", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -785,16 +785,16 @@ function main() {
 					delete SRDotDX.config.raidList[id];
 				}
 				setTimeout(function(ele) {
-					var e = ele.nextSibling;
-					while (e) {
-						if (e.getAttribute("style").indexOf('background-color:#e0e0e0') > -1) {
-							e.setAttribute("style","");
-						}
-						else {
-							e.setAttribute("style",'background-color:#e0e0e0');
-						}
-						e = e.nextSibling;
-					}
+					//var e = ele.nextSibling;
+					//while (e) {
+					//	if (e.getAttribute("style").indexOf('background-color:#e0e0e0') > -1) {
+					//		e.setAttribute("style","");
+					//	}
+					//	else {
+					//		e.setAttribute("style",'background-color:#e0e0e0');
+					//	}
+					//	e = e.nextSibling;
+					//}
 					//delete the element
 					ele.parentNode.removeChild(ele);
 				},1,ele.parentNode.parentNode.parentNode)
@@ -1127,6 +1127,26 @@ function main() {
 					} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
 				}
 				console.log("[SRDotDX] Finished deleting hidden raids");
+			},		
+			DeleteUnvisitedRaids: function () {
+				console.log("[SRDotDX] Deleting unvisited raids");
+				var raidList = document.getElementById('raid_list').childNodes;
+
+				for(i=0; i<raidList.length; i+=1) {
+					var item = raidList[i];
+	
+					var raidid = item.getAttribute("raidid");
+					
+					if (SRDotDX.config.raidList[raidid]) {
+						try {
+							var raid = SRDotDX.config.raidList[raidid];
+							if (!raid.visited) {
+								console.log("[SRDotDX] Deleting raid " + raidid);
+								SRDotDX.gui.deleteRaid(item.getElementsByClassName("FPXDeleteLink")[0], raidid);
+							}
+						} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
+					}
+				}
 			},
 			DeleteVisibleRaids: function () {
 				console.log("[SRDotDX] Deleting visible raids");
