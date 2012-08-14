@@ -893,7 +893,7 @@ function main() {
 					
 				}catch(error){console.log("[SRDotDX]::{FPX}::ERROR:: "+error);}
 			},
-			isPosting:true,
+			isPosting:false,
 			FPXStopPosting: function(){
 				SRDotDX.gui.FPXEndPosting();
 				console.log("[SRDotDX]::{FPX}:: SPAMMER CANCELLED...");
