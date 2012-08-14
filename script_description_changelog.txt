@@ -14,47 +14,47 @@ Contact Me: A list of ways to contact me for whatever reasons<br />
 <h3><b>Changelog</b></h3><p>
 <b>0.1.5</b>
 <br/>
-1) Prince Obyron's health values have been corrected
-2) A button has been added to delete all unvisited raids
+1) Prince Obyron's health values have been corrected<br/>
+2) A button has been added to delete all unvisited raids<br/>
 
-<br/>
+<br/><br/>
 <b>0.1.4</b>
 <br/>
-1) Reorganized UI options 
-2) Gives a count of the number of new raids when importing. 
-3) Changed so it won't get blocked by kong chat spam filter
-4) Can now filter by raid zone (ex: "z9" will show all quest zone 9 raids) 
-5) Added "/stop" command to cancel posting from chat window.
+1) Reorganized UI options <br/>
+2) Gives a count of the number of new raids when importing. <br/>
+3) Changed so it won't get blocked by kong chat spam filter<br/>
+4) Can now filter by raid zone (ex: "z9" will show all quest zone 9 raids) <br/>
+5) Added "/stop" command to cancel posting from chat window.<br/>
 
-<br/>
+<br/><br/>
 
 <b>0.1.3</b> 
 <br/>
-1) Direct raid importing added with some features 
-2) Direct import from pastebin url 
-3) Allows whisper to specified user 
-4) Added option to automatically sort and count raids when posting. 
-5) Added multiple sorting options to the raid tab 
-6) Added buttons on Share tab, Import will add the list to the raid tab, Refresh will clear raid tab and add list of raids. 
-7) Added buttons in the raid actions section of the raid list tab to delete all visible or hidden raids to help clear unwanted raids and improve performance. 
-8) Filtering slowness fixed 
-
+1) Direct raid importing added with some features <br/>
+2) Direct import from pastebin url <br/>
+3) Allows whisper to specified user <br/>
+4) Added option to automatically sort and count raids when posting. <br/>
+5) Added multiple sorting options to the raid tab <br/>
+6) Added buttons on Share tab, Import will add the list to the raid tab, Refresh will clear raid tab and add list of raids.<br/>
+7) Added buttons in the raid actions section of the raid list tab to delete all visible or hidden raids to help clear unwanted raids and improve performance. <br/>
+8) Filtering slowness fixed <br/>
+<br/><br/>
 <b>0.1.2</b>
 <br/>
-1) More advanced filtering options 
-2) Quick share button on raid tab 
-3) Delete visible raids button on raid tab 
-4) Delete and repost on share raids tab 
-5) Option to format spammed raid links to show raid short name and difficulty
-
+1) More advanced filtering options <br/>
+2) Quick share button on raid tab <br/>
+3) Delete visible raids button on raid tab <br/>
+4) Delete and repost on share raids tab <br/>
+5) Option to format spammed raid links to show raid short name and difficulty<br/>
+<br/><br/>
 <b>0.1.1</b>
 <br/>
-1) Tracking time when the raid was added on each raid 
-2) Tracking on the room the raid was added in 
-3) Added one click copy button (and option to enable/disable on options tab, works in FireFox only) 
-4) Added quick link to raid tab (and option to enable/disable on options tab) 
-5) Added option to mark raids posted by me as visited
-
+1) Tracking time when the raid was added on each raid <br/>
+2) Tracking on the room the raid was added in <br/>
+3) Added one click copy button (and option to enable/disable on options tab, works in FireFox only) <br/>
+4) Added quick link to raid tab (and option to enable/disable on options tab) <br/>
+5) Added option to mark raids posted by me as visited<br/>
+<br/><br/>
 <!-- TODO -->
 <b>0.1.0</b>
 <br/>
