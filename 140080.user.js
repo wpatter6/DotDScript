@@ -1,4 +1,4 @@
-﻿// ==UserScript==
+// ==UserScript==
 // @name           SRDotDX - wpatter6/JHunz
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
@@ -762,14 +762,15 @@ function main() {
 			},
 			FPXimportRaids: function(){
 				var linklist=document.FPXRaidSpamForm.FPXRaidSpamInput.value;
-				var total = document.getElementById('raid_list').childNodes.length;
-				var imct = 0;
+				
 				if(linklist.length>10)
 				{
 					document.FPXRaidSpamForm.FPXRaidSpamInput.value="";
 					var patt = new RegExp("http...www.kongregate.com.games.5thPlanetGames.dawn.of.the.dragons.[\\w\\s\\d_=&]+[^,]", "ig");
 					var link;
+					var imct = 0;
 					
+				var total = document.getElementById('raid_list').childNodes.length;
 					while(link = patt.exec(linklist))
 					{
 						imct++;
@@ -784,9 +785,6 @@ function main() {
 					delete SRDotDX.config.raidList[id];
 				}
 				setTimeout(function(ele) {
-					
-					// Commenting out the grey-white re-arranging code since with filtering enabled it looks funky anyway, and it's slow
-
 					//var e = ele.nextSibling;
 					//while (e) {
 					//	if (e.getAttribute("style").indexOf('background-color:#e0e0e0') > -1) {
@@ -797,7 +795,6 @@ function main() {
 					//	}
 					//	e = e.nextSibling;
 					//}
-
 					//delete the element
 					ele.parentNode.removeChild(ele);
 				},1,ele.parentNode.parentNode.parentNode)
@@ -840,12 +837,7 @@ function main() {
 			FPXprettyPost: function () {
 				console.log("[SRDotDX]::{FPX}:: Pretty post...");
 				try
-				{						
-					document.FPXRaidSpamForm.Submit.disabled=true;
-					document.FPXRaidSpamForm.Submit1.disabled=false;
-					document.FPXRaidSpamForm.Submit2.disabled=true;
-					document.FPXRaidSpamForm.Submit3.disabled=true;
-					document.getElementById("FPXShareTab").innerHTML="Working...";
+				{
 					var linklist=document.FPXRaidSpamForm.FPXRaidSpamInput.value;
 					
 					if(linklist.length>10){
@@ -888,82 +880,73 @@ function main() {
 								bossStr += bossArray[i];
 							}
 							finalOutput[0] = finalOutput[0] + bossStr;
-							var timer = 500, ttw=3000;
+							var timer = 500, ttw=2500;
 							for(var i=0; i<finalOutput.length; i++){
-								if(!SRDotDX.gui.doPosting) break;
+								if(!SRDotDX.gui.isPosting) break;
 								var link = finalOutput[i];
-								(function(param1) {return setTimeout(function() {if(!SRDotDX.gui.doPosting)return; SRDotDX.gui.FPXdoWork(param1, SRDotDX.config.whisperSpam, SRDotDX.config.whisperTo);},timer); })(link);
+								(function(param1) {return setTimeout(function() {if(!SRDotDX.gui.isPosting)return; SRDotDX.gui.FPXdoWork(param1, SRDotDX.config.whisperSpam, SRDotDX.config.whisperTo);},timer); })(link);
 								timer+=ttw;								
 							}
 						}
 					}
-					setTimeout(function() {						
-							document.FPXRaidSpamForm.Submit.disabled=false;
-							document.FPXRaidSpamForm.Submit1.disabled=true;
-							document.FPXRaidSpamForm.Submit2.disabled=false;
-							document.FPXRaidSpamForm.Submit3.disabled=false;
-							document.getElementById("FPXShareTab").innerHTML="Share";
-							console.log("[SRDotDX]::{FPX}:: Pretty post finished");
-						},timer);
+					setTimeout(function() {	SRDotDX.gui.FPXEndPosting();console.log("[SRDotDX]::{FPX}:: Pretty post finished"); },timer);
 					
 				}catch(error){console.log("[SRDotDX]::{FPX}::ERROR:: "+error);}
 			},
-			doPosting:true,
+			isPosting:false,
 			FPXStopPosting: function(){
-				SRDotDX.gui.doPosting = false;
+				SRDotDX.gui.FPXEndPosting();
+				console.log("[SRDotDX]::{FPX}:: SPAMMER CANCELLED...");
+				SRDotDX.echo('Raid posting cancelled');
+			},
+			FPXEndPosting: function(){
+				SRDotDX.gui.isPosting = false;
 				document.FPXRaidSpamForm.Submit.disabled=false;
 				document.FPXRaidSpamForm.Submit1.disabled=true;
 				document.FPXRaidSpamForm.Submit2.disabled=false;
 				document.FPXRaidSpamForm.Submit3.disabled=false;
 				document.getElementById("FPXShareTab").innerHTML="Share";
-				console.log("[SRDotDX]::{FPX}:: SPAMMER CANCELLED...");
+			},
+			FPXStartPosting: function() {
+				SRDotDX.gui.isPosting = true;
+				document.FPXRaidSpamForm.Submit.disabled=true;
+				document.FPXRaidSpamForm.Submit1.disabled=false;
+				document.FPXRaidSpamForm.Submit2.disabled=true;
+				document.FPXRaidSpamForm.Submit3.disabled=true;
+				document.getElementById("FPXShareTab").innerHTML="Working...";
 			},
 			FPXspamRaids: function () {
 				if(SRDotDX.config.whisperSpam && ((SRDotDX.config.whisperTo||"") == "")){
 					alert("You must select a user to whisper to if whispering is selected.");
 					return false;
 				}
-				SRDotDX.gui.doPosting=true;
+				SRDotDX.gui.FPXStartPosting();
 				if(SRDotDX.config.prettyPost){
 					SRDotDX.gui.FPXprettyPost();
-					return;
-				}				
-				console.log("[SRDotDX]::{FPX}:: SPAMMER STARTED...");
-				try
-				{						
-					document.FPXRaidSpamForm.Submit.disabled=true;
-					document.FPXRaidSpamForm.Submit1.disabled=false;
-					document.FPXRaidSpamForm.Submit2.disabled=true;
-					document.FPXRaidSpamForm.Submit3.disabled=true;
-					document.getElementById("FPXShareTab").innerHTML="Working...";
-					var linklist=document.FPXRaidSpamForm.FPXRaidSpamInput.value;
-					if(linklist.length>10)
+				}else{			
+					console.log("[SRDotDX]::{FPX}:: SPAMMER STARTED...");
+					try
 					{
-						document.FPXRaidSpamForm.FPXRaidSpamInput.value="";
-						var patt = new RegExp("http...www.kongregate.com.games.5thPlanetGames.dawn.of.the.dragons.[\\w\\s\\d_=&]+[^,]", "ig");
-						var link;
-						var timer=500,ttw=3000;
-						
-						while((link = patt.exec(linklist)) && SRDotDX.gui.doPosting)
+						var linklist=document.FPXRaidSpamForm.FPXRaidSpamInput.value;
+						if(linklist.length>10)
 						{
-							(function(param1) {return setTimeout(function() {if(!SRDotDX.gui.doPosting)return; SRDotDX.gui.FPXdoWork(SRDotDX.gui.FPXformatRaidOutput(param1), SRDotDX.config.whisperSpam, SRDotDX.config.whisperTo);},timer); })(link);
-							timer+=ttw;
+							document.FPXRaidSpamForm.FPXRaidSpamInput.value="";
+							var patt = new RegExp("http...www.kongregate.com.games.5thPlanetGames.dawn.of.the.dragons.[\\w\\s\\d_=&]+[^,]", "ig");
+							var link;
+							var timer=500,ttw=2500;
+							
+							while((link = patt.exec(linklist)) && SRDotDX.gui.isPosting)
+							{
+								(function(param1) {return setTimeout(function() {if(!SRDotDX.gui.isPosting)return; SRDotDX.gui.FPXdoWork(SRDotDX.gui.FPXformatRaidOutput(param1), SRDotDX.config.whisperSpam, SRDotDX.config.whisperTo);},timer); })(link);
+								timer+=ttw;
+							}
 						}
+						setTimeout(function() {	SRDotDX.gui.FPXEndPosting(); console.log("[SRDotDX]::{FPX}:: SPAMMER FINISHED..."); },timer);
+					}catch(error)
+					{
+						console.log("[SRDotDX]::{FPX}::ERROR:: "+error);
 					}
-					setTimeout(function() {						
-							document.FPXRaidSpamForm.Submit.disabled=false;
-							document.FPXRaidSpamForm.Submit1.disabled=true;
-							document.FPXRaidSpamForm.Submit2.disabled=false;
-							document.FPXRaidSpamForm.Submit3.disabled=false;
-							document.getElementById("FPXShareTab").innerHTML="Share";
-							console.log("[SRDotDX]::{FPX}:: SPAMMER FINISHED...");
-						},timer);
-				}catch(error)
-				{
-					console.log("[SRDotDX]::{FPX}::ERROR:: "+error);
 				}
-				
-				
 			},
 			FPXFilterRaidListByName: function () {
 				console.log("[SRDotDX]::{FPX}:: FILTERING RAID LIST...");
@@ -1041,7 +1024,20 @@ function main() {
 					raidArray.push(item);
 				}
 				var sortFunc;
-				if(selectedSort == "Time")
+				if(selectedSort == "Id")
+					if(selectedDir == "asc")
+						sortFunc = function(a,b){
+							if(!(typeof a.id === 'undefined' || typeof b.id === 'undefined'))
+								if(a.id < b.id) return -1;
+							return 1;
+						}
+					else
+						sortFunc = function(a,b){
+							if(!(typeof a.id === 'undefined' || typeof b.id === 'undefined'))
+								if(a.id > b.id) return -1;
+							return 1;
+						}
+				else if(selectedSort == "Time")
 					if(selectedDir == "asc")
 						sortFunc = function(a,b){
 							if(!(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
@@ -1131,7 +1127,7 @@ function main() {
 					} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
 				}
 				console.log("[SRDotDX] Finished deleting hidden raids");
-			},
+			},		
 			DeleteUnvisitedRaids: function () {
 				console.log("[SRDotDX] Deleting unvisited raids");
 				var raidList = document.getElementById('raid_list').childNodes;
@@ -1333,6 +1329,7 @@ function main() {
 												<option value="Time" selected>TimeStamp</option> \
 												<option value="Name">Raid Name</option> \
 												<option value="Diff">Difficulty</option> \
+												<option value="Id">Raid Id</option> \
 											</select> \
 											<select id="FPXRaidSortDirection" tabIndex="-1"> \
 												<option value="asc" selected>Ascending</option> \
@@ -1349,7 +1346,6 @@ function main() {
 											<input name="QuickDump" tabIndex="-1" type="button" value="Quick Share Visible Raids" onClick="SRDotDX.gui.DumpVisibleRaidsToShare();SRDotDX.gui.FPXspamRaids();return false;"/> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will immediately begin posting all visible raids in the order shown.\');">?</a>) <br>\
 											<input name="DeleteVisible" tabIndex="-1" type="button" value="Delete All Visible Raids" onClick="SRDotDX.gui.DeleteVisibleRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids currently visible.\');">?</a>) <br>\
 											<input name="DeleteHidden" tabIndex="-1" type="button" value="Delete All Hidden Raids" onClick="SRDotDX.gui.DeleteHiddenRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids that are currently not visible.\');">?</a>) <br>\
-											<input name="DeleteUnvisited" tabIndex="-1" type="button" value="Delete All Unvisited Raids" onClick="SRDotDX.gui.DeleteUnvisitedRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids that you have not visited.\');">?</a>) <br>\
 										</div> \
 									</div> \
 									<div id="SRDotDX_clipboard"><span id="SRDotDX_clipboardButton"></span></div> \
@@ -2174,6 +2170,13 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 					else {SRDotDX.echo('<b>/loadraid</b>: Invalid raid specified. (<a href="#" onclick="SRDotDX.gui.help(\'loadraid\'); return false">help</a>)');}
 					return false;
 				});
+				holodeck.addChatCommand("stop",function(deck,text){
+					if(SRDotDX.gui.isPosting)
+					{
+						SRDotDX.gui.FPXStopPosting();
+					}else{SRDotDX.echo('<b>/stop</b>: Links are not being posted. Stop command invalid.');}
+					return false;
+				});
 				holodeck.addChatCommand("reload",function(deck,text){
 					if (/^\/reload$/i.test(text)) {
 						SRDotDX.reload();
@@ -2431,7 +2434,7 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 			nidhogg:{name: 'Nidhogg', shortname: 'Nidhogg',  id: 'nidhogg', stat: 'S', size:50, duration:60, health: [52000000,65000000,83200000,104000000,,]},
 			nimrod:{name: 'Nimrod the Hunter', shortname: 'Nimrod',  id: 'nimrod', stat: 'S', size:250, duration:96, health: [1200000000,1500000000,1920000000,2400000000,,]},
 			phaedra:{name: 'Phaedra the Deceiver', shortname: 'Phaedra',  id: 'phaedra', stat: 'S', size:250, duration:96, health: [1400000000,1750000000,2240000000,2800000000,,]},
-			fairy_prince:{name: 'Prince Obyron', shortname: 'Obyron',  id: 'fairy_prince', stat: 'H', size:10, duration:120, health: [30000000,37500000,48000000,60000000,,]},
+			fairy_prince:{name: 'Prince Obyron', shortname: 'Obyron',  id: 'fairy_prince', stat: 'H', size:10, duration:120, health: [60000000,75000000,96000000,120000000,,]},
 			roc:{name: 'Ragetalon', shortname: 'Ragetalon',  id: 'roc', stat: 'H', size:100, duration:168, health: [110000000,137500000,176000000,220000000,,]},
 			rhalmarius_the_despoiler:{name: 'Rhalmarius the Despoiler', shortname: 'Rhal',  id: 'rhalmarius_the_despoiler', stat: 'H', size:100, duration:84, health: [500000000,1250000000,3125000000,7812500000,,]},
 			rift:{name: 'Rift the Mauler', shortname: 'Rift',  id: 'rift', stat: 'S', size:100, duration:72, health: [125000000,156250000,200000000,250000000,,]},
