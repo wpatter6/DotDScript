@@ -754,6 +754,10 @@ function main() {
 					throw "Invalid element type specified"
 				}
 			},
+			errorMessage: function(s, tag){
+				tag=(typeof tag==='undefined'?'b':tag);
+				SRDotDX.gui.doStatusOutput('<'+tag+'>'+s+'</'+tag+'>');
+			},
 			updateMessage: function () {
 				SRDotDX.gui.doStatusOutput(SRDotDX.gui.standardMessage(), false);
 			},
@@ -761,12 +765,12 @@ function main() {
 				SRDotDX.gui.doStatusOutput('Posting message ' + i + (typeof ct==='undefined'?'': ' of ' + ct + '...'), false);
 			},
 			standardMessage: function (){//message to show 
-				return 'DotD Extension - JHunz/wpatter6 (' +document.getElementById("raid_list").childNodes.length + ' raids stored)';
+				return 'JHunz/wpatter6 - <span class="room_name_container h6_alt mbs">(' +document.getElementById("raid_list").childNodes.length + ' raids stored)</span>';
 			},
 			doStatusOutput: function (str, msecs){
 				msecs=(typeof msecs === 'undefined'?4000:msecs);
 				var el = document.getElementById('StatusOutput');
-				el.innerHTML='<b>DotD Extension</b> - ' + str;
+				el.innerHTML=str;
 				if(msecs)setTimeout(function(){ el.innerHTML=SRDotDX.gui.standardMessage(); }, msecs);
 			},
 			raidsTabClicked: function (){
@@ -1338,7 +1342,7 @@ function main() {
 					var link = SRDotDX.gui.cHTML('a').set({href: '#lots_tab_pane',class: ''}).html("<span class='SRDotDX_new' style='float:right; padding-top:3px; padding-right:3px;'>(<span class='SRDotDX_NewRaidsCount'>0</span>)</span>").attach("to",SRDotDX.gui.cHTML('li').set({class: 'tab', id: 'lots_tab', onclick:'SRDotDX.gui.raidsTabClicked()'}).attach("after","game_tab").ele()).ele();
 
 					var pane = SRDotDX.gui.cHTML('div').set({id: 'lots_tab_pane'}).html(' \
-						<div class="room_name_container"><span class="room_name" id="StatusOutput"></span></div> \
+						<div class="room_name_container h6_alt mbs">DotD Extension - <span class="room_name" id="StatusOutput"></span></div> \
 						<ul id="SRDotDX_tabpane_tabs"> \
 							<li class="tab active"> \
 								<div class="tab_head">Raids</div> \
@@ -1707,7 +1711,7 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 					
 					optsMaxRaidCount.ele().addEventListener('change', function (){
 						if(isNumber(this.value)) SRDotDX.config.maxRaidCount = parseInt(this.value);
-						//else alert
+						else SRDotDX.gui.errorMessage('Raid count must be a number');
 					});
 					
 					optsUseMaxRaidCount.ele().addEventListener('click', function (){
