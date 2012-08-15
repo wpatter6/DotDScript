@@ -765,7 +765,7 @@ function main() {
 				SRDotDX.gui.doStatusOutput('Posting message ' + i + (typeof ct==='undefined'?'': ' of ' + ct + '...'), false);
 			},
 			standardMessage: function (){//message to show 
-				return 'JHunz/wpatter6 - <span class="room_name_container h6_alt mbs">(' +document.getElementById("raid_list").childNodes.length + ' raids stored)</span>';
+				return 'JHunz/wpatter6 - <span class="room_name_container h6_alt mbs">' +document.getElementById("raid_list").childNodes.length + ' raids stored</span>';
 			},
 			doStatusOutput: function (str, msecs){
 				msecs=(typeof msecs === 'undefined'?4000:msecs);
@@ -1575,12 +1575,6 @@ function main() {
 									</div> \
 								</div> \
 							</li> \
-							<!--<li class="tab"> \
-								<div class="tab_head">Info</div> \
-								<div class="tab_pane"> \
-									Number of raids stored: <span id="SRDotDX_RaidCountOutput">0</span> \
-								</div> \
-							</li> --> \
 							<!-- <li class="tab"> \
 								<div class="tab_head">Help</div> \
 								<div class="tab_pane">Do I need text too?</div> \
