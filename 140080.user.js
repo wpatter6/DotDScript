@@ -193,6 +193,8 @@ function main() {
 			tmp.autoWhisper = (typeof tmp.autoWhisper == 'boolean'?tmp.autoWhisper:false);
 			tmp.markImportedVisited = (typeof tmp.markImportedVisited == 'boolean'?tmp.markImportedVisited:false);
 			tmp.prettyPost = (typeof tmp.prettyPost == 'boolean'?tmp.prettyPost:false);
+			tmp.useMaxRaidCount = (typeof tmp.useMaxRaidCount =='boolean'?tmp.useMaxRaidCount:false);
+			tmp.maxRaidCount = (!(typeof tmp.maxRaidCount === 'undefined')?tmp.maxRaidCount:1000);
 			tmp.whisperTo = (typeof tmp.whisperTo == 'string'?tmp.whisperTo:'');
 			tmp.showCopyLink = (typeof tmp.showCopyLink == 'boolean'?tmp.showCopyLink:(navigator.userAgent.toLowerCase().indexOf('firefox')>-1));
 			tmp.showRaidLink = (typeof tmp.showRaidLink == 'boolean'?tmp.showRaidLink:(navigator.userAgent.toLowerCase().indexOf('chrome')>-1));
@@ -285,6 +287,7 @@ function main() {
 					}
 					SRDotDX.config.raidList[id].lastUser = user;
 					SRDotDX.gui.addRaid(id);
+					SRDotDX.purge();//TODO
 				}
 				return SRDotDX.config.raidList[id]
 			}
@@ -319,6 +322,11 @@ function main() {
 			}
 			return tmp;
 		})(),
+		purge: function() {//TODO
+			if(SRDotDX.config.useMaxRaidCount && SRDotDX.gui.raidCount > SRDotDX.config.maxRaidCount){
+				
+			}
+		},
 		getRaidDetailsBase: function(url) {
 			//if(!/^http:\/\/www\.kongregate\.com\/games\/5thplanetgames\/dawn-of-the-dragons(?:\/?$|\?|#)/i.test(url)) return null;//added security for pastebin import
 			var r = {diff: '', hash: '', boss: '', id: ''};
@@ -415,7 +423,9 @@ function main() {
 				var info = SRDotDX.config.getRaid(r.id);
 				if (typeof info != 'object') {
 					info = SRDotDX.config.addRaid(r.hash, r.id, r.boss, r.diff,visited,seen,user)
-				}
+					info.isNew = true;
+					//inserting new raid
+				} else info.isNew = false;
 				r.seen = info.seen;
 				r.visited = info.visited;
 
@@ -744,6 +754,18 @@ function main() {
 					throw "Invalid element type specified"
 				}
 			},
+			updateMessage: function () {
+				doStatusOutput(SRDotDX.gui.standardMessage(), false);
+			},
+			standardMessage: function (){//message to show 
+				return 'DotD Extension - JHunz/wpatter6 (' +document.getElementById("raid_list").childNodes.length + ' raids stored)';
+			},
+			doStatusOutput: function (str, msecs){
+				msecs=(typeof msecs === 'undefined'?4000:msecs);
+				var el = document.getElementById('StatusOutput');
+				el.innerText=str;
+				if(msecs)setTimeout(function(){ el.innerText=SRDotDX.gui.standardMessage(); }, msecs);
+			},
 			raidsTabClicked: function (){
 				var els = document.getElementsByClassName("SRDotDX_NewRaidsCount");
 				for(var i=0;i<els.length;i++){
@@ -762,7 +784,6 @@ function main() {
 			},
 			FPXimportRaids: function(){
 				var linklist=document.FPXRaidSpamForm.FPXRaidSpamInput.value;
-				
 				if(linklist.length>10)
 				{
 					document.FPXRaidSpamForm.FPXRaidSpamInput.value="";
@@ -777,7 +798,8 @@ function main() {
 						SRDotDX.getRaidDetails(String(link), 'Direct import', SRDotDX.config.markImportedVisited, SRDotDX.config.markImportedVisited);
 					}
 					var diff = document.getElementById('raid_list').childNodes.length - total;
-					document.getElementById('FPXImportCount').innerHTML = 'Import complete, ' + diff + ' of ' + imct + ' new raids.';
+					SRDotDX.gui.doStatusOutput('Import complete, ' + diff + ' of ' + imct + ' new raids');
+					//document.getElementById('FPXImportCount').innerHTML = 'Import complete, ' + diff + ' of ' + imct + ' new raids.';
 				}
 			},
 			deleteRaid: function (ele,id) {
@@ -1106,7 +1128,7 @@ function main() {
 				var raidlistDIV=document.getElementById('raid_list');
 				var raidList = raidlistDIV.childNodes;
 				var classReg = /SRDotDX_filteredRaidList([0-9a-z_]+)_([0-9])/i;
-				var delVisited=null;
+				var delVisited=null, ct=0;
 				for(i=0; i<raidList.length; i+=1) {
 					var item = raidList[i];
 					try
@@ -1114,11 +1136,14 @@ function main() {
 						if (/hidden/i.test(item.className)) {
 							console.log("[SRDotDX] Deleting raid " + item.getAttribute("raidid"));
 							SRDotDX.gui.deleteRaid(item.getElementsByClassName("FPXDeleteLink")[0], item.getAttribute("raidid"));
+							ct++;
 						} else {
 							if(!SRDotDX.config.filterRaidList) continue;
 							if(SRDotDX.config.hideVisitedRaidsInRaidList && (delVisited!=null?delVisited:(delVisited=confirm("This will delete raids which are only hidden for being visited. Continue?")))){
-								if(SRDotDX.config.raidList[item.getAttribute("raidid")].visited)
+								if(SRDotDX.config.raidList[item.getAttribute("raidid")].visited){
 									SRDotDX.gui.deleteRaid(item.getElementsByClassName("FPXDeleteLink")[0], item.getAttribute("raidid"));
+									ct++;
+								}
 							}
 							var filterClass = classReg.exec(item.className);
 							if (filterClass != null) {
@@ -1127,11 +1152,13 @@ function main() {
 								if (SRDotDX.config.getFilter(raidid,diffIndex) == true) {
 									console.log("[SRDotDX] Deleting raid " + item.getAttribute("raidid"));
 									SRDotDX.gui.deleteRaid(item.getElementsByClassName("FPXDeleteLink")[0], item.getAttribute("raidid"));
+									ct++;
 								}
 							}
 						}
 					} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
 				}
+				SRDotDX.gui.doStatusOutput(ct+' hidden raids deleted');
 				console.log("[SRDotDX] Finished deleting hidden raids");
 			},		
 			DeleteUnvisitedRaids: function () {
@@ -1140,7 +1167,7 @@ function main() {
 
 				for(i=0; i<raidList.length; i+=1) {
 					var item = raidList[i];
-	
+					var ct = 0;
 					var raidid = item.getAttribute("raidid");
 					
 					if (SRDotDX.config.raidList[raidid]) {
@@ -1149,16 +1176,18 @@ function main() {
 							if (!raid.visited) {
 								console.log("[SRDotDX] Deleting raid " + raidid);
 								SRDotDX.gui.deleteRaid(item.getElementsByClassName("FPXDeleteLink")[0], raidid);
+								ct++;
 							}
 						} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
 					}
 				}
+				SRDotDX.gui.doStatusOutput(ct + ' unvisited raids deleted');
 			},
 			DeleteVisibleRaids: function () {
 				console.log("[SRDotDX] Deleting visible raids");
 				var raidList=document.getElementById('raid_list').childNodes,raidName;
 				var classReg = /SRDotDX_filteredRaidList([0-9a-z_]+)_([0-9])/i;
-				
+				var ct = 0;
 				for(i=0; i<raidList.length; i+=1) {
 					var item = raidList[i];
 					try
@@ -1175,6 +1204,7 @@ function main() {
 								} else {
 									console.log("[SRDotDX] Deleting raid " + item.getAttribute("raidid"));
 									SRDotDX.gui.deleteRaid(item.getElementsByClassName("FPXDeleteLink")[0], item.getAttribute("raidid"));
+									ct++;
 								}
 							} else {
 								continue;
@@ -1182,6 +1212,7 @@ function main() {
 						}
 					}catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;}
 				}
+				SRDotDX.gui.doStatusOutput(ct + ' visible raids deleted');
 				console.log("[SRDotDX] Deleting complete");
 			},
 			DumpVisibleRaidsToShare: function() {
@@ -1293,7 +1324,7 @@ function main() {
 					var link = SRDotDX.gui.cHTML('a').set({href: '#lots_tab_pane',class: ''}).html("<span class='SRDotDX_new' style='float:right; padding-top:3px; padding-right:3px;'>(<span class='SRDotDX_NewRaidsCount'>0</span>)</span>").attach("to",SRDotDX.gui.cHTML('li').set({class: 'tab', id: 'lots_tab', onclick:'SRDotDX.gui.raidsTabClicked()'}).attach("after","game_tab").ele()).ele();
 
 					var pane = SRDotDX.gui.cHTML('div').set({id: 'lots_tab_pane'}).html(' \
-						<div class="room_name_container"><span class="room_name">DotD Extension - FPX edition</span></div> \
+						<div class="room_name_container"><span class="room_name" id="StatusOutput"></span></div> \
 						<ul id="SRDotDX_tabpane_tabs"> \
 							<li class="tab active"> \
 								<div class="tab_head">Raids</div> \
@@ -1366,6 +1397,7 @@ function main() {
 										<p class="panel_handle spritegame mts opened_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXRaidOptions\', this)"> <a> Raid Options </a> </p> \
 										<div id="FPXRaidOptions"> \
 											<hr> \
+												<input type="checkbox" id="FPX_options_useMaxRaidCount"> enable max raid count <input type="text" id="FPX_options_maxRaidCount" size="5">(<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will specify the maximum number of raids to store in the script. Once this number is reached, it will automatically purge the oldest raid as a new one is added.  Lowering this number could improve issues like shockwave crashes, etc.\');">?</a>)<br> \
 												<input type="checkbox" id="FPX_options_markVisitedRightClick"> Mark raids as visited on RightClick (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'When you right-click on a raid (generally, to copy and paste), that raid will be marked as visited.\');">?</a>)<br> \
 												Delay(milliseconds) (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Number of milliseconds to wait before marking raid link visited when it is right clicked.<br><strong>Only enabled if <i>\\\'Mark right click\\\'</i> is enabled.</strong> \');">?</a>) :: \
 												<INPUT id="FPX_options_markVisitedRightClickDelay" size="8"> <br>\
@@ -1413,9 +1445,8 @@ function main() {
 												<div id="FPXImport"> <hr>\
 													<input name="Submit2"  type="submit" tabIndex="-1" value="Import to Raid Tab" onClick="SRDotDX.gui.FPXimportRaids();return false;"/> (<a href="#" onclick="return false" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will add any new raids in the share box below to the raid tab.\');">?</a>)\
 													<input name="Submit3"  type="submit" tabIndex="-1" value="Refresh Raid Tab" onClick="SRDotDX.gui.FPXdeleteAllRaids();SRDotDX.gui.FPXimportRaids();return false;"/>(<a href="#" onclick="return false" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids on the raid tab and refresh the data with any raids in the share box below.\');">?</a>)<br> \
-													<input name="Submit4" type="submit" tabIndex="-1" value="Import Pastebin" onClick="SRDotDX.gui.FPXImportPasteBin();return false;"> <input type="text" id="SRDotDX_FPX_ImportPastebin"><br> \
+													<input name="Submit4" type="submit" tabIndex="-1" value="Import Pastebin" onClick="SRDotDX.gui.FPXImportPasteBin();return false;"> <input type="text" id="SRDotDX_FPX_ImportPastebin">(<a href="#" onclick="return false" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This is currently only working in chrome.  Before this is fixed, Firefox users should simply navigate to the pastebin url, copy the raw data, and paste it into box below and import the raids. \');">?</a>)<br> \
 													<input type="checkbox" id="SRDotDX_options_markImportedRaidsVisited"> Mark imported raids visited <br> \
-													<span id="FPXImportCount">&nbsp;</span> \
 												<hr></div> \
 											</div> \
 											<textarea id="FPXRaidSpamTA" name="FPXRaidSpamInput" ></textarea><br> \
@@ -1626,6 +1657,8 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 					var optsMarkImportedVisited = SRDotDX.gui.cHTML('#SRDotDX_options_markImportedRaidsVisited');
 					var optsWhisperTo = SRDotDX.gui.cHTML('#SRDotDX_options_whisperTo');
 					var optsMarkMyRaidsVisited = SRDotDX.gui.cHTML('#SRDotDX_options_markMyRaidsVisited');
+					var optsUseMaxRaidCount = SRDotDX.gui.cHTML('#FPX_options_useMaxRaidCount');
+					var optsMaxRaidCount = SRDotDX.gui.cHTML('#FPX_options_maxRaidCount');
 					var optsNewRaidsAtTopOfRaidList = SRDotDX.gui.cHTML('#SRDotDX_options_newRaidsAtTopOfRaidList');
 					var optsFormatLinkOutput = SRDotDX.gui.cHTML('#SRDotDX_options_formatLinkOutput');
 					var optsPrettyPost = SRDotDX.gui.cHTML('#SRDotDX_options_prettyPost');
@@ -1640,7 +1673,9 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 					if (SRDotDX.config.markImportedVisited) { optsMarkImportedVisited.ele().checked = 'checked'; }
 					if (SRDotDX.config.whisperSpam) { optsWhisperToCheck.ele().checked = 'checked'; }
 					if ((SRDotDX.config.whisperTo||'')!='') { optsWhisperTo.ele().value = SRDotDX.config.whisperTo; }
-					else {optsRaidFormat.ele().disabled = 'disabled'}
+					if (SRDotDX.config.useMaxRaidCount) { optsUseMaxRaidCount.ele().checked = 'checked'; }
+					if (SRDotDX.config.maxRaidCount>0) { optsMaxRaidCount.ele().value = SRDotDX.config.maxRaidCount; }
+					else { optsRaidFormat.ele().disabled = 'disabled' }
 					FPXoptsMarkRightClickDelay.ele().value = SRDotDX.config.FPXoptsMarkRightClickDelay;
 					document.getElementById('FPX_options_markVisitedRightClickDelay').disabled = !SRDotDX.config.FPXmarkRightClick;
 					optsRaidFormat.ele().value = SRDotDX.config.raidLinkFormat;
@@ -1654,6 +1689,16 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 						optsHideSRaids.ele().disabled = true;
 					}
 					if (SRDotDX.config.newRaidsAtTopOfRaidList) { optsNewRaidsAtTopOfRaidList.ele().checked = 'checked'}
+					
+					
+					optsMaxRaidCount.ele().addEventListener('change', function (){
+						if(isNumber(this.value)) SRDotDX.config.maxRaidCount = parseInt(this.value);
+						//else alert
+					});
+					
+					optsUseMaxRaidCount.ele().addEventListener('click', function (){
+						SRDotDX.config.useMaxRaidCount = this.checked;
+					});
 					
 					optsPrettyPost.ele().addEventListener('click', function(){
 						SRDotDX.config.prettyPost = this.checked;
@@ -1669,12 +1714,11 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 					});
 					
 					optsWhisperToCheck.ele().addEventListener("click", function(){
-						console.log("[SRDotDX] Whisper selection changed");
 						SRDotDX.config.whisperSpam = this.checked;
 					});
 					
 					optsWhisperTo.ele().addEventListener("change", function(){
-						console.log("[SRDotDX] Whisper person changed");
+						console.log("[SRDotDX] Whisper person changed to " + this.value);
 						SRDotDX.config.whisperTo = this.value;
 					});
 					optsFormatLinkOutput.ele().addEventListener("click", function(){
@@ -1900,6 +1944,7 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 					console.log("[SRDotDX] Loading is complete.");
 				}
 				else {setTimeout(SRDotDX.gui.load,5)}
+				SRDotDX.gui.doStatusOutput('Loaded successfully');
 			},
 			loadRaidList: function () {
 				var i = document.getElementById("raid_list");
@@ -2119,6 +2164,7 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 							SRDotDX.gui.toggleRaid('visited',raid.id,raid.visited);
 							SRDotDX.config.raidList[raid.id].seen = true;
 							SRDotDX.gui.raidListItemUpdate(raid.id);
+							if(raid.isNew)SRDotDX.gui.updateMessage();
 						}
 						//TODO Format pastebin links
 						
