@@ -323,8 +323,9 @@ function main() {
 			return tmp;
 		})(),
 		purge: function() {//TODO
-			if(SRDotDX.config.useMaxRaidCount && SRDotDX.gui.raidCount > SRDotDX.config.maxRaidCount){
-				
+			var raidCount = document.getElementById('raid_list').childNodes.length;
+			if(SRDotDX.config.useMaxRaidCount && raidCount > SRDotDX.config.maxRaidCount){
+				SRDotDX.gui.errorMessage('Maximum raid count exceeded! (' + raidCount + ' / ' + SRDotDX.config.maxRaidCount + ')');
 			}
 		},
 		getRaidDetailsBase: function(url) {
