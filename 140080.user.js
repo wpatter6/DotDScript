@@ -202,6 +202,7 @@ function main() {
 			tmp.formatRaidLinks = (typeof tmp.formatRaidLinks == 'boolean'?tmp.formatRaidLinks:true);
 			tmp.raidLinkFormat = (typeof tmp.raidLinkFormat == 'string'?tmp.raidLinkFormat:"<seen:(s) ><visited:(v) ><shortname> - <diff> - <fs>/<os>");
 			tmp.raidLinkFormat = tmp.raidLinkFormat.replace(/&#91;/g,"[").replace(/&#93;/g,"]").replace(/&#123;/g,"{").replace(/&#125;/g,"}")
+			tmp.unvisitedRaidPruningMode = (typeof tmp.unvisitedRaidPruningMode == 'number'? tmp.unvisitedRaidPruningMode : 1);
 			if (typeof tmp.raidList != 'object') {
 				tmp.raidList = {}
 			}
@@ -1216,7 +1217,42 @@ function main() {
 				FPXimpSpam.ele().value = dumpText;
 
 				return false;
-			},			
+			},
+			DeleteExpiredUnvisitedRaids: function() {
+				console.log("[SRDotDX] Deleting expired unvisited raids");
+				if (SRDotDX.config.unvisitedRaidPruningMode <= 2 && SRDotDX.config.unvisitedRaidPruningMode >= 0) {
+					var raidList = document.getElementById('raid_list').childNodes;
+					var pruneTime = new Date().getTime();
+
+					for(i=0; i<raidList.length; i+=1) {
+						var item = raidList[i];	
+						var raidid = item.getAttribute("raidid");
+						if (SRDotDX.config.raidList[raidid]) {
+							try {
+								var raid = SRDotDX.config.raidList[raidid];
+								var raidInfo = SRDotDX.raids[raid.boss];
+								if (!raid.visited) {
+									if(SRDotDX.raidSizes[raidInfo.size] && SRDotDX.raidSizes[raidInfo.size].pruneTimers && SRDotDX.raidSizes[raidInfo.size].pruneTimers[SRDotDX.config.unvisitedRaidPruningMode]) {
+										var pruneTimer = SRDotDX.raidSizes[raidInfo.size].pruneTimers[SRDotDX.config.unvisitedRaidPruningMode];
+										if ((pruneTime - raid.timeStamp) >= pruneTimer) {
+											console.log("[SRDotDX] Deleting raid " + raidid);
+											SRDotDX.gui.deleteRaid(item.getElementsByClassName("FPXDeleteLink")[0], raidid);
+
+										}
+									}
+
+								}
+
+							} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
+
+						}
+					}
+				}
+
+
+				// recur every 10 minutes
+				setTimeout('SRDotDX.gui.DeleteExpiredUnvisitedRaids()',600000);
+			},
 			help: function (item) {
 			},
 			getElementsByAttribute: function (tagname,attr,value,ele) {
@@ -1352,6 +1388,7 @@ function main() {
 											<input name="QuickDump" tabIndex="-1" type="button" value="Quick Share Visible Raids" onClick="SRDotDX.gui.DumpVisibleRaidsToShare();SRDotDX.gui.FPXspamRaids();return false;"/> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will immediately begin posting all visible raids in the order shown.\');">?</a>) <br>\
 											<input name="DeleteVisible" tabIndex="-1" type="button" value="Delete All Visible Raids" onClick="SRDotDX.gui.DeleteVisibleRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids currently visible.\');">?</a>) <br>\
 											<input name="DeleteHidden" tabIndex="-1" type="button" value="Delete All Hidden Raids" onClick="SRDotDX.gui.DeleteHiddenRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids that are currently not visible.\');">?</a>) <br>\
+											<input name="DeleteUnvisited" tabIndex="-1" type="button" value="Delete All Unvisited Raids" onClick="SRDotDX.gui.DeleteUnvisitedRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids that you have not visited.\');">?</a>) <br> \
 										</div> \
 									</div> \
 									<div id="SRDotDX_clipboard"><span id="SRDotDX_clipboardButton"></span></div> \
@@ -1372,6 +1409,11 @@ function main() {
 												<input type="checkbox" id="SRDotDX_options_markMyRaidsVisited"> Automatically mark raids posted by me as visited <br> \
 												<input type="checkbox" id="SRDotDX_options_showCopyLink"> Show copy link in raid list (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\' Copies the raid link to the clipboard in a single click.  This is currently only working in FireFox. \');">?</a>)<br> \
 												<input type="checkbox" id="SRDotDX_options_showRaidLink"> Show raid link in raid list <br><br> \
+												Unvisited raid pruning (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'How fast the script will automatically remove unvisited raids.  Small and Medium raids: Aggressive 1h, Moderate 2h, Slow 3h.  Large Raids: Aggressive 4h, Moderate 12h, Slow 36h.  Epic and Colossal raids: Aggressive 24h, Moderate 48h, Slow 72h.\');">?</a>)<br> \
+												<input type="radio" id="FPX_options_unvisitedPruningAggressive" name="unvisitedPruning" value="Aggressive"/>Aggressive&nbsp;&nbsp; \
+												<input type="radio" id="FPX_options_unvisitedPruningModerate" name="unvisitedPruning" value="Moderate"/>Moderate&nbsp;&nbsp; \
+												<input type="radio" id="FPX_options_unvisitedPruningSlow" name="unvisitedPruning" value="Slow"/>Slow&nbsp;&nbsp; \
+												<input type="radio" id="FPX_options_unvisitedPruningNone" name="unvisitedPruning" value="None"/>None&nbsp;&nbsp; \
 												<a class="FPXDeleteAllBtn" href="#" onclick="SRDotDX.gui.FPXdeleteAllRaids();return false;">Delete All Raids</a> \ \
 											<hr> \
 										</div> \
@@ -1629,6 +1671,10 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 					var optsNewRaidsAtTopOfRaidList = SRDotDX.gui.cHTML('#SRDotDX_options_newRaidsAtTopOfRaidList');
 					var optsFormatLinkOutput = SRDotDX.gui.cHTML('#SRDotDX_options_formatLinkOutput');
 					var optsPrettyPost = SRDotDX.gui.cHTML('#SRDotDX_options_prettyPost');
+					var rbUnvisitedPruningAggressive = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningAggressive');
+					var rbUnvisitedPruningModerate = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningModerate');
+					var rbUnvisitedPruningSlow = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningSlow');
+					var rbUnvisitedPruningNone = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningNone');
 					if (SRDotDX.config.FPXmarkRightClick) {	FPXoptsMarkRightClick.ele().checked = 'checked'}
 					if (SRDotDX.config.FPXdisplayListImgLink) {	FPXoptsDispLinkIcon.ele().checked = 'checked'}
 					if (SRDotDX.config.formatRaidLinks) {	optsFormatRaids.ele().checked = 'checked'}
@@ -1641,6 +1687,17 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 					if (SRDotDX.config.whisperSpam) { optsWhisperToCheck.ele().checked = 'checked'; }
 					if ((SRDotDX.config.whisperTo||'')!='') { optsWhisperTo.ele().value = SRDotDX.config.whisperTo; }
 					else {optsRaidFormat.ele().disabled = 'disabled'}
+		
+					if (SRDotDX.config.unvisitedRaidPruningMode == 0) {
+						rbUnvisitedPruningAggressive.ele().checked = true;
+					} else if (SRDotDX.config.unvisitedRaidPruningMode == 1) {
+						rbUnvisitedPruningModerate.ele().checked = true;
+					} else if (SRDotDX.config.unvisitedRaidPruningMode == 2) {
+						rbUnvisitedPruningSlow.ele().checked = true;
+					} else if (SRDotDX.config.unvisitedRaidPruningMode == 3) {
+						rbUnvisitedPruningNone.ele().checked = true;
+					}
+
 					FPXoptsMarkRightClickDelay.ele().value = SRDotDX.config.FPXoptsMarkRightClickDelay;
 					document.getElementById('FPX_options_markVisitedRightClickDelay').disabled = !SRDotDX.config.FPXmarkRightClick;
 					optsRaidFormat.ele().value = SRDotDX.config.raidLinkFormat;
@@ -1760,6 +1817,22 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 					},true);
 					optsNewRaidsAtTopOfRaidList.ele().addEventListener("click",function() {
 						SRDotDX.config.newRaidsAtTopOfRaidList = this.checked;
+					},true);
+
+					rbUnvisitedPruningAggressive.ele().addEventListener("click",function() {
+						SRDotDX.config.unvisitedRaidPruningMode = 0;
+					},true);
+
+					rbUnvisitedPruningModerate.ele().addEventListener("click",function() {
+						SRDotDX.config.unvisitedRaidPruningMode = 1;
+					},true);
+
+					rbUnvisitedPruningSlow.ele().addEventListener("click",function() {
+						SRDotDX.config.unvisitedRaidPruningMode = 2;
+					},true);
+
+					rbUnvisitedPruningNone.ele().addEventListener("click",function() {
+						SRDotDX.config.unvisitedRaidPruningMode = 3;
 					},true);
 
 					// Filtering tab					
@@ -1897,6 +1970,10 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 					SRDotDX.gui.cHTML('li').set({
 						class: 'spritegame'
 					}).html("<a href=\"http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons\" onclick=\"SRDotDX.reload(); return false;\">Reload Game</a>").attach("after","get_kreds_link");
+
+					// Start raid pruning 10 seconds after loading completion
+					setTimeout('SRDotDX.gui.DeleteExpiredUnvisitedRaids()',10000);
+
 					console.log("[SRDotDX] Loading is complete.");
 				}
 				else {setTimeout(SRDotDX.gui.load,5)}
@@ -2461,6 +2538,14 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 			blobmonster:{name: 'Varlachleth', shortname: 'Varla',  id: 'blobmonster', stat: 'H', size:100, duration:168, health: [330000000,412500000,528000000,660000000,,]},
 			wexxa:{name: 'Wexxa the Worm-Tamer', shortname: 'Wexxa',  id: 'wexxa', stat: 'S', size:100, duration:72, health: [110000000,137500000,176000000,220000000,,]},
 			zombiehorde:{name: 'Zombie Horde', shortname: 'Zombies',  id: 'zombiehorde', stat: 'S', size:50, duration:60, health: [45000000,56250000,72000000,90000000,,]}
+		},
+		raidSizes: {
+			10: { name: 'Small', visible: 'Yes', pruneTimers: [3600000,10800000,32400000]}, // 1h, 2h, 3h
+			13: { name: 'Small', visible: 'No', pruneTimers: [3600000,10800000,32400000]},  // 1h, 2h, 3h
+			50: { name: 'Medium', visible: 'Yes', pruneTimers: [3600000,10800000,32400000]}, // 1h, 2h, 3h
+			100:{ name: 'Large', visible: 'Yes', pruneTimers: [14400000,43200000,129600000]}, // 4h, 12h, 36h
+			250:{ name: 'Epic', visible: 'Yes', pruneTimers: [86400000,172800000,259200000]}, // 24h, 48h, 72h
+			500:{ name: 'Colossal', visible: 'Yes', pruneTimers: [86400000,172800000,259200000]} // 24h, 48h, 72h
 		},
 		raidArray: [ "agony","djinn","animated_armor","spider","rhino","gladiators","bellarius","werewolfpack",
 			"alice","bogstench","4ogre","bmane","harpy","kobold","corrupterebus","serpina","dahrizons_general",
