@@ -194,7 +194,7 @@ function main() {
 			tmp.markImportedVisited = (typeof tmp.markImportedVisited == 'boolean'?tmp.markImportedVisited:false);
 			tmp.prettyPost = (typeof tmp.prettyPost == 'boolean'?tmp.prettyPost:false);
 			tmp.useMaxRaidCount = (typeof tmp.useMaxRaidCount =='boolean'?tmp.useMaxRaidCount:false);
-			tmp.maxRaidCount = (!(typeof tmp.maxRaidCount === 'undefined')?tmp.maxRaidCount:1000);
+			tmp.maxRaidCount = (!(typeof tmp.maxRaidCount === 'undefined')?tmp.maxRaidCount:3000);
 			tmp.whisperTo = (typeof tmp.whisperTo == 'string'?tmp.whisperTo:'');
 			tmp.showCopyLink = (typeof tmp.showCopyLink == 'boolean'?tmp.showCopyLink:(navigator.userAgent.toLowerCase().indexOf('firefox')>-1));
 			tmp.showRaidLink = (typeof tmp.showRaidLink == 'boolean'?tmp.showRaidLink:(navigator.userAgent.toLowerCase().indexOf('chrome')>-1));
@@ -288,7 +288,7 @@ function main() {
 					}
 					SRDotDX.config.raidList[id].lastUser = user;
 					SRDotDX.gui.addRaid(id);
-					SRDotDX.purge();//TODO
+					SRDotDX.purge();
 				}
 				return SRDotDX.config.raidList[id]
 			}
@@ -323,12 +323,48 @@ function main() {
 			}
 			return tmp;
 		})(),
-		purge: function() {//TODO
+		purge: function() {
 			var el = document.getElementById('raid_list');
 			if(el){
-				var raidCount = el.childNodes.length;
-				if(SRDotDX.config.useMaxRaidCount && raidCount > SRDotDX.config.maxRaidCount){
-					SRDotDX.gui.errorMessage('Maximum raid count exceeded! (' + raidCount + ' / ' + SRDotDX.config.maxRaidCount + ')');
+				var diff = el.childNodes.length - SRDotDX.config.maxRaidCount;
+				if(SRDotDX.config.useMaxRaidCount && diff > 0){
+					console.log("[SRDotDX] Purging started " + diff);
+					var uraids = SRDotDX.gui.GetUnvisitedRaids();
+					uraids.sort(function(a,b){
+						if(!(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
+							if(a.timeStamp < b.timeStamp) return -1;
+						return 1;
+					});
+					var i=0, total=0;;
+					while(i<uraids.length && diff > 0){
+						if((new Date).getTime() - uraids[i].timeStamp > 60000){//only if it's older than 1 hour
+							console.log('[SRDotDX] Purging ' + uraids[i].id);
+							SRDotDX.gui.deleteRaid(uraids[i].ele.getElementsByClassName("FPXDeleteLink")[0], uraids[i].id);
+							i++;
+							diff--;
+						} else break;
+					}
+					total += i;
+					i=0;
+					if(diff > 0){
+						var raids = SRDotDX.gui.GetAllRaids();
+						raids.sort(function(a,b){
+							if(!(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
+								if(a.timeStamp < b.timeStamp) return -1;
+							return 1;
+						});
+						while(i<raids.length && diff > 0){
+							if((new Date).getTime() - uraids[i].timeStamp > 60000){//only if it's older than 1 hour
+								console.log('[SRDotDX] Purging ' + raids[i].id);
+								SRDotDX.gui.deleteRaid(raids[i].ele.getElementsByClassName("FPXDeleteLink")[0], raids[i].id);
+								i++;
+								diff--;
+							} else break;
+						}
+					}
+					total += i;
+					SRDotDX.gui.doStatusOutput('Maximum raid count exceeded. ' + total + ' old raids purged.');
+					console.log("[SRDotDX] Purging ended");
 				}
 			}
 		},
@@ -428,7 +464,7 @@ function main() {
 				var info = SRDotDX.config.getRaid(r.id);
 				if (typeof info != 'object') {
 					info = SRDotDX.config.addRaid(r.hash, r.id, r.boss, r.diff,visited,seen,user)
-					info.isNew = true;
+					if(typeof info == 'object') info.isNew = true;
 					//inserting new raid
 				} else info.isNew = false;
 				r.seen = info.seen;
@@ -1184,14 +1220,52 @@ function main() {
 				}
 				SRDotDX.gui.doStatusOutput(ct+' hidden raids deleted');
 				console.log("[SRDotDX] Finished deleting hidden raids");
-			},		
+			},	
+			GetAllRaids: function (){
+				console.log("[SRDotDX] Getting all raids (gui)");
+				var r = [];
+				var raidList = document.getElementById('raid_list').childNodes;
+
+				for(i=0; i<raidList.length; i++) {
+					var item = raidList[i];
+					var raidid = item.getAttribute("raidid");
+					var raid = SRDotDX.config.raidList[raidid];
+					if (raid) {
+						try {
+							raid.ele = item;
+							r.push(raid);
+						} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
+					}
+				}
+				return r;
+			},
+			GetUnvisitedRaids: function () {
+				console.log("[SRDotDX] Getting unvisited raids (gui)");
+				var r = [];
+				var raidList = document.getElementById('raid_list').childNodes;
+				
+				for(i=0; i<raidList.length; i++) {
+					var item = raidList[i];
+					var raidid = item.getAttribute("raidid");
+					var raid = SRDotDX.config.raidList[raidid]
+					if (raid) {
+						try {
+							if (!raid.visited) {
+								raid.ele = item;
+								r.push(raid);
+							}
+						} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
+					}
+				}
+				return r;
+			},
 			DeleteUnvisitedRaids: function () {
 				console.log("[SRDotDX] Deleting unvisited raids");
 				var raidList = document.getElementById('raid_list').childNodes;
+				var ct = 0;
 
 				for(i=0; i<raidList.length; i+=1) {
 					var item = raidList[i];
-					var ct = 0;
 					var raidid = item.getAttribute("raidid");
 					
 					if (SRDotDX.config.raidList[raidid]) {
@@ -2033,7 +2107,7 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 					}).html("<a href=\"http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons\" onclick=\"SRDotDX.reload(); return false;\">Reload Game</a>").attach("after","get_kreds_link");
 
 					// Start raid pruning 10 seconds after loading completion
-					setTimeout('SRDotDX.gui.DeleteExpiredUnvisitedRaids()',10000);
+					setTimeout('SRDotDX.gui.DeleteExpiredUnvisitedRaids(); SRDotDX.purge();',10000);
 
 					console.log("[SRDotDX] Loading is complete.");
 				}
