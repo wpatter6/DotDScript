@@ -1232,8 +1232,8 @@ function main() {
 					var raid = SRDotDX.config.raidList[raidid];
 					if (raid) {
 						try {
-							raid.ele = item;
 							r.push(raid);
+							r[r.length-1].ele = item
 						} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
 					}
 				}
@@ -1251,8 +1251,8 @@ function main() {
 					if (raid) {
 						try {
 							if (!raid.visited) {
-								raid.ele = item;
 								r.push(raid);
+								r[r.length-1].ele = item
 							}
 						} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
 					}
@@ -1351,7 +1351,7 @@ function main() {
 				if (SRDotDX.config.unvisitedRaidPruningMode <= 2 && SRDotDX.config.unvisitedRaidPruningMode >= 0) {
 					var raidList = document.getElementById('raid_list').childNodes;
 					var pruneTime = new Date().getTime();
-
+					var ct = 0;
 					for(i=0; i<raidList.length; i+=1) {
 						var item = raidList[i];	
 						var raidid = item.getAttribute("raidid");
@@ -1365,7 +1365,7 @@ function main() {
 										if ((pruneTime - raid.timeStamp) >= pruneTimer) {
 											console.log("[SRDotDX] Deleting raid " + raidid);
 											SRDotDX.gui.deleteRaid(item.getElementsByClassName("FPXDeleteLink")[0], raidid);
-
+											ct++;
 										}
 									}
 
@@ -1375,9 +1375,8 @@ function main() {
 
 						}
 					}
+					SRDotDX.gui.doStatusOutput(ct + " old unvisited raids pruned.");
 				}
-
-
 				// recur every 10 minutes
 				setTimeout('SRDotDX.gui.DeleteExpiredUnvisitedRaids()',600000);
 			},
@@ -1531,7 +1530,6 @@ function main() {
 										<p class="panel_handle spritegame mts opened_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXRaidOptions\', this)"> <a> Raid Options </a> </p> \
 										<div id="FPXRaidOptions"> \
 											<hr> \
-												<input type="checkbox" id="FPX_options_useMaxRaidCount"> enable max raid count <input type="text" id="FPX_options_maxRaidCount" size="5">(<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will specify the maximum number of raids to store in the script. Once this number is reached, it will automatically purge the oldest raid as a new one is added.  Lowering this number could improve issues like shockwave crashes, etc.\');">?</a>)<br> \
 												<input type="checkbox" id="FPX_options_markVisitedRightClick"> Mark raids as visited on RightClick (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'When you right-click on a raid (generally, to copy and paste), that raid will be marked as visited.\');">?</a>)<br> \
 												Delay(milliseconds) (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Number of milliseconds to wait before marking raid link visited when it is right clicked.<br><strong>Only enabled if <i>\\\'Mark right click\\\'</i> is enabled.</strong> \');">?</a>) :: \
 												<INPUT id="FPX_options_markVisitedRightClickDelay" size="8"> <br>\
@@ -1542,7 +1540,8 @@ function main() {
 												<input type="radio" id="FPX_options_unvisitedPruningAggressive" name="unvisitedPruning" value="Aggressive"/>Aggressive&nbsp;&nbsp; \
 												<input type="radio" id="FPX_options_unvisitedPruningModerate" name="unvisitedPruning" value="Moderate"/>Moderate&nbsp;&nbsp; \
 												<input type="radio" id="FPX_options_unvisitedPruningSlow" name="unvisitedPruning" value="Slow"/>Slow&nbsp;&nbsp; \
-												<input type="radio" id="FPX_options_unvisitedPruningNone" name="unvisitedPruning" value="None"/>None&nbsp;&nbsp; \
+												<input type="radio" id="FPX_options_unvisitedPruningNone" name="unvisitedPruning" value="None"/>None&nbsp;&nbsp;<br> \
+												<input type="checkbox" id="FPX_options_useMaxRaidCount"> enable max raid count <input type="text" id="FPX_options_maxRaidCount" size="5">(<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will specify the maximum number of raids to store in the script. Once this number is reached, it will automatically purge the oldest raid as a new one is added.  Lowering this number could improve issues like shockwave crashes, etc.\');">?</a>)<br> \
 												<a class="FPXDeleteAllBtn" href="#" onclick="SRDotDX.gui.FPXdeleteAllRaids();return false;">Delete All Raids</a> \ \
 											<hr> \
 										</div> \
@@ -2602,7 +2601,7 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 			animated_armor:{name: 'Animated Armor', shortname: 'Armor', id: 'animated_armor', stat: 'S', size:1, duration:12, health: [8000000,,,,,]},
 			spider:{name: 'Arachna', shortname: 'Arachna',  id: 'spider', stat: 'H', size:50, duration:144, health: [22000000,27500000,35200000,44000000,,]},
 			rhino:{name: 'Ataxes', shortname: 'Ataxes',  id: 'rhino', stat: 'S', size:10, duration:120, health: [2000000,2500000,3200000,4000000,,]},
-			gladiators:{name: 'Batiatus’ Gladiators ', shortname: 'Batiatus’ Gladiators ',  id: 'gladiators', stat: 'H', size:10, duration:120, health: [12000000,15000000,19200000,24000000,,]},
+			gladiators:{name: 'Batiatusâ€™ Gladiators ', shortname: 'Batiatusâ€™ Gladiators ',  id: 'gladiators', stat: 'H', size:10, duration:120, health: [12000000,15000000,19200000,24000000,,]},
 			bellarius:{name: 'Bellarius the Guardian', shortname: 'Bella',  id: 'bellarius', stat: 'S', size:500, duration:96, health: [900000000,1125000000,1440000000,1800000000,,]},
 			werewolfpack:{name: 'Black Moon', shortname: 'Black Moon',  id: 'werewolfpack', stat: 'H', size:50, duration:144, health: [135000000,168750000,216000000,270000000,,]},
 			alice:{name: 'Bloody Alice', shortname: 'Alice',  id: 'alice', stat: 'S', size:50, duration:120, health: [15000000,18750000,24000000,30000000,,]},
