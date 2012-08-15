@@ -755,7 +755,10 @@ function main() {
 				}
 			},
 			updateMessage: function () {
-				doStatusOutput(SRDotDX.gui.standardMessage(), false);
+				SRDotDX.gui.doStatusOutput(SRDotDX.gui.standardMessage(), false);
+			},
+			postingMessage: function(i, ct) {
+				SRDotDX.gui.doStatusOutput('Posting message ' + i + (typeof ct==='undefined'?'': ' of ' + ct + '...'), false);
 			},
 			standardMessage: function (){//message to show 
 				return 'DotD Extension - JHunz/wpatter6 (' +document.getElementById("raid_list").childNodes.length + ' raids stored)';
@@ -763,8 +766,8 @@ function main() {
 			doStatusOutput: function (str, msecs){
 				msecs=(typeof msecs === 'undefined'?4000:msecs);
 				var el = document.getElementById('StatusOutput');
-				el.innerText=str;
-				if(msecs)setTimeout(function(){ el.innerText=SRDotDX.gui.standardMessage(); }, msecs);
+				el.innerHTML='<b>DotD Extension</b> - ' + str;
+				if(msecs)setTimeout(function(){ el.innerHTML=SRDotDX.gui.standardMessage(); }, msecs);
 			},
 			raidsTabClicked: function (){
 				var els = document.getElementsByClassName("SRDotDX_NewRaidsCount");
@@ -902,11 +905,15 @@ function main() {
 								bossStr += bossArray[i];
 							}
 							finalOutput[0] = finalOutput[0] + bossStr;
-							var timer = 500, ttw=3000;
+							var timer = 500, ttw=3000, ct=0;
 							for(var i=0; i<finalOutput.length; i++){
 								if(!SRDotDX.gui.isPosting) break;
 								var link = finalOutput[i];
-								(function(param1) {return SRDotDX.gui.FPXTimerArray[i]=setTimeout(function() {if(!SRDotDX.gui.isPosting)return; SRDotDX.gui.FPXdoWork(param1, SRDotDX.config.whisperSpam, SRDotDX.config.whisperTo);},timer); })(link);
+								(function(param1) {return SRDotDX.gui.FPXTimerArray[i]=setTimeout(function() {
+									if(!SRDotDX.gui.isPosting)return; 
+									SRDotDX.gui.FPXdoWork(param1, SRDotDX.config.whisperSpam, SRDotDX.config.whisperTo);
+									SRDotDX.gui.postingMessage(++ct, finalOutput.length);
+								},timer); })(link);
 								timer+=ttw;								
 							}
 						}
@@ -931,7 +938,8 @@ function main() {
 				document.FPXRaidSpamForm.Submit1.disabled=true;
 				document.FPXRaidSpamForm.Submit2.disabled=false;
 				document.FPXRaidSpamForm.Submit3.disabled=false;
-				document.getElementById("FPXShareTab").innerHTML="Share";
+				SRDotDX.gui.doStatusOutput('Posting finished');
+				//document.getElementById("FPXShareTab").innerHTML="Share";
 				SRDotDX.gui.FPXTimerArray = [];
 			},
 			FPXStartPosting: function() {
@@ -940,7 +948,8 @@ function main() {
 				document.FPXRaidSpamForm.Submit1.disabled=false;
 				document.FPXRaidSpamForm.Submit2.disabled=true;
 				document.FPXRaidSpamForm.Submit3.disabled=true;
-				document.getElementById("FPXShareTab").innerHTML="Working...";
+				SRDotDX.gui.doStatusOutput('Posting started...', false);
+				//document.getElementById("FPXShareTab").innerHTML="Working...";
 			},
 			FPXspamRaids: function () {
 				if(SRDotDX.config.whisperSpam && ((SRDotDX.config.whisperTo||"") == "")){
@@ -955,6 +964,7 @@ function main() {
 					try
 					{
 						var linklist=document.FPXRaidSpamForm.FPXRaidSpamInput.value;
+						var ct=0;
 						if(linklist.length>10)
 						{
 							document.FPXRaidSpamForm.FPXRaidSpamInput.value="";
@@ -964,7 +974,11 @@ function main() {
 							
 							while((link = patt.exec(linklist)) && SRDotDX.gui.isPosting)
 							{
-								(function(param1) {return SRDotDX.gui.FPXTimerArray[i]=setTimeout(function() {if(!SRDotDX.gui.isPosting)return; SRDotDX.gui.FPXdoWork(SRDotDX.gui.FPXformatRaidOutput(param1), SRDotDX.config.whisperSpam, SRDotDX.config.whisperTo);},timer); })(link);
+								(function(param1) {return SRDotDX.gui.FPXTimerArray[i]=setTimeout(function() {
+									if(!SRDotDX.gui.isPosting)return; 
+									SRDotDX.gui.FPXdoWork(SRDotDX.gui.FPXformatRaidOutput(param1), SRDotDX.config.whisperSpam, SRDotDX.config.whisperTo);
+									SRDotDX.gui.postingMessage(++ct);},timer); 
+								})(link);
 								timer+=ttw;
 								i++;
 							}
