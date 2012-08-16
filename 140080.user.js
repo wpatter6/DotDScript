@@ -3,7 +3,7 @@
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        0.1.5
+// @version        0.1.6
 // @date           08.14.2012
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -175,7 +175,7 @@ function main() {
 			clip: null,
 			initialized: false
 		},
-		version: {major: "0.1.5", minor: "wpatter6/JHunz"},
+		version: {major: "0.1.6", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -849,6 +849,7 @@ function main() {
 				if(linklist.length>10)
 				{
 					console.log("[SRDotDX] Import started");
+					console.log(linklist);
 					document.FPXRaidSpamForm.FPXRaidSpamInput.value="";
 					var patt = new RegExp("http...www.kongregate.com.games.5thPlanetGames.dawn.of.the.dragons.[\\w\\s\\d_=&]+[^,]", "ig");
 					var link;
@@ -910,7 +911,7 @@ function main() {
 				}
 				console.log("[SRDotDX]::{FPX}:: removing from local storage...");
 				localStorage.removeItem('raidList');
-
+				SRDotDX.gui.updateMessage();
 				console.log("[SRDotDX]::{FPX}:: DELETE ALL FINISHED...");
 			},
 			FPXdoWork: function (param1, whisper, whisperTo) {
@@ -2637,7 +2638,7 @@ function main() {
 			animated_armor:{name: 'Animated Armor', shortname: 'Armor', id: 'animated_armor', stat: 'S', size:1, duration:12, health: [8000000,,,,,]},
 			spider:{name: 'Arachna', shortname: 'Arachna',  id: 'spider', stat: 'H', size:50, duration:144, health: [22000000,27500000,35200000,44000000,,]},
 			rhino:{name: 'Ataxes', shortname: 'Ataxes',  id: 'rhino', stat: 'S', size:10, duration:120, health: [2000000,2500000,3200000,4000000,,]},
-			gladiators:{name: 'Batiatusâ€™ Gladiators ', shortname: 'Batiatusâ€™ Gladiators ',  id: 'gladiators', stat: 'H', size:10, duration:120, health: [12000000,15000000,19200000,24000000,,]},
+			gladiators:{name: 'Batiatus Gladiators ', shortname: 'Gladiators ',  id: 'gladiators', stat: 'H', size:10, duration:120, health: [12000000,15000000,19200000,24000000,,]},
 			bellarius:{name: 'Bellarius the Guardian', shortname: 'Bella',  id: 'bellarius', stat: 'S', size:500, duration:96, health: [900000000,1125000000,1440000000,1800000000,,]},
 			werewolfpack:{name: 'Black Moon', shortname: 'Black Moon',  id: 'werewolfpack', stat: 'H', size:50, duration:144, health: [135000000,168750000,216000000,270000000,,]},
 			alice:{name: 'Bloody Alice', shortname: 'Alice',  id: 'alice', stat: 'S', size:50, duration:120, health: [15000000,18750000,24000000,30000000,,]},
@@ -3058,7 +3059,7 @@ function main() {
 		if(/pastebin\.com/i.test(event.origin)){//for pastebin import
 			var pbid = event.data.split("###")[0];
 			console.log("[SRDotDX] Pastebin message recieved "+pbid);
-			document.FPXRaidSpamForm.FPXRaidSpamInput.value=event.data;
+			document.FPXRaidSpamForm.FPXRaidSpamInput.value=event.data.replace(/&amp;/g, '&');
 			var pretot = document.getElementById("raid_list").childNodes.length;
 			SRDotDX.gui.FPXimportRaids();
 			var el = document.getElementById("pb_"+pbid);
@@ -3072,7 +3073,7 @@ function main() {
 }
 function PBmain(){//pastebin script
 	var id = (window.location+"").substring((window.location+"").length-8);
-	window.parent.postMessage(id+"###"+document.childNodes[(navigator.userAgent.toLowerCase().indexOf("firefox")>-1?1:0)].innerText, 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
+	window.parent.postMessage(id+"###"+document.getElementsByTagName("body")[0].innerHTML, 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
 }
 if (/^http:\/\/www\.kongregate\.com\/games\/5thplanetgames\/dawn-of-the-dragons(?:\/?$|\?|#)/i.test(document.location.href)) {
 	console.log("[SRDotDX] Initializing....");
