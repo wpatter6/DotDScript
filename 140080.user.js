@@ -849,7 +849,6 @@ function main() {
 				if(linklist.length>10)
 				{
 					console.log("[SRDotDX] Import started");
-					console.log(linklist);
 					document.FPXRaidSpamForm.FPXRaidSpamInput.value="";
 					var patt = new RegExp("http...www.kongregate.com.games.5thPlanetGames.dawn.of.the.dragons.[\\w\\s\\d_=&]+[^,]", "ig");
 					var link;
@@ -3063,7 +3062,7 @@ function main() {
 			var pretot = document.getElementById("raid_list").childNodes.length;
 			SRDotDX.gui.FPXimportRaids();
 			var el = document.getElementById("pb_"+pbid);
-			if(el) el.innerText="(Imported, "+(document.getElementById("raid_list").childNodes.length - pretot)+" new)";
+			if(el) el.innerHTML="(Imported, "+(document.getElementById("raid_list").childNodes.length - pretot)+" new)";
 			SRDotDX.gui.importingPastebin=false;
 			console.log("[SRDotDX] Pastebin import complete");
 		}
