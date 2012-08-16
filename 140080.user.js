@@ -1765,7 +1765,7 @@ function main() {
 					var FPXimpSpam= SRDotDX.gui.cHTML('#FPXRaidSpamTA');
 					FPXimpSpam.ele().style.width = e[0].offsetWidth - 12 + "px";
 					FPXimpSpam.ele().style.height = (h - 300) + "px";
-					var FPXSpamText="Paste raid or pastebin links here to share/import\n\nFireFox users: Pastebin direct import is not currently working in FireFox. For now, simply visit the pastebin link directly and copy the full text of the RAW page into this box.\n\nLinks must be comma (,) separated.";
+					var FPXSpamText="Paste raid and/or pastebin links here to share or import\n\nLinks must be comma (,) separated.";
 					FPXimpSpam.ele().value=FPXSpamText;
 					FPXimpSpam.ele().addEventListener("blur",function() {
 						if (this.value == "") {
