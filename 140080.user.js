@@ -521,6 +521,20 @@ function main() {
 				}
 			}
 		},
+		getPastebinLink: function (msg, user) {
+			msg = msg.replace(/[\r\n]/g,"");
+			var m = /^((?:(?!<a[ >]).)*)?http:\/\/pastebin\.com\/\w{8}((?:(?!<\/?a[ >]).)*(?:<a.*? class="reply_link"[> ].*)?)$/.exec(msg);
+			if (m) {
+				var pb = {};
+				pb.ptext = m[0];
+				pb.url = m[1];
+				pb.id = pb.url.substring(pb.url.length-8);
+				pb.ntext = m[2];
+				pb.user = user;
+				console.log(m.length + " : " + m[0] + " : " + m[1] + " : " + m[2]);
+				return pb;
+			}
+		},
 		getRoomName: function() {
 			var els = document.getElementsByClassName('room_name_container');
 			for(var i=0;i<els.length;i++){
@@ -839,7 +853,11 @@ function main() {
 					var link;
 					var imct = 0;
 					
-				var total = document.getElementById('raid_list').childNodes.length;
+					var total = document.getElementById('raid_list').childNodes.length;
+					if(total > SRDotDX.config.maxRaidCount){
+						if(!confirm("This import contains a large number of raids (" + total + ").  Too many raids can cause performance issues, and can even crash the browser. Continue?"))
+							return;
+					}
 					while(link = patt.exec(linklist))
 					{
 						imct++;
@@ -1017,13 +1035,14 @@ function main() {
 							var patt = new RegExp("http...www.kongregate.com.games.5thPlanetGames.dawn.of.the.dragons.[\\w\\s\\d_=&]+[^,]", "ig");
 							var link, i=0;
 							var timer=500,ttw=3000;
+							var total = linklist.split(patt).length;
 							
 							while((link = patt.exec(linklist)) && SRDotDX.gui.isPosting)
 							{
 								(function(param1) {return SRDotDX.gui.FPXTimerArray[i]=setTimeout(function() {
 									if(!SRDotDX.gui.isPosting)return; 
 									SRDotDX.gui.FPXdoWork(SRDotDX.gui.FPXformatRaidOutput(param1), SRDotDX.config.whisperSpam, SRDotDX.config.whisperTo);
-									SRDotDX.gui.postingMessage(++ct);},timer); 
+									SRDotDX.gui.postingMessage(++ct, total);},timer); 
 								})(link);
 								timer+=ttw;
 								i++;
@@ -2333,7 +2352,11 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 							SRDotDX.gui.raidListItemUpdate(raid.id);
 							if(raid.isNew)SRDotDX.gui.updateMessage();
 						}
-						//TODO Format pastebin links
+						//var pb = SRDotDX.getPastebinLink(d,b,isPublic)
+						//if (typeof pb == 'object') {
+						//	d = pb.ptext + '<a href="'+pb.url+'" target="_blank">'+pb.url+'</a> (<a href="#" onClick="return false;" onMouseDown="SRDotDX.gui.FPXImportPasteBin(\''+pb.id+'\')">Import</a>)'+pb.ntext;
+						//	//TODO Format pastebin links
+						//}
 						
 						this.SRDotDX_DUM(b,d,e,f);
 					}
