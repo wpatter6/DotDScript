@@ -2368,7 +2368,7 @@ function main() {
 						}
 						var pb = SRDotDX.getPastebinLink(d,b,isPublic)
 						if (typeof pb == 'object') {
-							d = pb.ptext + '<a href="'+pb.url+'" target="_blank">Pastebin</a> (<a href="#" onClick="return false;" onMouseDown="SRDotDX.gui.FPXImportPasteBin(\''+pb.url+'\')">Import</a>)'+pb.ntext;
+							d = pb.ptext + '<a href="'+pb.url+'" target="_blank">Pastebin Link</a> <span id="pb_'+pb.id+'">(<a href="#" onClick="return false;" onMouseDown="SRDotDX.gui.FPXImportPasteBin(\''+pb.url+'\')">Import</a>)</span> <span id="pb_result_'+pb.id+'"></span>'+pb.ntext;
 						}
 						
 						this.SRDotDX_DUM(b,d,e,f);
@@ -3056,9 +3056,14 @@ function main() {
 	}
 	window.addEventListener("message", function(event){
 		if(/pastebin\.com/i.test(event.origin)){//for pastebin import
-			console.log("[SRDotDX] Pastebin message recieved");
+			var pbid = event.data.split("###")[0];
+			console.log("[SRDotDX] Pastebin message recieved "+pbid);
 			document.FPXRaidSpamForm.FPXRaidSpamInput.value=event.data;
+			var curtot = document.getElementById("raid_list").childNodes.length;
 			SRDotDX.gui.FPXimportRaids();
+			var imtot = document.getElementById("raid_list").childNodes.length - curtot;
+			document.getElementById("pb_"+pbid).style.display="none";
+			document.getElementById("pb_result_"+pbid).innerText="(Imported, "+imtot+" new)";
 			SRDotDX.gui.importingPastebin=false;
 			console.log("[SRDotDX] Pastebin import complete");
 		}
@@ -3067,7 +3072,8 @@ function main() {
 	SRDotDX.load(0);	
 }
 function PBmain(){//pastebin script
-	window.parent.postMessage(document.childNodes[(navigator.userAgent.toLowerCase().indexOf("firefox")>-1?1:0)].innerText, 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
+	var id = (window.location+"").substring((window.location+"").length-8);
+	window.parent.postMessage(id+"###"+document.childNodes[(navigator.userAgent.toLowerCase().indexOf("firefox")>-1?1:0)].innerText, 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
 }
 if (/^http:\/\/www\.kongregate\.com\/games\/5thplanetgames\/dawn-of-the-dragons(?:\/?$|\?|#)/i.test(document.location.href)) {
 	console.log("[SRDotDX] Initializing....");
