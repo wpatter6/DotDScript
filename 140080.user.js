@@ -155,6 +155,7 @@ function main() {
 				console.log('[SRDotDX] Clipboard text set: ' + element.getAttribute('link'));
 				clip.addEventListener('complete',function(client,text) {
 					SRDotDX.gui.FPXraidLinkClickRaidList(element, true);
+					element.parentNode.removeChild(element);
 					console.log('[SRDotDX] Clipboard copied: ' + text);
 				});
 				clip.addEventListener('load',function(client) {
@@ -523,15 +524,14 @@ function main() {
 		},
 		getPastebinLink: function (msg, user) {
 			msg = msg.replace(/[\r\n]/g,"");
-			var m = /^((?:(?!<a[ >]).)*)?http:\/\/pastebin\.com\/\w{8}((?:(?!<\/?a[ >]).)*(?:<a.*? class="reply_link"[> ].*)?)$/.exec(msg);
+			var m = /^((?:(?!<a[ >]).)*)?http:\/\/pastebin\.com\/\w{8}((?:(?!<\/?a[ >]).)*(?:<a.*? class="reply_link"[> ].*)?)$/i.exec(msg);
 			if (m) {
 				var pb = {};
-				pb.ptext = m[0];
-				pb.url = m[1];
+				pb.ptext = m[1]||"";
+				pb.url = /http:\/\/pastebin\.com\/\w{8}/i.exec(m[0])+"";
 				pb.id = pb.url.substring(pb.url.length-8);
-				pb.ntext = m[2];
+				pb.ntext = m[2]||"";
 				pb.user = user;
-				console.log(m.length + " : " + m[0] + " : " + m[1] + " : " + m[2]);
 				return pb;
 			}
 		},
@@ -848,6 +848,7 @@ function main() {
 				var linklist=document.FPXRaidSpamForm.FPXRaidSpamInput.value;
 				if(linklist.length>10)
 				{
+					console.log("[SRDotDX] Import started");
 					document.FPXRaidSpamForm.FPXRaidSpamInput.value="";
 					var patt = new RegExp("http...www.kongregate.com.games.5thPlanetGames.dawn.of.the.dragons.[\\w\\s\\d_=&]+[^,]", "ig");
 					var link;
@@ -863,9 +864,16 @@ function main() {
 						imct++;
 						SRDotDX.getRaidDetails(String(link), 'Direct import', SRDotDX.config.markImportedVisited, SRDotDX.config.markImportedVisited);
 					}
-					var diff = document.getElementById('raid_list').childNodes.length - total;
-					SRDotDX.gui.doStatusOutput('Import complete, ' + diff + ' of ' + imct + ' new raids');
-					//document.getElementById('FPXImportCount').innerHTML = 'Import complete, ' + diff + ' of ' + imct + ' new raids.';
+					var haspb =false;
+					var pbpatt = new RegExp("http...pastebin.com.\\w{8}", "ig");
+					while(link = pbpatt.exec(linklist)){
+						haspb=true;
+						SRDotDX.gui.FPXImportPasteBin(link);
+					}
+					if(!haspb){				
+						var diff = document.getElementById('raid_list').childNodes.length - total;
+						SRDotDX.gui.doStatusOutput('Import complete, ' + diff + ' of ' + imct + ' new raids');
+					}
 				}
 			},
 			deleteRaid: function (ele,id) {
@@ -1112,12 +1120,20 @@ function main() {
 				}
 			},
 			FPXImportPasteBin: function(url){
-				if(typeof url==='undefined') url=document.getElementById('SRDotDX_FPX_ImportPastebin').value;
+				url=url+"";
 				if(/pastebin\.com\//i.test(url)){
-					url= 'http://pastebin.com/raw.php?i='+url.substring(url.length-8, url.length);
-					document.getElementById("SRDotDX_pastebin").src = url;
+					if(!SRDotDX.gui.importingPastebin){
+						url= 'http://pastebin.com/raw.php?i='+url.substring(url.length-8);
+						console.log("[SRDotDX] Importing pastebin " +url);
+						SRDotDX.gui.importingPastebin=true;
+						document.getElementById("SRDotDX_pastebin").src = url;
+					} else {
+						console.log("[SRDotDX] Pastebin collision, trying again in 1 second");
+						setTimeout("SRDotDX.gui.FPXImportPasteBin('"+url+"');", 1000);
+					}
 				}
 			},
+			importingPastebin:false,
 			FPXSortRaids: function () {
 				var raidArray = [];
 				var selectedSort = document.getElementById("FPXRaidSortSelection").value;
@@ -1394,7 +1410,7 @@ function main() {
 
 						}
 					}
-					SRDotDX.gui.doStatusOutput(ct + " old unvisited raids pruned.");
+					if(ct>0)SRDotDX.gui.doStatusOutput(ct + " old unvisited raids pruned.");
 				}
 				// recur every 10 minutes
 				setTimeout('SRDotDX.gui.DeleteExpiredUnvisitedRaids()',600000);
@@ -1602,7 +1618,7 @@ function main() {
 												<div id="FPXImport"> <hr>\
 													<input name="Submit2"  type="submit" tabIndex="-1" value="Import to Raid Tab" onClick="SRDotDX.gui.FPXimportRaids();return false;"/> (<a href="#" onclick="return false" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will add any new raids in the share box below to the raid tab.\');">?</a>)\
 													<input name="Submit3"  type="submit" tabIndex="-1" value="Refresh Raid Tab" onClick="SRDotDX.gui.FPXdeleteAllRaids();SRDotDX.gui.FPXimportRaids();return false;"/>(<a href="#" onclick="return false" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids on the raid tab and refresh the data with any raids in the share box below.\');">?</a>)<br> \
-													<input name="Submit4" type="submit" tabIndex="-1" value="Import Pastebin" onClick="SRDotDX.gui.FPXImportPasteBin();return false;"> <input type="text" id="SRDotDX_FPX_ImportPastebin">(<a href="#" onclick="return false" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This is currently only working in chrome.  Before this is fixed, Firefox users should simply navigate to the pastebin url, copy the raw data, and paste it into box below and import the raids. \');">?</a>)<br> \
+													<!--<input name="Submit4" type="submit" tabIndex="-1" value="Import Pastebin" onClick="SRDotDX.gui.FPXImportPasteBin();return false;"> <input type="text" id="SRDotDX_FPX_ImportPastebin">(<a href="#" onclick="return false" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This is currently only working in chrome.  Before this is fixed, Firefox users should simply navigate to the pastebin url, copy the raw data, and paste it into box below and import the raids. \');">?</a>)<br> -->\
 													<input type="checkbox" id="SRDotDX_options_markImportedRaidsVisited"> Mark imported raids visited <br> \
 												<hr></div> \
 											</div> \
@@ -1748,9 +1764,7 @@ function main() {
 					var FPXimpSpam= SRDotDX.gui.cHTML('#FPXRaidSpamTA');
 					FPXimpSpam.ele().style.width = e[0].offsetWidth - 12 + "px";
 					FPXimpSpam.ele().style.height = (h - 300) + "px";
-					var FPXSpamText="Paste links here and press the button.\nLinks must be comma (,) separated.\n\n\
-NOTE: this is a pretty buggy beta feature.\nIt may also get you banned from kongregate and/or chat.\n\n\
-This is probably only useful if you have a clipboard listener like my 'DotD raid link spammer' which may (or may not) be linked in the forums.";
+					var FPXSpamText="Paste raid or pastebin links here to share/import\n\nFireFox users: Pastebin direct import is not currently working in FireFox. For now, simply visit the pastebin link directly and copy the full text of the RAW page into this box.\n\nLinks must be comma (,) separated.";
 					FPXimpSpam.ele().value=FPXSpamText;
 					FPXimpSpam.ele().addEventListener("blur",function() {
 						if (this.value == "") {
@@ -1763,7 +1777,7 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 						}
 					});
 					
-					var FPXimpPB = SRDotDX.gui.cHTML('#SRDotDX_FPX_ImportPastebin');
+					/*var FPXimpPB = SRDotDX.gui.cHTML('#SRDotDX_FPX_ImportPastebin');
 					var FPXimpText = "Enter pastebin url";
 					FPXimpPB.ele().value=FPXimpText;
 					FPXimpPB.ele().addEventListener("blur",function() {
@@ -1775,7 +1789,7 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 						if (this.value == FPXimpText) {
 							this.value = "";
 						}
-					});
+					});*/
 
 					// Raids Tab
 					var raid_list = document.getElementById('raid_list');
@@ -2352,11 +2366,10 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 							SRDotDX.gui.raidListItemUpdate(raid.id);
 							if(raid.isNew)SRDotDX.gui.updateMessage();
 						}
-						//var pb = SRDotDX.getPastebinLink(d,b,isPublic)
-						//if (typeof pb == 'object') {
-						//	d = pb.ptext + '<a href="'+pb.url+'" target="_blank">'+pb.url+'</a> (<a href="#" onClick="return false;" onMouseDown="SRDotDX.gui.FPXImportPasteBin(\''+pb.id+'\')">Import</a>)'+pb.ntext;
-						//	//TODO Format pastebin links
-						//}
+						var pb = SRDotDX.getPastebinLink(d,b,isPublic)
+						if (typeof pb == 'object') {
+							d = pb.ptext + '<a href="'+pb.url+'" target="_blank">Pastebin</a> (<a href="#" onClick="return false;" onMouseDown="SRDotDX.gui.FPXImportPasteBin(\''+pb.url+'\')">Import</a>)'+pb.ntext;
+						}
 						
 						this.SRDotDX_DUM(b,d,e,f);
 					}
@@ -3043,19 +3056,24 @@ This is probably only useful if you have a clipboard listener like my 'DotD raid
 	}
 	window.addEventListener("message", function(event){
 		if(/pastebin\.com/i.test(event.origin)){//for pastebin import
-			console.log("[SRDotDX] Importing pastebin");
+			console.log("[SRDotDX] Pastebin message recieved");
 			document.FPXRaidSpamForm.FPXRaidSpamInput.value=event.data;
 			SRDotDX.gui.FPXimportRaids();
+			SRDotDX.gui.importingPastebin=false;
+			console.log("[SRDotDX] Pastebin import complete");
 		}
 	}, false);
 	console.log("[SRDotDX] Initialized. Checking for needed Kongregate resources...");
 	SRDotDX.load(0);	
 }
 function PBmain(){//pastebin script
-	window.parent.postMessage(document.childNodes[0].innerText, 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
+	window.parent.postMessage(document.childNodes[(navigator.userAgent.toLowerCase().indexOf("firefox")>-1?1:0)].innerText, 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
 }
 if (/^http:\/\/www\.kongregate\.com\/games\/5thplanetgames\/dawn-of-the-dragons(?:\/?$|\?|#)/i.test(document.location.href)) {
 	console.log("[SRDotDX] Initializing....");
+	/*var jq = document.createElement("script");
+	jq.src = "http://code.jquery.com/jquery-latest.min.js";
+	(document.head || document.body || document.documentElement).appendChild(jq);*/
 	var script = document.createElement("script");
 	script.appendChild(document.createTextNode('('+main+')()'));
 	(document.head || document.body || document.documentElement).appendChild(script);
