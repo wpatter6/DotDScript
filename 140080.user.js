@@ -2368,7 +2368,7 @@ function main() {
 						}
 						var pb = SRDotDX.getPastebinLink(d,b,isPublic)
 						if (typeof pb == 'object') {
-							d = pb.ptext + '<a href="'+pb.url+'" target="_blank">Pastebin Link</a> <span id="pb_'+pb.id+'">(<a href="#" onClick="return false;" onMouseDown="SRDotDX.gui.FPXImportPasteBin(\''+pb.url+'\')">Import</a>)</span> <span id="pb_result_'+pb.id+'"></span>'+pb.ntext;
+							d = pb.ptext + '<a href="'+pb.url+'" target="_blank">Pastebin Link</a> <span id="pb_'+pb.id+'">(<a href="#" onClick="return false;" onMouseDown="SRDotDX.gui.FPXImportPasteBin(\''+pb.url+'\')">Import</a>)</span>'+pb.ntext;
 						}
 						
 						this.SRDotDX_DUM(b,d,e,f);
@@ -3059,11 +3059,10 @@ function main() {
 			var pbid = event.data.split("###")[0];
 			console.log("[SRDotDX] Pastebin message recieved "+pbid);
 			document.FPXRaidSpamForm.FPXRaidSpamInput.value=event.data;
-			var curtot = document.getElementById("raid_list").childNodes.length;
+			var pretot = document.getElementById("raid_list").childNodes.length;
 			SRDotDX.gui.FPXimportRaids();
-			var imtot = document.getElementById("raid_list").childNodes.length - curtot;
-			document.getElementById("pb_"+pbid).style.display="none";
-			document.getElementById("pb_result_"+pbid).innerText="(Imported, "+imtot+" new)";
+			var el = document.getElementById("pb_"+pbid);
+			if(el) el.innerText="(Imported, "+(document.getElementById("raid_list").childNodes.length - pretot)+" new)";
 			SRDotDX.gui.importingPastebin=false;
 			console.log("[SRDotDX] Pastebin import complete");
 		}
