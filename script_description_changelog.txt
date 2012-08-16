@@ -1,10 +1,15 @@
+Some additions to <a href="http://userscripts.org/scripts/show/136127">JHunz's version</a> of the Kongregate DotD script.<br>
+Feel free to add suggestions on the discussion tab and if they're good I'll work em in.<br><br>
+
+*** If you're having trouble installing, please read the installation directions listed below ***
+<br><br>
 This is a fork of the ForceProjectX Easier DotD script with some additional features for raiding and raid sharing.
 <br/>
 His script is <a href="http://userscripts.org/scripts/show/132408">here</a>, and SReject's original version is <a href="http://userscripts.org/scripts/show/129700">here</a>.  I've taken much of his description as well.
 <br/><br/>
 <h3><b>About</b></h3>
 <p><b>What it Does</b>:<br />
-This script makes interactions between Kong and Dawn of the Dragons easier in a number of ways.<br /><b>1:</b> It customizes the way raid links are displayed so instead of getting the DOTD image and name you get information about the raid such as raid name, difficulty, fair share, optimal share and more!<br /><b>2:</b> Allows for certain raids to be hidden, such as those seen before, those you have already clicked on, or all raids.<br /><b>3:</b> Adds a tab to kongregate&#39;s chat to make toggling options easier and to view the raids you have seen posted in chat.<br /><b>4:</b> Adds a few commands to the chat input box to make things a little easier. These commands include, /clear, /toggle, /raid, and many more :D<br /><br /><b>What&#39;s On This Page</b>:<br />
+This script makes interactions between Kong and Dawn of the Dragons easier in a number of ways.<br /><b>1:</b> It customizes the way raid links are displayed so instead of getting the DOTD image and name you get information about the raid such as raid name, difficulty, fair share, optimal share and more!<br /><b>2:</b> Allows for certain raids to be hidden, such as those seen before, those you have already clicked on, or all raids.<br /><b>3:</b> Adds a tab to kongregate&#39;s chat to make toggling options easier and to view the raids you have seen posted in chat.<br /><b>4:</b> Adds a few commands to the chat input box to make things a little easier. These commands include, /clear, /toggle, /raid, and many more<br />5: Allows direct import of lists of raids, as well as support for large lists of raids stored on pastebin.<br /><br/><b>What&#39;s On This Page</b>:<br />
 			
 Changelog: Information about script updates.<br/>
 Installation: Information on how to install the script.<br />
@@ -12,6 +17,14 @@ Chat Commands: These are commands that can be used in chat<br />
 Contact Me: A list of ways to contact me for whatever reasons<br />
 &nbsp;</p>
 <h3><b>Changelog</b></h3><p>
+<b>0.1.6</b>
+<br/>
+1) Fixed FireFox pastebin import bug<br/>
+2) Added "Status output" to inform user when importing, deleting, or sharing raids (above the script's tabs)<br/>
+3) Pastebin links posted to chat are now formatted and have a quick import link next to them<br/>
+4) Configuration for automatically removing old raids added to the options tab. <br/>
+
+<br/><br/>
 <b>0.1.5</b>
 <br/>
 1) Prince Obyron's health values have been corrected<br/>
@@ -55,7 +68,6 @@ Contact Me: A list of ways to contact me for whatever reasons<br />
 4) Added quick link to raid tab (and option to enable/disable on options tab) <br/>
 5) Added option to mark raids posted by me as visited<br/>
 <br/><br/>
-<!-- TODO -->
 <b>0.1.0</b>
 <br/>
 1) Raid info has been added for the world raid Corrupted Erebus, and updated for Kessov Castle and Echthros.<br/>
