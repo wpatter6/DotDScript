@@ -154,8 +154,12 @@ function main() {
 				clip.setText(element.getAttribute('link'));
 				console.log('[SRDotDX] Clipboard text set: ' + element.getAttribute('link'));
 				clip.addEventListener('complete',function(client,text) {
-					SRDotDX.gui.FPXraidLinkClickRaidList(element, true);
-					element.parentNode.removeChild(element);
+					SRDotDX.gui.FPXraidLinkClickRaidList(element, false, true);
+					if(SRDotDX.config.hideVisitedRaids){
+						var movie = document.getElementById(clip.movieId);
+						movie.parentNode.removeChild(movie);
+						SRDotDX.clipboard.remove(element.id);
+					}
 					console.log('[SRDotDX] Clipboard copied: ' + text);
 				});
 				clip.addEventListener('load',function(client) {
@@ -170,6 +174,12 @@ function main() {
 				console.log('[SRDotDX] Clipboard added: ' + id);
 				SRDotDX.clipboard.added.push(id);
 				return false;
+			},
+			remove: function(id){
+				for( var i = 0; i < SRDotDX.clipboard.added.length; ++i ){
+					if( SRDotDX.clipboard.added[i] == id )
+						delete SRDotDX.clipboard.added[i];
+				}
 			},
 			added: [],
 			clip: null,
@@ -196,6 +206,7 @@ function main() {
 			tmp.prettyPost = (typeof tmp.prettyPost == 'boolean'?tmp.prettyPost:false);
 			tmp.useMaxRaidCount = (typeof tmp.useMaxRaidCount =='boolean'?tmp.useMaxRaidCount:false);
 			tmp.maxRaidCount = (!(typeof tmp.maxRaidCount === 'undefined')?tmp.maxRaidCount:3000);
+			tmp.autoImportPaste = (typeof tmp.autoImportPaste =='boolean'?tmp.autoImportPaste:false);
 			tmp.whisperTo = (typeof tmp.whisperTo == 'string'?tmp.whisperTo:'');
 			tmp.showCopyLink = (typeof tmp.showCopyLink == 'boolean'?tmp.showCopyLink:(navigator.userAgent.toLowerCase().indexOf('firefox')>-1));
 			tmp.showRaidLink = (typeof tmp.showRaidLink == 'boolean'?tmp.showRaidLink:(navigator.userAgent.toLowerCase().indexOf('chrome')>-1));
@@ -206,9 +217,8 @@ function main() {
 			tmp.raidLinkFormat = (typeof tmp.raidLinkFormat == 'string'?tmp.raidLinkFormat:"<seen:(s) ><visited:(v) ><shortname> - <diff> - <fs>/<os>");
 			tmp.raidLinkFormat = tmp.raidLinkFormat.replace(/&#91;/g,"[").replace(/&#93;/g,"]").replace(/&#123;/g,"{").replace(/&#125;/g,"}")
 			tmp.unvisitedRaidPruningMode = (typeof tmp.unvisitedRaidPruningMode == 'number'? tmp.unvisitedRaidPruningMode : 1);
-			if (typeof tmp.raidList != 'object') {
-				tmp.raidList = {}
-			}
+			if (typeof tmp.raidList != 'object')tmp.raidList = {};
+			if (typeof tmp.pasteList != 'object')tmp.pasteList = {};
 
 			// Raid list indexing upgrade code
 			tmp.pendingRaidListIndexingChange = (typeof tmp.pendingRaidListIndexingChange == 'boolean'?tmp.pendingRaidListIndexingChange:true);
@@ -271,7 +281,7 @@ function main() {
 			if (tmp.FPXoptsMarkRightClickDelay == 8000) { tmp.FPXoptsMarkRightClickDelay = 2000; }
 
 			GM_setValue("SRDotDX",JSON.stringify(tmp));
-			tmp.addRaid = function(hash,id,boss,diff,seen,visited,user) {
+			tmp.addRaid = function(hash,id,boss,diff,seen,visited,user,ts) {
 				if (typeof SRDotDX.config.getRaid(id) != 'object') {
 					SRDotDX.config.raidList[id] = {
 						hash: hash,
@@ -284,14 +294,32 @@ function main() {
 						lastUser: user,
 						expTime: (typeof SRDotDX.raids[boss] == 'object'?SRDotDX.raids[boss].duration:168) * 3600+parseInt((new Date).getTime() / 1000),
 						timeLeft: function (){return this.expTime - parseInt((new Date).getTime() / 1000)},
-						timeStamp: new Date().getTime(),
+						timeStamp: ((typeof ts ==='undefined'||ts==null)?(new Date().getTime()):parseInt(ts)),
 						room: SRDotDX.getRoomName()
 					}
-					SRDotDX.config.raidList[id].lastUser = user;
+					if(!(typeof ts ==='undefined'||ts==null)) console.log(SRDotDX.config.raidList[id].timeStamp);
 					SRDotDX.gui.addRaid(id);
+					//onNewRaid
 					SRDotDX.purge();
 				}
+				SRDotDX.config.raidList[id].lastUser = user;
 				return SRDotDX.config.raidList[id]
+			}
+			tmp.addPaste = function(url,id,user){
+				if (typeof SRDotDX.config.getPaste(id) != 'object') {
+					SRDotDX.config.pasteList[id]={
+						url: url,
+						id: id,
+						user: user,
+						lastUser: user,
+						timeStamp: new Date().getTime()
+					}
+					console.log("[SRDotDX] New pastebin added " + id + " : " + user)
+					//onNewPastie
+					//TODO ADD TO GUI/PURGE
+				}
+				SRDotDX.config.pasteList[id].lastuser = user;
+				return SRDotDX.config.pasteList[id]				
 			}
 			tmp.export = function () {
 				SRDotDX.config.save();
@@ -305,6 +333,12 @@ function main() {
 					else {
 						delete SRDotDX.config.raidList[id];
 					}
+				}
+			}
+			tmp.getPaste = function(id) {
+				if (typeof SRDotDX.config.pasteList[id] == 'object') {
+					console.log("[SRDotDX] Returning paste " + id);
+					return SRDotDX.config.pasteList[id];
 				}
 			}
 			tmp.import = function (data) {
@@ -455,19 +489,44 @@ function main() {
 			}
 			return r;
 		},
-		getRaidDetails: function(url,user,visited,seen) {
-			user = (user?user:'');
-			visited=(visited?visited:(user==SRDotDX.currentUser() && SRDotDX.config.markMyRaidsVisted));
+		getPasteDetails: function(url, user) {
+			user=(user?user:'');
+			var pb = {url: url, id: url.substring(url.length-8)};
+			pb.id = url.substring(url.length-8);
+			console.log("[SRDotDX] Getting paste");
+			var info = SRDotDX.config.getPaste(pb.id);
+			console.log(typeof info);
+			if(typeof info === 'undefined'){
+				info = SRDotDX.config.addPaste(pb.url, pb.id, user);
+				if(typeof info == 'object'){
+					console.log("[SRDotDX] Paste is new");
+					pb.isNew = true;
+				}
+			} else pb.isNew = false;
+			pb.user = info.user;
+			pb.lastUser = info.lastUser;
+			//pb.seen = info.seen;
+			//pb.linkText = function () { //TODO
+			//	if (SRDotDX.config.formatPasteLinks){
+			//		var txt = SRDotDX.config.pasteLinkFormat;
+			//	}
+			//}
+			return pb;
+		},
+		getRaidDetails: function(url,user,visited,seen,ts) {
+			user=(user?user:'');
+			visited=(visited?visited:(user==active_user.username() && SRDotDX.config.markMyRaidsVisted));
 			seen=(seen?seen:false);
 			var i;
 			var r = SRDotDX.getRaidDetailsBase(url);
 			if (typeof r != 'undefined' && typeof r.diff != 'undefined' && typeof r.hash != 'undefined' && typeof r.boss != 'undefined' && typeof r.id != 'undefined') {
 				var info = SRDotDX.config.getRaid(r.id);
 				if (typeof info != 'object') {
-					info = SRDotDX.config.addRaid(r.hash, r.id, r.boss, r.diff,visited,seen,user)
-					if(typeof info == 'object') info.isNew = true;
+					info = SRDotDX.config.addRaid(r.hash, r.id, r.boss, r.diff,visited,seen,user,ts)
+					if(typeof info == 'object') r.isNew = true;
 					//inserting new raid
-				} else info.isNew = false;
+				} else r.isNew = false;
+				r.timeStamp = info.timeStamp;
 				r.seen = info.seen;
 				r.visited = info.visited;
 
@@ -513,7 +572,7 @@ function main() {
 			msg = msg.replace(/[\r\n]/g,"");
 			var m = /^((?:(?!<a[ >]).)*)<a.*? href="((?:(?:https?:\/\/)?(?:www\.)?kongregate\.com)?\/games\/5thPlanetGames\/dawn-of-the-dragons(\?[^"]+))".*?<\/a>((?:(?!<\/?a[ >]).)*(?:<a.*? class="reply_link"[> ].*)?)$/i.exec(msg);
 			if (m) {
-				var raid = SRDotDX.getRaidDetails(m[3],(user?user:''))
+				var raid = SRDotDX.getRaidDetails(m[3],user)
 				if (typeof raid != 'undefined' && typeof raid != 'null') {
 					raid.ptext = m[1];
 					raid.url = m[2];
@@ -526,12 +585,12 @@ function main() {
 			msg = msg.replace(/[\r\n]/g,"");
 			var m = /^((?:(?!<a[ >]).)*)?http:\/\/pastebin\.com\/\w{8}((?:(?!<\/?a[ >]).)*(?:<a.*? class="reply_link"[> ].*)?)$/i.exec(msg);
 			if (m) {
-				var pb = {};
-				pb.ptext = m[1]||"";
-				pb.url = /http:\/\/pastebin\.com\/\w{8}/i.exec(m[0])+"";
-				pb.id = pb.url.substring(pb.url.length-8);
-				pb.ntext = m[2]||"";
-				pb.user = user;
+				console.log("[SRDotDX] Getting paste details");
+				var pb = SRDotDX.getPasteDetails(/http:\/\/pastebin\.com\/\w{8}/i.exec(m[0])+"",user);
+				if(!(typeof pb === 'undefined' || typeof pb === 'null')){	
+					pb.ptext = m[1]||"";
+					pb.ntext = m[2]||"";
+				}
 				return pb;
 			}
 		},
@@ -545,9 +604,6 @@ function main() {
 				}
 			}
 			return null
-		},
-		currentUser: function() {
-			return active_user.username()
 		},
 		getShortNum: function (num) {
 			if (isNaN(num) || num < 0){return num}
@@ -573,7 +629,7 @@ function main() {
 			var tiers = SRDotDX.raids[raidid].loottiers[diffIndex];
 			var text = tiers[0];
 			for (var i = 1;i<tiers.length;i+=1) {
-				text = text + "/" + tiers[i];
+				text = text + "/" + tiers[i] + " ";
 			}
 			return text;
 		},
@@ -844,39 +900,52 @@ function main() {
 					if(typeof sender == "object") sender.className = sender.className.replace("opened_link", "closed_link");
 				}
 			},
-			FPXimportRaids: function(){
+			FPXimportRaids: function(user){
 				var linklist=document.FPXRaidSpamForm.FPXRaidSpamInput.value;
 				if(linklist.length>10)
 				{
 					console.log("[SRDotDX] Import started");
 					document.FPXRaidSpamForm.FPXRaidSpamInput.value="";
+					var link,tagged=false,haspb=false,imct=0,total=document.getElementById('raid_list').childNodes.length;
 					var patt = new RegExp("http...www.kongregate.com.games.5thPlanetGames.dawn.of.the.dragons.[\\w\\s\\d_=&]+[^,]", "ig");
-					var link;
-					var imct = 0;
+					//if(total > SRDotDX.config.maxRaidCount){
+					//	if(!confirm("This import contains a large number of raids (" + total + ").  Too many raids can cause performance issues, and can even crash the browser. Continue?"))
+					//		return;
+					//}
 					
-					var total = document.getElementById('raid_list').childNodes.length;
-					if(total > SRDotDX.config.maxRaidCount){
-						if(!confirm("This import contains a large number of raids (" + total + ").  Too many raids can cause performance issues, and can even crash the browser. Continue?"))
-							return;
+					if(linklist.indexOf(";")>-1&&linklist.indexOf(",")>-1){//multiple delimiters, is object
+						var objs = linklist.split(";"), i=0;
+						console.log("[SRDotDX] Objects importing "+objs.length);
+						tagged=true;
+						while(imct<objs.length){
+							var obj = objs[imct].split(",");
+							console.log("[SRDotDX] Object importing " + imct + ": " + obj[2] + " : " + obj[1]);
+							SRDotDX.getRaidDetails(obj[0], obj[2], SRDotDX.config.markImportedVisited, SRDotDX.config.markImportedVisited, obj[1]);
+							imct++;
+						}
 					}
-					while(link = patt.exec(linklist))
-					{
-						imct++;
-						SRDotDX.getRaidDetails(String(link), 'Direct import', SRDotDX.config.markImportedVisited, SRDotDX.config.markImportedVisited);
+					if(!tagged){
+						while(link = patt.exec(linklist))
+						{
+							imct++;
+							SRDotDX.getRaidDetails(String(link), 'Untagged Import', SRDotDX.config.markImportedVisited, SRDotDX.config.markImportedVisited);
+						}
 					}
-					var haspb =false;
+
 					var pbpatt = new RegExp("http...pastebin.com.\\w{8}", "ig");
 					while(link = pbpatt.exec(linklist)){
 						haspb=true;
-						SRDotDX.gui.FPXImportPasteBin(link);
+						SRDotDX.gui.FPXImportPasteBin(link);//recurse
 					}
 					if(!haspb){				
 						var diff = document.getElementById('raid_list').childNodes.length - total;
 						SRDotDX.gui.doStatusOutput('Import complete, ' + diff + ' of ' + imct + ' new raids');
 					}
+					return {totalnew: diff, total:imct}
 				}
 			},
-			deleteRaid: function (ele,id) {
+			deleteRaid: function (ele,id,upd) {
+				upd=(typeof upd === 'undefined'?true:upd);
 				if (SRDotDX.config.raidList[id]) {
 					delete SRDotDX.config.raidList[id];
 				}
@@ -893,7 +962,7 @@ function main() {
 					//}
 					//delete the element
 					ele.parentNode.removeChild(ele);
-					SRDotDX.gui.updateMessage();
+					if(upd)SRDotDX.gui.updateMessage();
 				},1,ele.parentNode.parentNode.parentNode)
 			},
 			FPXdeleteAllRaids: function () {
@@ -1218,61 +1287,50 @@ function main() {
 				
 				console.log("[SRDotDX] Sorting finished");
 			},
-			DeleteHiddenRaids: function () {
-				console.log("[SRDotDX] Deleting hidden raids");
-				var raidlistDIV=document.getElementById('raid_list');
-				var raidList = raidlistDIV.childNodes;
-				var classReg = /SRDotDX_filteredRaidList([0-9a-z_]+)_([0-9])/i;
-				var delVisited=null, ct=0;
-				for(i=0; i<raidList.length; i+=1) {
-					var item = raidList[i];
-					try
-					{
-						if (/hidden/i.test(item.className)) {
-							console.log("[SRDotDX] Deleting raid " + item.getAttribute("raidid"));
-							SRDotDX.gui.deleteRaid(item.getElementsByClassName("FPXDeleteLink")[0], item.getAttribute("raidid"));
-							ct++;
-						} else {
-							if(!SRDotDX.config.filterRaidList) continue;
-							if(SRDotDX.config.hideVisitedRaidsInRaidList && (delVisited!=null?delVisited:(delVisited=confirm("This will delete raids which are only hidden for being visited. Continue?")))){
-								if(SRDotDX.config.raidList[item.getAttribute("raidid")].visited){
-									SRDotDX.gui.deleteRaid(item.getElementsByClassName("FPXDeleteLink")[0], item.getAttribute("raidid"));
-									ct++;
-								}
-							}
-							var filterClass = classReg.exec(item.className);
-							if (filterClass != null) {
-								var raidid = filterClass[1];
-								var diffIndex = filterClass[2] - 1;
-								if (SRDotDX.config.getFilter(raidid,diffIndex) == true) {
-									console.log("[SRDotDX] Deleting raid " + item.getAttribute("raidid"));
-									SRDotDX.gui.deleteRaid(item.getElementsByClassName("FPXDeleteLink")[0], item.getAttribute("raidid"));
-									ct++;
-								}
-							}
-						}
-					} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
-				}
-				SRDotDX.gui.doStatusOutput(ct+' hidden raids deleted');
-				console.log("[SRDotDX] Finished deleting hidden raids");
-			},	
-			GetAllRaids: function (){
-				console.log("[SRDotDX] Getting all raids (gui)");
+			GetAllRaids: function (visible){
+				console.log("[SRDotDX] Get all raids (visible="+visible+")");
 				var r = [];
 				var raidList = document.getElementById('raid_list').childNodes;
-
-				for(i=0; i<raidList.length; i++) {
-					var item = raidList[i];
-					var raidid = item.getAttribute("raidid");
-					var raid = SRDotDX.config.raidList[raidid];
-					if (raid) {
-						try {
-							r.push(raid);
-							r[r.length-1].ele = item
-						} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
+				if(typeof visible === 'undefined')
+					for(i=0; i<raidList.length; i++) {
+						var item = raidList[i];
+						var raid = SRDotDX.config.raidList[item.getAttribute("raidid")];
+						if (!(typeof raid === 'undefined')) {
+							try {
+								r.push(raid);
+								r[r.length-1].ele = item
+							} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
+						}
 					}
-				}
+				else if(visible)
+					for(i=0; i<raidList.length; i++) {
+							var item = raidList[i];
+							var raid = SRDotDX.config.raidList[item.getAttribute("raidid")];
+							if (!(typeof raid === 'undefined') && item.offsetWidth+item.offsetHeight>0){
+								try {
+									r.push(raid);
+									r[r.length-1].ele = item
+								} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
+							}
+						}
+				else
+					for(i=0; i<raidList.length; i++) {
+							var item = raidList[i];
+							var raid = SRDotDX.config.raidList[item.getAttribute("raidid")];
+							if (!(typeof raid === 'undefined') && item.offsetWidth+item.offsetHeight==0){
+								try {
+									r.push(raid);
+									r[r.length-1].ele = item
+								} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
+							}
+						}
 				return r;
+			},
+			GetHiddenRaids: function () {
+				return this.GetAllRaids(false);
+			},
+			GetVisibleRaids: function () {
+				return this.GetAllRaids(true);
 			},
 			GetUnvisitedRaids: function () {
 				console.log("[SRDotDX] Getting unvisited raids (gui)");
@@ -1296,89 +1354,45 @@ function main() {
 			},
 			DeleteUnvisitedRaids: function () {
 				console.log("[SRDotDX] Deleting unvisited raids");
-				var raidList = document.getElementById('raid_list').childNodes;
-				var ct = 0;
-
-				for(i=0; i<raidList.length; i+=1) {
-					var item = raidList[i];
-					var raidid = item.getAttribute("raidid");
-					
-					if (SRDotDX.config.raidList[raidid]) {
-						try {
-							var raid = SRDotDX.config.raidList[raidid];
-							if (!raid.visited) {
-								console.log("[SRDotDX] Deleting raid " + raidid);
-								SRDotDX.gui.deleteRaid(item.getElementsByClassName("FPXDeleteLink")[0], raidid);
-								ct++;
-							}
-						} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
-					}
+				var raids = SRDotDX.gui.GetUnvisitedRaids();
+				for (i=0;i<raids.length;i++){
+					var raid = raids[i];
+					SRDotDX.gui.deleteRaid(raid.ele.getElementsByClassName("FPXDeleteLink")[0], raid.id, false);
 				}
-				SRDotDX.gui.doStatusOutput(ct + ' unvisited raids deleted');
+				SRDotDX.gui.doStatusOutput(raids.length + ' unvisited raids deleted');
 			},
+			DeleteHiddenRaids: function () {
+				console.log("[SRDotDX] Deleting hidden raids");
+				var raids = SRDotDX.gui.GetHiddenRaids();
+				for(i=0;i<raids.length;i++){
+					var raid = raids[i];
+					SRDotDX.gui.deleteRaid(raid.ele.getElementsByClassName("FPXDeleteLink")[0], raid.id, false);
+				}
+				SRDotDX.gui.doStatusOutput(raids.length+' hidden raids deleted');
+				console.log("[SRDotDX] Finished deleting hidden raids");
+			},	
 			DeleteVisibleRaids: function () {
 				console.log("[SRDotDX] Deleting visible raids");
-				var raidList=document.getElementById('raid_list').childNodes,raidName;
-				var classReg = /SRDotDX_filteredRaidList([0-9a-z_]+)_([0-9])/i;
-				var ct = 0;
-				for(i=0; i<raidList.length; i+=1) {
-					var item = raidList[i];
-					try
-					{
-						if (/hidden/i.test(item.className)) {
-							continue;
-						} else {
-							var filterClass = classReg.exec(item.className);
-							if (filterClass != null) {
-								var raidid = filterClass[1];
-								var diffIndex = filterClass[2] - 1;
-								if (SRDotDX.config.getFilter(raidid,diffIndex) == true) {
-									continue;
-								} else {
-									console.log("[SRDotDX] Deleting raid " + item.getAttribute("raidid"));
-									SRDotDX.gui.deleteRaid(item.getElementsByClassName("FPXDeleteLink")[0], item.getAttribute("raidid"));
-									ct++;
-								}
-							} else {
-								continue;
-							}
-						}
-					}catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;}
+				var raids = SRDotDX.gui.GetVisibleRaids();
+				for(i=0; i<raids.length; i++){
+					var raid = raids[i];
+					SRDotDX.gui.deleteRaid(raid.ele.getElementsByClassName("FPXDeleteLink")[0], raid.id, false);
 				}
-				SRDotDX.gui.doStatusOutput(ct + ' visible raids deleted');
+				SRDotDX.gui.doStatusOutput(raids.length + ' visible raids deleted');
 				console.log("[SRDotDX] Deleting complete");
 			},
-			DumpVisibleRaidsToShare: function() {
-					var raidList=document.getElementById('raid_list').childNodes,raidName;
-					var dumpText = "";
-					var classReg = /SRDotDX_filteredRaidList([0-9a-z_]+)_([0-9])/i;
-					
-					for(i=0; i<raidList.length; i+=1) {
-						var item = raidList[i];
-						try
-						{
-							if (/hidden/i.test(item.className)) {
-								continue;
-							} else {
-								var filterClass = classReg.exec(item.className);
-								if (filterClass != null) {
-									var raidid = filterClass[1];
-									var diffIndex = filterClass[2] - 1;
-									if (SRDotDX.config.getFilter(raidid,diffIndex) == true) {
-										continue;
-									} else {
-										dumpText = dumpText + item.firstChild.getElementsByTagName('a')[0].href + ",";
-									}
-								} else {
-									continue;
-								}
-							}
-						}catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;}
-					}
-
-				var FPXimpSpam = SRDotDX.gui.cHTML('#FPXRaidSpamTA');
-				FPXimpSpam.ele().value = dumpText;
-
+			DumpRaidsToShare: function(v) {
+				console.log("[SRDotDX] Dumping "+(v?'visible':'all'));
+				var raids = (v?SRDotDX.gui.GetVisibleRaids():SRDotDX.gui.GetAllRaids());
+				var dumptext = "", el=document.getElementById('FPXRaidSpamTA');
+				for(i=0; i<raids.length; i++){
+					var raid = raids[i];
+					var txt = raid.ele.firstChild.getElementsByTagName('a')[0].href+","+raid.timeStamp+","+raid.user+";"
+					dumptext += txt;
+				}
+				SRDotDX.gui.doStatusOutput((!v?'All ':'') + raids.length + (v?' visible':'') + ' raids dumped to share.');
+				el.focus(); el.value = dumptext; el.select();
+				console.log("[SRDotDX] Dumped "+(v?'visible':'all'));
 				return false;
 			},
 			DeleteExpiredUnvisitedRaids: function() {
@@ -1546,7 +1560,8 @@ function main() {
 									<div id="FPXRaidActionsDiv" class="collapsible_panel"> \
 										<p class="panel_handle spritegame mts closed_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXRaidActions\', this)"> <a> Raid Actions </a> </p> \
 										<div id="FPXRaidActions" style="display:none"> \
-											<input name="DumpShare" tabIndex="-1" type="button" value="Dump Raids to Share Tab" onClick="SRDotDX.gui.DumpVisibleRaidsToShare();return false;"/> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'All raids currently visible in the list will be dumped to the Share Raids tab.  You can then use the button in that tab to post them to chat.\');">?</a>) <br>\
+											<input name="DumpShare" tabIndex="-1" type="button" value="Dump All Raids to Share Tab" onClick="SRDotDX.gui.DumpRaidsToShare(false);return false;"/> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'All hidden and visible raids in the list will be dumped to the Share Raids tab.  You can then use the button in that tab to post them to chat, or load them into a pastebin to share.\');">?</a>) <br>\
+											<input name="DumpVisible" tabIndex="-1" type="button" value="Dump Visible Raids to Share Tab" onClick="SRDotDX.gui.DumpRaidsToShare(true);return false;"/> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'All raids currently visible in the list will be dumped to the Share Raids tab.  You can then use the button in that tab to post them to chat, or load them into a pastebin to share\');">?</a>) <br>\
 											<input name="QuickDump" tabIndex="-1" type="button" value="Quick Share Visible Raids" onClick="SRDotDX.gui.DumpVisibleRaidsToShare();SRDotDX.gui.FPXspamRaids();return false;"/> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will immediately begin posting all visible raids in the order shown.\');">?</a>) <br>\
 											<input name="DeleteVisible" tabIndex="-1" type="button" value="Delete All Visible Raids" onClick="SRDotDX.gui.DeleteVisibleRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids currently visible.\');">?</a>) <br>\
 											<input name="DeleteHidden" tabIndex="-1" type="button" value="Delete All Hidden Raids" onClick="SRDotDX.gui.DeleteHiddenRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids that are currently not visible.\');">?</a>) <br>\
@@ -1585,6 +1600,7 @@ function main() {
 										<p class="panel_handle spritegame mts opened_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXChatOptions\', this)"> <a> Chat Options </a> </p> \
 										<div id="FPXChatOptions"> \
 											<hr> \
+											<input type="checkbox" id="SRDotDX_options_autoImportPaste"> Auto Import pastebins <br> \
 											<input type="checkbox" id="SRDotDX_options_hideRaidLinks"> Hide all raid links in chat <br> \
 											<input type="checkbox" id="SRDotDX_options_hideSeenRaids"> Hide seen raids in chat <br> \
 											<input type="checkbox" id="SRDotDX_options_hideVisitedRaids"> Hide visited raids in chat <br> \
@@ -1827,6 +1843,7 @@ function main() {
 					var optsNewRaidsAtTopOfRaidList = SRDotDX.gui.cHTML('#SRDotDX_options_newRaidsAtTopOfRaidList');
 					var optsFormatLinkOutput = SRDotDX.gui.cHTML('#SRDotDX_options_formatLinkOutput');
 					var optsPrettyPost = SRDotDX.gui.cHTML('#SRDotDX_options_prettyPost');
+					var optsAutoImportPaste = SRDotDX.gui.cHTML('#SRDotDX_options_autoImportPaste');
 					var rbUnvisitedPruningAggressive = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningAggressive');
 					var rbUnvisitedPruningModerate = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningModerate');
 					var rbUnvisitedPruningSlow = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningSlow');
@@ -1844,6 +1861,7 @@ function main() {
 					if ((SRDotDX.config.whisperTo||'')!='') { optsWhisperTo.ele().value = SRDotDX.config.whisperTo; }
 					if (SRDotDX.config.useMaxRaidCount) { optsUseMaxRaidCount.ele().checked = 'checked'; }
 					if (SRDotDX.config.maxRaidCount>0) { optsMaxRaidCount.ele().value = SRDotDX.config.maxRaidCount; }
+					if (SRDotDX.config.autoImportPaste) { optsAutoImportPaste.ele().checked = 'checked'; }
 					else { optsRaidFormat.ele().disabled = 'disabled' }
 		
 					if (SRDotDX.config.unvisitedRaidPruningMode == 0) {
@@ -1870,6 +1888,9 @@ function main() {
 					}
 					if (SRDotDX.config.newRaidsAtTopOfRaidList) { optsNewRaidsAtTopOfRaidList.ele().checked = 'checked'}
 					
+					optsAutoImportPaste.ele().addEventListener('click', function (){
+						SRDotDX.config.autoImportPaste = this.checked;
+					});
 					
 					optsMaxRaidCount.ele().addEventListener('change', function (){
 						if(isNumber(this.value)) SRDotDX.config.maxRaidCount = parseInt(this.value);
@@ -2157,7 +2178,17 @@ function main() {
 					}
 				}
 			},
-			FPXraidLinkClickRaidList: function (ele,isRightClick) {
+			loadPasteList: function () {//todo after gui
+				
+			},
+			FPXraidLinkClickRaidList: function (ele,isRightClick, isCopy) {
+				if(isCopy){
+					var id= ele.parentNode.parentNode.getAttribute("raidid");	
+					SRDotDX.config.raidList[id].visited = true;
+					SRDotDX.gui.toggleRaid('visited',id,true);				
+					SRDotDX.gui.raidListItemUpdate(id);
+					return;
+				}
 				if(!isRightClick){
 					SRDotDX.loadRaid(ele.href);
 				}
@@ -2368,7 +2399,11 @@ function main() {
 						}
 						var pb = SRDotDX.getPastebinLink(d,b,isPublic)
 						if (typeof pb == 'object') {
-							d = pb.ptext + '<a href="'+pb.url+'" target="_blank">Pastebin Link</a> <span id="pb_'+pb.id+'">(<a href="#" onClick="return false;" onMouseDown="SRDotDX.gui.FPXImportPasteBin(\''+pb.url+'\')">Import</a>)</span>'+pb.ntext;
+							var doImport = b!=active_user.username() && SRDotDX.config.autoImportPaste;
+							d = pb.ptext + '<a href="'+pb.url+'" target="_blank">'+(pb.isNew?'Pastebin Link':pb.user+'\'s Pastebin')+'</a> <span class="pb_'+pb.id+'">('+(doImport?'Importing...':'<a href="#" onClick="return false;" onMouseDown="SRDotDX.gui.FPXImportPasteBin(\''+pb.url+'\')">Import</a>')+')</span>'+pb.ntext;
+							if(doImport){
+								setTimeout("SRDotDX.gui.FPXImportPasteBin('"+pb.url+"');", 1000);
+							}
 						}
 						
 						this.SRDotDX_DUM(b,d,e,f);
@@ -2701,7 +2736,7 @@ function main() {
 			slaughterers:{name: 'Slaughterers Six', shortname: 'Slaughterers',  id: 'slaughterers', stat: 'H', size:10, duration:120, health: [24000000,30000000,38400000,48000000,,]},
 			stein:{name: 'Stein', shortname: 'Stein',  id: 'stein', stat: 'S', size:100, duration:72, health: [80000000,100000000,128000000,160000000,,]},
 			tainted:{name: 'Tainted Erebus', shortname: 'Tainted',  id: 'tainted', stat: 'S', size:250, duration:168, health: [250000000,312500000,400000000,500000000,,]},
-			tenebra:{name: 'Tenebra the Shadow-Mistress', shortname: 'Tenebra',  id: 'tenebra', stat: 'S', size:500, duration:128, health: [2000000000,2500000000,3200000000,4000000000,,]},
+			tenebra:{name: 'Tenebra Shadow Mistress', shortname: 'Tenebra',  id: 'tenebra', stat: 'S', size:500, duration:128, health: [2000000000,2500000000,3200000000,4000000000,,]},
 			tisiphone:{name: 'Tisiphone The Vengeful', shortname: 'Tisiphone',  id: 'tisiphone', stat: 'E', size:50, duration:48, health: [500000000,2500000000,5000000000,7500000000,,]},
 			chimera:{name: 'Tetrarchos', shortname: 'Tetrarchos',  id: 'chimera', stat: 'H', size:50, duration:144, health: [90000000,112500000,144000000,180000000,,]},
 			gorgon:{name: 'Tithrasia', shortname: 'Tithrasia',  id: 'gorgon', stat: 'H', size:10, duration:120, health: [18000000,22500000,28800000,36000000,,]},
@@ -3059,10 +3094,16 @@ function main() {
 			var pbid = event.data.split("###")[0];
 			console.log("[SRDotDX] Pastebin message recieved "+pbid);
 			document.FPXRaidSpamForm.FPXRaidSpamInput.value=event.data.replace(/&amp;/g, '&');
-			var pretot = document.getElementById("raid_list").childNodes.length;
-			SRDotDX.gui.FPXimportRaids();
-			var el = document.getElementById("pb_"+pbid);
-			if(el) el.innerHTML="(Imported, "+(document.getElementById("raid_list").childNodes.length - pretot)+" new)";
+			var ct = SRDotDX.gui.FPXimportRaids();
+			
+			SRDotDX.config.pasteList[pbid].newTotal=ct.totalnew;
+			SRDotDX.config.pasteList[pbid].total=ct.total;
+			SRDotDX.config.pasteList[pbid].lastImport=new Date().getTime();
+			
+			var els = document.getElementsByClassName("pb_"+pbid);
+			for(i=0;i<els.length;i++){
+				els[i].innerHTML="(Imported, "+ct.totalnew+" new)";
+			}
 			SRDotDX.gui.importingPastebin=false;
 			console.log("[SRDotDX] Pastebin import complete");
 		}
