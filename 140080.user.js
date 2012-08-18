@@ -907,7 +907,7 @@ function main() {
 					console.log("[SRDotDX] Import started");
 					document.FPXRaidSpamForm.FPXRaidSpamInput.value="";
 					var link,tagged=false,haspb=false,imct=0,total=document.getElementById('raid_list').childNodes.length;
-					var patt = new RegExp("http...www.kongregate.com.games.5thPlanetGames.dawn.of.the.dragons.[\\w\\s\\d_=&]+[^,]", "ig");
+					var patt = new RegExp("http...www.kongregate.com.games.5thPlanetGames.dawn.of.the.dragons.[\\w_=&]+[^,\s]", "ig");
 					//if(total > SRDotDX.config.maxRaidCount){
 					//	if(!confirm("This import contains a large number of raids (" + total + ").  Too many raids can cause performance issues, and can even crash the browser. Continue?"))
 					//		return;
