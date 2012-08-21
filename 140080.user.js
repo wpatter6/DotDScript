@@ -128,7 +128,7 @@ function main() {
 	}
 	//dateformatting utilities
 	window.dateFormat=function(){var token=/d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,timezone=/\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,timezoneClip=/[^-+\dA-Z]/g,pad=function(val,len){val=String(val);len=len||2;while(val.length<len)val="0"+val;return val};return function(date,mask,utc){var dF=dateFormat;if(arguments.length==1&&Object.prototype.toString.call(date)=="[object String]"&&!/\d/.test(date)){mask=date;date=undefined}date=date?new Date(date):new Date;if(isNaN(date))throw SyntaxError("invalid date");mask=String(dF.masks[mask]||mask||dF.masks["default"]);if(mask.slice(0,4)=="UTC:"){mask=mask.slice(4);utc=true}var _=utc?"getUTC":"get",d=date[_+"Date"](),D=date[_+"Day"](),m=date[_+"Month"](),y=date[_+"FullYear"](),H=date[_+"Hours"](),M=date[_+"Minutes"](),s=date[_+"Seconds"](),L=date[_+"Milliseconds"](),o=utc?0:date.getTimezoneOffset(),flags={d:d,dd:pad(d),ddd:dF.i18n.dayNames[D],dddd:dF.i18n.dayNames[D+7],m:m+1,mm:pad(m+1),mmm:dF.i18n.monthNames[m],mmmm:dF.i18n.monthNames[m+12],yy:String(y).slice(2),yyyy:y,h:H%12||12,hh:pad(H%12||12),H:H,HH:pad(H),M:M,MM:pad(M),s:s,ss:pad(s),l:pad(L,3),L:pad(L>99?Math.round(L/10):L),t:H<12?"a":"p",tt:H<12?"am":"pm",T:H<12?"A":"P",TT:H<12?"AM":"PM",Z:utc?"UTC":(String(date).match(timezone)||[""]).pop().replace(timezoneClip,""),o:(o>0?"-":"+")+pad(Math.floor(Math.abs(o)/60)*100+Math.abs(o)%60,4),S:["th","st","nd","rd"][d%10>3?0:(d%100-d%10!=10)*d%10]};return mask.replace(token,function($0){return $0 in flags?flags[$0]:$0.slice(1,$0.length-1)})}}();dateFormat.masks={"default":"ddd mmm dd yyyy HH:MM:ss",shortDate:"m/d/yy",mediumDate:"mmm d, yyyy",longDate:"mmmm d, yyyy",fullDate:"dddd, mmmm d, yyyy",shortTime:"h:MM TT",mediumTime:"h:MM:ss TT",longTime:"h:MM:ss TT Z",isoDate:"yyyy-mm-dd",isoTime:"HH:MM:ss",isoDateTime:"yyyy-mm-dd'T'HH:MM:ss",isoUtcDateTime:"UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"};dateFormat.i18n={dayNames:["Sun","Mon","Tue","Wed","Thu","Fri","Sat","Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],monthNames:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","January","February","March","April","May","June","July","August","September","October","November","December"]};
-	window.timeSince=function(date){var seconds=Math.floor((new Date().getTime()-date.getTime())/1000);var interval=Math.floor(seconds/31536000);var pretext="about ";var posttext=" ago";if(interval>=1){return pretext+interval+" year"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/2592000);if(interval>=1){return pretext+interval+" month"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/86400);if(interval>=1){return pretext+interval+" day"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/3600);if(interval>=1){return pretext+interval+" hour"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/60);if(interval>=1){return interval+" minutes"+posttext}return Math.floor(seconds)+" seconds"+posttext}
+	window.timeSince=function(date,after){if(typeof date=='number')date=new Date(date);var seconds=Math.abs(Math.floor((new Date().getTime()-date.getTime())/1000));var interval=Math.floor(seconds/31536000);var pretext="about ";var posttext=" ago";if(after)posttext=" left";if(interval>=1){return pretext+interval+" year"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/2592000);if(interval>=1){return pretext+interval+" month"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/86400);if(interval>=1){return pretext+interval+" day"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/3600);if(interval>=1){return pretext+interval+" hour"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/60);if(interval>=1){return interval+" minutes"+posttext}return Math.floor(seconds)+" seconds"+posttext}
 	window.isNumber=function(n) {return !isNaN(parseFloat(n)) && isFinite(n);}
 	window.eliminateDuplicates=function(arr){var i,len=arr.length,out=[],obj={};for(i=0;i<len;i++){obj[arr[i]]=0}for(i in obj){out.push(i)}return out}
 	
@@ -297,7 +297,6 @@ function main() {
 						timeStamp: ((typeof ts ==='undefined'||ts==null)?(new Date().getTime()):parseInt(ts)),
 						room: SRDotDX.getRoomName()
 					}
-					if(!(typeof ts ==='undefined'||ts==null)) console.log(SRDotDX.config.raidList[id].timeStamp);
 					SRDotDX.gui.addRaid(id);
 					//onNewRaid
 					SRDotDX.purge();
@@ -907,13 +906,13 @@ function main() {
 					console.log("[SRDotDX] Import started");
 					document.FPXRaidSpamForm.FPXRaidSpamInput.value="";
 					var link,tagged=false,haspb=false,imct=0,total=document.getElementById('raid_list').childNodes.length;
-					var patt = new RegExp("http...www.kongregate.com.games.5thPlanetGames.dawn.of.the.dragons.[\\w_=&]+[^,\s]", "ig");
+					var patt = new RegExp("http...www.kongregate.com.games.5thPlanetGames.dawn.of.the.dragons.[\\w\\s\\d_=&]+[^,]", "ig");
 					//if(total > SRDotDX.config.maxRaidCount){
 					//	if(!confirm("This import contains a large number of raids (" + total + ").  Too many raids can cause performance issues, and can even crash the browser. Continue?"))
 					//		return;
 					//}
 					
-					if(linklist.indexOf(";")>-1&&linklist.indexOf(",")>-1){//multiple delimiters, is object
+					if(linklist.indexOf("!!OBJECT_IMPORT!!")>-1){
 						var objs = linklist.split(";"), i=0;
 						console.log("[SRDotDX] Objects importing "+objs.length);
 						tagged=true;
@@ -1196,6 +1195,7 @@ function main() {
 						console.log("[SRDotDX] Importing pastebin " +url);
 						SRDotDX.gui.importingPastebin=true;
 						document.getElementById("SRDotDX_pastebin").src = url;
+						setTimeout("console.log('[SRDotDX] Unknown error importing pastebin.  See console');SRDotDX.gui.importingPastebin=false;", 30000);//not found in 30 secs error occured
 					} else {
 						console.log("[SRDotDX] Pastebin collision, trying again in 1 second");
 						setTimeout("SRDotDX.gui.FPXImportPasteBin('"+url+"');", 1000);
@@ -1276,12 +1276,14 @@ function main() {
 					return;
 				}
 				
-				SRDotDX.gui.FPXdeleteAllRaids();
+				var raidlistDIV=document.getElementById('raid_list');
+				while (raidlistDIV.hasChildNodes()) {
+					raidlistDIV.removeChild(raidlistDIV.lastChild);
+				}
 				
 				for(var i=0; i<raidArray.length; i++){
-					var r = raidArray[i];
-					SRDotDX.config.raidList[r.id] = r;
-					SRDotDX.gui.addRaid(r);
+					//SRDotDX.config.raidList[r.id] = r;
+					SRDotDX.gui.addRaid(raidArray[i]);
 				}
 				SRDotDX.gui.FPXFilterRaidListByName();
 				
@@ -1371,6 +1373,52 @@ function main() {
 				SRDotDX.gui.doStatusOutput(raids.length+' hidden raids deleted');
 				console.log("[SRDotDX] Finished deleting hidden raids");
 			},	
+			ClearTimeouts: function(ar){
+				if(typeof ar == 'array'){
+					for(i=0; i<ar.length; i++){
+						clearTimeout(ar[i]);
+					}
+					ar=[];
+				}
+			},
+			AutoJoin: false,
+			AutoJoining: false,
+			AutoJoinTimerArray: [],
+			AutoJoinVisible: function (b, t) {
+				for(i=0; i<SRDotDX.gui.AutoJoinTimerArray.length; i++){
+					clearTimeout(SRDotDX.gui.AutoJoinTimerArray[i]);
+				}
+				SRDotDX.gui.AutoJoinTimerArray=[];
+				SRDotDX.gui.AutoJoin = b;
+				if(typeof b=='boolean' && b){
+					console.log("[SRDotDX] Joining visible raids");
+					var raids = SRDotDX.gui.GetVisibleRaids(),timer = (!(typeof t==='undefined')?t:200),ttw = 50000;//make configurable
+					if(raids.length > 0){
+						timeFinished = (ttw*raids.length)+(new Date().getTime());
+						for(i=0; i<raids.length; i++){
+							var raid = raids[i];
+							SRDotDX.gui.AutoJoinTimerArray[SRDotDX.gui.AutoJoinTimerArray.length]=setTimeout("if(SRDotDX.gui.AutoJoin){SRDotDX.gui.doStatusOutput('Joining "+(i+1)+" of "+raids.length+", '+timeSince("+timeFinished+",true), false);SRDotDX.gui.FPXraidLinkClickChat("+raid.id+",'"+raid.ele.firstChild.getElementsByTagName('a')[0].href+"', false)}", timer)
+							timer += ttw;
+						}
+						SRDotDX.gui.AutoJoinTimerArray[SRDotDX.gui.AutoJoinTimerArray.length]=setTimeout("SRDotDX.gui.doStatusOutput('Finished Auto Joining');SRDotDX.gui.AutoJoining=false;SRDotDX.gui.AutoJoinRepeater();", timer-ttw);
+						SRDotDX.gui.AutoJoining=true;
+						console.log("[SRDotDX] Joining prepared");
+					}else{
+						console.log("[SRDotDX] No visible raids found. Checking again in "+(ttw/1000)+" seconds");
+						SRDotDX.gui.AutoJoining=false;
+						setTimeout("SRDotDX.gui.AutoJoinRepeater();", ttw);
+					}
+				} else SRDotDX.gui.doStatusOutput('Cancelled Auto Joining');
+				return b;
+			},
+			AutoJoinRepeater: function () {
+				if(SRDotDX.gui.AutoJoin){
+					if(!SRDotDX.gui.AutoJoining){
+						console.log("[SRDotDX] Auto joiner checking for new visible raids");
+						SRDotDX.gui.AutoJoinVisible(true);
+					}else setTimeout("SRDotDX.gui.AutoJoinRepeater();", 5000*60);//check every 5 minutes
+				}
+			},
 			DeleteVisibleRaids: function () {
 				console.log("[SRDotDX] Deleting visible raids");
 				var raids = SRDotDX.gui.GetVisibleRaids();
@@ -1384,7 +1432,7 @@ function main() {
 			DumpRaidsToShare: function(v) {
 				console.log("[SRDotDX] Dumping "+(v?'visible':'all'));
 				var raids = (v?SRDotDX.gui.GetVisibleRaids():SRDotDX.gui.GetAllRaids());
-				var dumptext = "", el=document.getElementById('FPXRaidSpamTA');
+				var dumptext = "!!OBJECT_IMPORT!!", el=document.getElementById('FPXRaidSpamTA');
 				for(i=0; i<raids.length; i++){
 					var raid = raids[i];
 					var txt = raid.ele.firstChild.getElementsByTagName('a')[0].href+","+raid.timeStamp+","+raid.user+";"
@@ -1427,7 +1475,7 @@ function main() {
 					if(ct>0)SRDotDX.gui.doStatusOutput(ct + " old unvisited raids pruned.");
 				}
 				// recur every 10 minutes
-				setTimeout('SRDotDX.gui.DeleteExpiredUnvisitedRaids()',600000);
+				setTimeout('SRDotDX.gui.DeleteExpiredUnvisitedRaids();',600000);
 			},
 			help: function (item) {
 			},
@@ -1560,12 +1608,15 @@ function main() {
 									<div id="FPXRaidActionsDiv" class="collapsible_panel"> \
 										<p class="panel_handle spritegame mts closed_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXRaidActions\', this)"> <a> Raid Actions </a> </p> \
 										<div id="FPXRaidActions" style="display:none"> \
+											<hr> \
 											<input name="DumpShare" tabIndex="-1" type="button" value="Dump All Raids to Share Tab" onClick="SRDotDX.gui.DumpRaidsToShare(false);return false;"/> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'All hidden and visible raids in the list will be dumped to the Share Raids tab.  You can then use the button in that tab to post them to chat, or load them into a pastebin to share.\');">?</a>) <br>\
 											<input name="DumpVisible" tabIndex="-1" type="button" value="Dump Visible Raids to Share Tab" onClick="SRDotDX.gui.DumpRaidsToShare(true);return false;"/> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'All raids currently visible in the list will be dumped to the Share Raids tab.  You can then use the button in that tab to post them to chat, or load them into a pastebin to share\');">?</a>) <br>\
 											<input name="QuickDump" tabIndex="-1" type="button" value="Quick Share Visible Raids" onClick="SRDotDX.gui.DumpVisibleRaidsToShare();SRDotDX.gui.FPXspamRaids();return false;"/> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will immediately begin posting all visible raids in the order shown.\');">?</a>) <br>\
 											<input name="DeleteVisible" tabIndex="-1" type="button" value="Delete All Visible Raids" onClick="SRDotDX.gui.DeleteVisibleRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids currently visible.\');">?</a>) <br>\
 											<input name="DeleteHidden" tabIndex="-1" type="button" value="Delete All Hidden Raids" onClick="SRDotDX.gui.DeleteHiddenRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids that are currently not visible.\');">?</a>) <br>\
 											<input name="DeleteUnvisited" tabIndex="-1" type="button" value="Delete All Unvisited Raids" onClick="SRDotDX.gui.DeleteUnvisitedRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids that you have not visited.\');">?</a>) <br> \
+											<!--<input name="AutoJoin" id="AutoJoinRaids" tabIndex="-1" type="checkbox" onClick="SRDotDX.gui.AutoJoinVisible(this.checked);"> Auto Join Visible Raids (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will join all visible raids by refreshing the game.  I was unable to find anything in the DotD or Kongregate ToS directly forbidding it, though have heard of people getting in trouble for using this method for joining raids.  Use at your own risk.\');">?</a>)<br>--> \
+											<hr> \
 										</div> \
 									</div> \
 									<div id="SRDotDX_clipboard"><span id="SRDotDX_clipboardButton"></span></div> \
@@ -1633,7 +1684,7 @@ function main() {
 												<p class="panel_handle spritegame mts opened_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXImport\', this)"> <a> Import </a> </p> \
 												<div id="FPXImport"> <hr>\
 													<input name="Submit2"  type="submit" tabIndex="-1" value="Import to Raid Tab" onClick="SRDotDX.gui.FPXimportRaids();return false;"/> (<a href="#" onclick="return false" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will add any new raids in the share box below to the raid tab.\');">?</a>)\
-													<input name="Submit3"  type="submit" tabIndex="-1" value="Refresh Raid Tab" onClick="SRDotDX.gui.FPXdeleteAllRaids();SRDotDX.gui.FPXimportRaids();return false;"/>(<a href="#" onclick="return false" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids on the raid tab and refresh the data with any raids in the share box below.\');">?</a>)<br> \
+													<input name="Submit3"  type="submit" tabIndex="-1" value="Delete and Import" onClick="SRDotDX.gui.FPXdeleteAllRaids();SRDotDX.gui.FPXimportRaids();return false;"/>(<a href="#" onclick="return false" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids on the raid tab and refresh the data with any raids in the share box below.\');">?</a>)<br> \
 													<!--<input name="Submit4" type="submit" tabIndex="-1" value="Import Pastebin" onClick="SRDotDX.gui.FPXImportPasteBin();return false;"> <input type="text" id="SRDotDX_FPX_ImportPastebin">(<a href="#" onclick="return false" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This is currently only working in chrome.  Before this is fixed, Firefox users should simply navigate to the pastebin url, copy the raw data, and paste it into box below and import the raids. \');">?</a>)<br> -->\
 													<input type="checkbox" id="SRDotDX_options_markImportedRaidsVisited"> Mark imported raids visited <br> \
 												<hr></div> \
@@ -2395,11 +2446,12 @@ function main() {
 							SRDotDX.gui.toggleRaid('visited',raid.id,raid.visited);
 							SRDotDX.config.raidList[raid.id].seen = true;
 							SRDotDX.gui.raidListItemUpdate(raid.id);
-							if(raid.isNew)SRDotDX.gui.updateMessage();
+							if(raid.isNew && !SRDotDX.gui.AutoJoin)
+								SRDotDX.gui.updateMessage();
 						}
 						var pb = SRDotDX.getPastebinLink(d,b,isPublic)
 						if (typeof pb == 'object') {
-							var doImport = b!=active_user.username() && SRDotDX.config.autoImportPaste;
+							var doImport = b!=active_user.username() && SRDotDX.config.autoImportPaste && pb.user==b;
 							d = pb.ptext + '<a href="'+pb.url+'" target="_blank">'+(pb.isNew?'Pastebin Link':pb.user+'\'s Pastebin')+'</a> <span class="pb_'+pb.id+'">('+(doImport?'Importing...':'<a href="#" onClick="return false;" onMouseDown="SRDotDX.gui.FPXImportPasteBin(\''+pb.url+'\')">Import</a>')+')</span>'+pb.ntext;
 							if(doImport){
 								setTimeout("SRDotDX.gui.FPXImportPasteBin('"+pb.url+"');", 1000);
