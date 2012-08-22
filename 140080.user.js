@@ -1405,7 +1405,6 @@ function main() {
 						setTimeout("SRDotDX.gui.AutoJoinRepeater();", ttw);
 					}
 				} else SRDotDX.gui.doStatusOutput('Cancelled Auto Joining');
-				SRDotDX.config.save(true);
 				return b;
 			},
 			AutoJoinRepeater: function () {
