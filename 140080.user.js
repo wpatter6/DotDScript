@@ -281,7 +281,7 @@ function main() {
 			if (tmp.FPXoptsMarkRightClickDelay == 8000) { tmp.FPXoptsMarkRightClickDelay = 2000; }
 
 			GM_setValue("SRDotDX",JSON.stringify(tmp));
-			tmp.addRaid = function(hash,id,boss,diff,seen,visited,user,ts) {
+			tmp.addRaid = function(hash,id,boss,diff,seen,visited,user,ts,room) {
 				if (typeof SRDotDX.config.getRaid(id) != 'object') {
 					SRDotDX.config.raidList[id] = {
 						hash: hash,
@@ -295,7 +295,7 @@ function main() {
 						expTime: (typeof SRDotDX.raids[boss] == 'object'?SRDotDX.raids[boss].duration:168) * 3600+parseInt((new Date).getTime() / 1000),
 						timeLeft: function (){return this.expTime - parseInt((new Date).getTime() / 1000)},
 						timeStamp: ((typeof ts ==='undefined'||ts==null)?(new Date().getTime()):parseInt(ts)),
-						room: SRDotDX.getRoomName()
+						room: ((typeof room ==='undefined'||room==null)?SRDotDX.getRoomName():parseInt(room))
 					}
 					SRDotDX.gui.addRaid(id);
 					//onNewRaid
@@ -342,7 +342,8 @@ function main() {
 			}
 			tmp.import = function (data) {
 			}
-			tmp.save = function () {
+			tmp.save = function (b) {
+				b = (typeof b==='undefined'?true:b);
 				for (var id in SRDotDX.config.raidList){
 					if (SRDotDX.config.raidList.hasOwnProperty(id) && SRDotDX.config.raidList[id].timeLeft <= 0) {
 						delete SRDotDX.config.raidList[id];
@@ -353,7 +354,8 @@ function main() {
 				SRDotDX.config.raidFormat = SRDotDX.config.raidLinkFormat.replace(/\{/g,"&#123;").replace(/\}/g,"&#125;").replace(/\[/g,"&#91;").replace(/\]/g,"&#93;")
 				GM_setValue("SRDotDX",JSON.stringify(SRDotDX.config));
 				SRDotDX.config.raidFormat = a;
-				setTimeout(SRDotDX.config.save,300000);
+				if(b) setTimeout("SRDotDX.config.save(true);",30000);
+				console.log("[SRDotDX] Config saved (repeat="+b+")");
 			}
 			return tmp;
 		})(),
@@ -512,7 +514,7 @@ function main() {
 			//}
 			return pb;
 		},
-		getRaidDetails: function(url,user,visited,seen,ts) {
+		getRaidDetails: function(url,user,visited,seen,ts,room) {
 			user=(user?user:'');
 			visited=(visited?visited:(user==active_user.username() && SRDotDX.config.markMyRaidsVisted));
 			seen=(seen?seen:false);
@@ -521,7 +523,7 @@ function main() {
 			if (typeof r != 'undefined' && typeof r.diff != 'undefined' && typeof r.hash != 'undefined' && typeof r.boss != 'undefined' && typeof r.id != 'undefined') {
 				var info = SRDotDX.config.getRaid(r.id);
 				if (typeof info != 'object') {
-					info = SRDotDX.config.addRaid(r.hash, r.id, r.boss, r.diff,visited,seen,user,ts)
+					info = SRDotDX.config.addRaid(r.hash, r.id, r.boss, r.diff,visited,seen,user,ts,room)
 					if(typeof info == 'object') r.isNew = true;
 					//inserting new raid
 				} else r.isNew = false;
@@ -580,12 +582,12 @@ function main() {
 				}
 			}
 		},
-		getPastebinLink: function (msg, user) {
+		getPastebinLink: function (msg, user, pub) {
 			msg = msg.replace(/[\r\n]/g,"");
 			var m = /^((?:(?!<a[ >]).)*)?http:\/\/pastebin\.com\/\w{8}((?:(?!<\/?a[ >]).)*(?:<a.*? class="reply_link"[> ].*)?)$/i.exec(msg);
 			if (m) {
 				console.log("[SRDotDX] Getting paste details");
-				var pb = SRDotDX.getPasteDetails(/http:\/\/pastebin\.com\/\w{8}/i.exec(m[0])+"",user);
+				var pb = SRDotDX.getPasteDetails(/http:\/\/pastebin\.com\/\w{8}/i.exec(m[0])+"",pub?user:active_user.username());
 				if(!(typeof pb === 'undefined' || typeof pb === 'null')){	
 					pb.ptext = m[1]||"";
 					pb.ntext = m[2]||"";
@@ -918,8 +920,8 @@ function main() {
 						tagged=true;
 						while(imct<objs.length){
 							var obj = objs[imct].split(",");
-							console.log("[SRDotDX] Object importing " + imct + ": " + obj[2] + " : " + obj[1]);
-							SRDotDX.getRaidDetails(obj[0], obj[2], SRDotDX.config.markImportedVisited, SRDotDX.config.markImportedVisited, obj[1]);
+							console.log("[SRDotDX] Object importing " + imct + ": " + obj[2] + " : " + obj[1] + " : " + obj[3]);
+							SRDotDX.getRaidDetails(obj[0], obj[2], SRDotDX.config.markImportedVisited, SRDotDX.config.markImportedVisited, obj[1],obj[3]);
 							imct++;
 						}
 					}
@@ -940,6 +942,7 @@ function main() {
 						var diff = document.getElementById('raid_list').childNodes.length - total;
 						SRDotDX.gui.doStatusOutput('Import complete, ' + diff + ' of ' + imct + ' new raids');
 					}
+					SRDotDX.config.save(false);
 					return {totalnew: diff, total:imct}
 				}
 			},
@@ -1081,6 +1084,7 @@ function main() {
 				SRDotDX.gui.doStatusOutput('Posting finished');
 				//document.getElementById("FPXShareTab").innerHTML="Share";
 				SRDotDX.gui.FPXTimerArray = [];
+				SRDotDX.config.save(true);
 			},
 			FPXStartPosting: function() {
 				SRDotDX.gui.isPosting = true;
@@ -1195,7 +1199,7 @@ function main() {
 						console.log("[SRDotDX] Importing pastebin " +url);
 						SRDotDX.gui.importingPastebin=true;
 						document.getElementById("SRDotDX_pastebin").src = url;
-						setTimeout("console.log('[SRDotDX] Unknown error importing pastebin.  See console');SRDotDX.gui.importingPastebin=false;", 30000);//not found in 30 secs error occured
+						setTimeout("if(SRDotDX.gui.importingPastebin){console.log('[SRDotDX] Unknown error importing pastebin.  See console');SRDotDX.gui.importingPastebin=false;}", 30000);//not found in 30 secs error occured
 					} else {
 						console.log("[SRDotDX] Pastebin collision, trying again in 1 second");
 						setTimeout("SRDotDX.gui.FPXImportPasteBin('"+url+"');", 1000);
@@ -1299,7 +1303,7 @@ function main() {
 						var raid = SRDotDX.config.raidList[item.getAttribute("raidid")];
 						if (!(typeof raid === 'undefined')) {
 							try {
-								r.push(raid);
+								r.push(JSON.parse(JSON.stringify(raid)));
 								r[r.length-1].ele = item
 							} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
 						}
@@ -1310,7 +1314,7 @@ function main() {
 							var raid = SRDotDX.config.raidList[item.getAttribute("raidid")];
 							if (!(typeof raid === 'undefined') && item.offsetWidth+item.offsetHeight>0){
 								try {
-									r.push(raid);
+									r.push(JSON.parse(JSON.stringify(raid)));
 									r[r.length-1].ele = item
 								} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
 							}
@@ -1321,7 +1325,7 @@ function main() {
 							var raid = SRDotDX.config.raidList[item.getAttribute("raidid")];
 							if (!(typeof raid === 'undefined') && item.offsetWidth+item.offsetHeight==0){
 								try {
-									r.push(raid);
+									r.push(JSON.parse(JSON.stringify(raid)));
 									r[r.length-1].ele = item
 								} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
 							}
@@ -1372,14 +1376,6 @@ function main() {
 				}
 				SRDotDX.gui.doStatusOutput(raids.length+' hidden raids deleted');
 				console.log("[SRDotDX] Finished deleting hidden raids");
-			},	
-			ClearTimeouts: function(ar){
-				if(typeof ar == 'array'){
-					for(i=0; i<ar.length; i++){
-						clearTimeout(ar[i]);
-					}
-					ar=[];
-				}
 			},
 			AutoJoin: false,
 			AutoJoining: false,
@@ -1409,6 +1405,7 @@ function main() {
 						setTimeout("SRDotDX.gui.AutoJoinRepeater();", ttw);
 					}
 				} else SRDotDX.gui.doStatusOutput('Cancelled Auto Joining');
+				SRDotDX.config.save(true);
 				return b;
 			},
 			AutoJoinRepeater: function () {
@@ -1435,7 +1432,7 @@ function main() {
 				var dumptext = "!!OBJECT_IMPORT!!", el=document.getElementById('FPXRaidSpamTA');
 				for(i=0; i<raids.length; i++){
 					var raid = raids[i];
-					var txt = raid.ele.firstChild.getElementsByTagName('a')[0].href+","+raid.timeStamp+","+raid.user+";"
+					var txt = raid.ele.firstChild.getElementsByTagName('a')[0].href+","+raid.timeStamp+","+raid.user+","+raid.room+";"
 					dumptext += txt;
 				}
 				SRDotDX.gui.doStatusOutput((!v?'All ':'') + raids.length + (v?' visible':'') + ' raids dumped to share.');
@@ -1615,7 +1612,7 @@ function main() {
 											<input name="DeleteVisible" tabIndex="-1" type="button" value="Delete All Visible Raids" onClick="SRDotDX.gui.DeleteVisibleRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids currently visible.\');">?</a>) <br>\
 											<input name="DeleteHidden" tabIndex="-1" type="button" value="Delete All Hidden Raids" onClick="SRDotDX.gui.DeleteHiddenRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids that are currently not visible.\');">?</a>) <br>\
 											<input name="DeleteUnvisited" tabIndex="-1" type="button" value="Delete All Unvisited Raids" onClick="SRDotDX.gui.DeleteUnvisitedRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids that you have not visited.\');">?</a>) <br> \
-											<!--<input name="AutoJoin" id="AutoJoinRaids" tabIndex="-1" type="checkbox" onClick="SRDotDX.gui.AutoJoinVisible(this.checked);"> Auto Join Visible Raids (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will join all visible raids by refreshing the game.  I was unable to find anything in the DotD or Kongregate ToS directly forbidding it, though have heard of people getting in trouble for using this method for joining raids.  Use at your own risk.\');">?</a>)<br>--> \
+											<input name="AutoJoin" id="AutoJoinRaids" tabIndex="-1" type="checkbox" onClick="SRDotDX.gui.AutoJoinVisible(this.checked);"> Auto Join Visible Raids (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will join all visible raids by refreshing the game.  I was unable to find anything in the DotD or Kongregate ToS directly forbidding it, though have heard of people getting in trouble for using this method for joining raids.  Use at your own risk.\');">?</a>)<br> \
 											<hr> \
 										</div> \
 									</div> \
@@ -2451,7 +2448,7 @@ function main() {
 						}
 						var pb = SRDotDX.getPastebinLink(d,b,isPublic)
 						if (typeof pb == 'object') {
-							var doImport = b!=active_user.username() && SRDotDX.config.autoImportPaste && pb.user==b;
+							var doImport = pb.user!=active_user.username() && SRDotDX.config.autoImportPaste && pb.user==b;
 							d = pb.ptext + '<a href="'+pb.url+'" target="_blank">'+(pb.isNew?'Pastebin Link':pb.user+'\'s Pastebin')+'</a> <span class="pb_'+pb.id+'">('+(doImport?'Importing...':'<a href="#" onClick="return false;" onMouseDown="SRDotDX.gui.FPXImportPasteBin(\''+pb.url+'\')">Import</a>')+')</span>'+pb.ntext;
 							if(doImport){
 								setTimeout("SRDotDX.gui.FPXImportPasteBin('"+pb.url+"');", 1000);
@@ -2670,7 +2667,7 @@ function main() {
 					}
 				}
 				window.onbeforeunload = function(){
-					SRDotDX.config.save();
+					SRDotDX.config.save(false);
 				}
 
 				SRDotDX.config.save();
