@@ -134,7 +134,7 @@ function main() {
 	window.eliminateDuplicates=function(arr){var i,len=arr.length,out=[],obj={};for(i=0;i<len;i++){obj[arr[i]]=0}for(i in obj){out.push(i)}return out}
 	
 	window.SRDotDX = {
-		version: {major: "0.1.6", minor: "wpatter6/JHunz"},
+		version: {major: "0.1.7", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -1303,7 +1303,7 @@ function main() {
 					if (raid) {
 						try {
 							if (!raid.visited) {
-								r.push(raid);
+								r.push(JSON.parse(JSON.stringify(raid)));
 								r[r.length-1].ele = item
 							}
 						} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
