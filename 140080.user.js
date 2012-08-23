@@ -157,7 +157,6 @@ function main() {
 			tmp.useMaxRaidCount = (typeof tmp.useMaxRaidCount =='boolean'?tmp.useMaxRaidCount:false);
 			tmp.maxRaidCount = (!(typeof tmp.maxRaidCount === 'undefined')?tmp.maxRaidCount:3000);
 			tmp.autoImportPaste = (typeof tmp.autoImportPaste =='boolean'?tmp.autoImportPaste:false);
-			tmp.AutoRefreshOnLinkClick = (typeof tmp.AutoRefreshOnLinkClick =='boolean'?tmp.AutoRefreshOnLinkClick:true);
 			tmp.whisperTo = (typeof tmp.whisperTo == 'string'?tmp.whisperTo:'');
 			tmp.showRaidLink = (typeof tmp.showRaidLink == 'boolean'?tmp.showRaidLink:(navigator.userAgent.toLowerCase().indexOf('chrome')>-1));
 			tmp.formatLinkOutput = (typeof tmp.formatLinkOutput == 'boolean'?tmp.formatLinkOutput:false);
@@ -1589,7 +1588,6 @@ function main() {
 												<INPUT id="FPX_options_markVisitedRightClickDelay" size="8"> <br>\
 												<input type="checkbox" id="SRDotDX_options_markMyRaidsVisited"> Automatically mark raids posted by me as visited <br> \
 												<input type="checkbox" id="SRDotDX_options_showRaidLink"> Show raid link in raid list <br><br> \
-												<input type="checkbox" id="SRDotDX_options_autoRefreshOnLinkClick"> Automatically refresh the game after raid clicked<br><br> \
 												Unvisited raid pruning (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'How fast the script will automatically remove unvisited raids.  Small and Medium raids: Aggressive 1h, Moderate 2h, Slow 3h.  Large Raids: Aggressive 4h, Moderate 12h, Slow 36h.  Epic and Colossal raids: Aggressive 24h, Moderate 48h, Slow 72h.\');">?</a>)<br> \
 												<input type="radio" id="FPX_options_unvisitedPruningAggressive" name="unvisitedPruning" value="Aggressive"/>Aggressive&nbsp;&nbsp; \
 												<input type="radio" id="FPX_options_unvisitedPruningModerate" name="unvisitedPruning" value="Moderate"/>Moderate&nbsp;&nbsp; \
@@ -1836,7 +1834,6 @@ function main() {
 					var optsHideSRaids = SRDotDX.gui.cHTML('#SRDotDX_options_hideSeenRaids');
 					var optsHideVRaids = SRDotDX.gui.cHTML('#SRDotDX_options_hideVisitedRaids');
 					var optsAutoJoinInterval = SRDotDX.gui.cHTML('#SRDotDX_options_autoJoinTimer');
-					var optsAutoRefreshOnLinkClick = SRDotDX.gui.cHTML('#SRDotDX_options_autoRefreshOnLinkClick');
 					var optsShowRaidLink = SRDotDX.gui.cHTML('#SRDotDX_options_showRaidLink');
 					var optsHideVRaidsList = SRDotDX.gui.cHTML('#SRDotDX_options_hideVisitedRaidsInRaidList');
 					var optsWhisperToCheck = SRDotDX.gui.cHTML('#SRDotDX_options_whisperRaids');
@@ -1853,7 +1850,6 @@ function main() {
 					var rbUnvisitedPruningModerate = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningModerate');
 					var rbUnvisitedPruningSlow = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningSlow');
 					var rbUnvisitedPruningNone = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningNone');
-					if (SRDotDX.config.AutoRefreshOnLinkClick) { optsAutoRefreshOnLinkClick.ele().checked = SRDotDX.config.AutoRefreshOnLinkClick }
 					if ((SRDotDX.config.AutoJoinInterval||'')!='') { optsAutoJoinInterval.ele().value = SRDotDX.config.AutoJoinInterval }
 					if (SRDotDX.config.FPXmarkRightClick) {	FPXoptsMarkRightClick.ele().checked = 'checked'}
 					if (SRDotDX.config.FPXdisplayListImgLink) {	FPXoptsDispLinkIcon.ele().checked = 'checked'}
@@ -1894,9 +1890,6 @@ function main() {
 					}
 					if (SRDotDX.config.newRaidsAtTopOfRaidList) { optsNewRaidsAtTopOfRaidList.ele().checked = 'checked'}
 					
-					optsAutoRefreshOnLinkClick.ele().addEventListener('click', function (){
-						SRDotDX.config.AutoRefreshOnLinkClick = this.checked;
-					});
 					optsAutoImportPaste.ele().addEventListener('click', function (){
 						SRDotDX.config.autoImportPaste = this.checked;
 					});
@@ -2614,6 +2607,7 @@ function main() {
 					}
 				}
 				window.onbeforeunload = function(){
+					SRDotDX.config.pasteList = null;//for now just purge pastys when page is left
 					SRDotDX.config.save(false);
 				}
 
@@ -2648,7 +2642,7 @@ function main() {
 				SRDotDX.config.raidList[r.id].visited = true;
 				SRDotDX.gui.toggleRaid("visited",r.id,true);
 				SRDotDX.gui.raidListItemUpdate(r.id);
-				if(!SRDotDX.gui.AutoJoining && SRDotDX.config.AutoRefreshOnLinkClick) setTimeout("SRDotDX.reload()", SRDotDX.config.AutoJoinInterval);
+				//if(!SRDotDX.gui.AutoJoining && SRDotDX.config.AutoRefreshOnLinkClick) setTimeout("SRDotDX.reload()", SRDotDX.config.AutoJoinInterval);
 			}
 		},
 		zoneRaidRegex:{
