@@ -134,59 +134,7 @@ function main() {
 	window.eliminateDuplicates=function(arr){var i,len=arr.length,out=[],obj={};for(i=0;i<len;i++){obj[arr[i]]=0}for(i in obj){out.push(i)}return out}
 	
 	window.SRDotDX = {
-		clipboard: {
-			load: function (){
-				if(!SRDotDX.clipboard.initialized){
-					ZeroClipboard.setMoviePath("http://www.swfcabin.com/swf-files/1343927328.swf");
-					SRDotDX.clipboard.initialized=true;
-					console.log("[SRDotDX] Clipboard intialized");
-				}
-			},
-			add: function(el){
-				if(!SRDotDX.config.showCopyLink) return;
-				if(!SRDotDX.clipboard.initialized) SRDotDX.clipboard.load();
-				var element=el;
-				if(typeof el=='string') element = document.getElementById('copy_'+el);
-				if(SRDotDX.clipboard.exists(element.id)) return;
-				var clip = new ZeroClipboard.Client();
-				console.log('[SRDotDX] Clipboard client loaded: ' + element.id);
-				clip.glue(element, element.parentNode);
-				console.log('[SRDotDX] Clipboard glued: ' + element.id);
-				clip.setText(element.getAttribute('link'));
-				console.log('[SRDotDX] Clipboard text set: ' + element.getAttribute('link'));
-				clip.addEventListener('complete',function(client,text) {
-					SRDotDX.gui.FPXraidLinkClickRaidList(element, false, true);
-					if(SRDotDX.config.hideVisitedRaids){
-						var movie = document.getElementById(clip.movieId);
-						movie.parentNode.removeChild(movie);
-						SRDotDX.clipboard.remove(element.id);
-					}
-					console.log('[SRDotDX] Clipboard copied: ' + text);
-				});
-				clip.addEventListener('load',function(client) {
-					console.log('[SRDotDX] Clipboard loaded: ' + element.getAttribute('link'));
-				});
-			},
-			exists: function(id){
-				for( var i = 0; i < SRDotDX.clipboard.added.length; ++i ){
-					if( SRDotDX.clipboard.added[i] == id )
-						return true;
-				}
-				console.log('[SRDotDX] Clipboard added: ' + id);
-				SRDotDX.clipboard.added.push(id);
-				return false;
-			},
-			remove: function(id){
-				for( var i = 0; i < SRDotDX.clipboard.added.length; ++i ){
-					if( SRDotDX.clipboard.added[i] == id )
-						delete SRDotDX.clipboard.added[i];
-				}
-			},
-			added: [],
-			clip: null,
-			initialized: false
-		},
-		version: {major: "0.1.7", minor: "wpatter6/JHunz"},
+		version: {major: "0.1.6", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -202,6 +150,7 @@ function main() {
 			tmp.FPXmarkRightClick = (typeof tmp.FPXmarkRightClick == 'boolean'?tmp.FPXmarkRightClick:false);
 			tmp.markMyRaidsVisted = (typeof tmp.markMyRaidsVisted == 'boolean'?tmp.markMyRaidsVisted:false);
 			tmp.whisperSpam = false;
+			tmp.AutoJoinInterval = (typeof tmp.AutoJoinInterval == 'number'?tmp.AutoJoinInterval:1000);
 			tmp.autoWhisper = (typeof tmp.autoWhisper == 'boolean'?tmp.autoWhisper:false);
 			tmp.markImportedVisited = (typeof tmp.markImportedVisited == 'boolean'?tmp.markImportedVisited:false);
 			tmp.prettyPost = (typeof tmp.prettyPost == 'boolean'?tmp.prettyPost:false);
@@ -209,7 +158,6 @@ function main() {
 			tmp.maxRaidCount = (!(typeof tmp.maxRaidCount === 'undefined')?tmp.maxRaidCount:3000);
 			tmp.autoImportPaste = (typeof tmp.autoImportPaste =='boolean'?tmp.autoImportPaste:false);
 			tmp.whisperTo = (typeof tmp.whisperTo == 'string'?tmp.whisperTo:'');
-			tmp.showCopyLink = (typeof tmp.showCopyLink == 'boolean'?tmp.showCopyLink:(navigator.userAgent.toLowerCase().indexOf('firefox')>-1));
 			tmp.showRaidLink = (typeof tmp.showRaidLink == 'boolean'?tmp.showRaidLink:(navigator.userAgent.toLowerCase().indexOf('chrome')>-1));
 			tmp.formatLinkOutput = (typeof tmp.formatLinkOutput == 'boolean'?tmp.formatLinkOutput:false);
 			tmp.FPXoptsMarkRightClickDelay = (typeof tmp.FPXoptsMarkRightClickDelay == 'number'?tmp.FPXoptsMarkRightClickDelay:2000);
@@ -365,43 +313,45 @@ function main() {
 			if(el){
 				var diff = el.childNodes.length - SRDotDX.config.maxRaidCount;
 				if(SRDotDX.config.useMaxRaidCount && diff > 0){
-					console.log("[SRDotDX] Purging started " + diff);
-					var uraids = SRDotDX.gui.GetUnvisitedRaids();
-					uraids.sort(function(a,b){
-						if(!(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
-							if(a.timeStamp < b.timeStamp) return -1;
-						return 1;
-					});
-					var i=0, total=0;;
-					while(i<uraids.length && diff > 0){
-						if((new Date).getTime() - uraids[i].timeStamp > 60000){//only if it's older than 1 hour
-							console.log('[SRDotDX] Purging ' + uraids[i].id);
-							SRDotDX.gui.deleteRaid(uraids[i].ele.getElementsByClassName("FPXDeleteLink")[0], uraids[i].id);
-							i++;
-							diff--;
-						} else break;
-					}
-					total += i;
-					i=0;
-					if(diff > 0){
-						var raids = SRDotDX.gui.GetAllRaids();
-						raids.sort(function(a,b){
+					if(!SRDotDX.gui.Importing){
+						console.log("[SRDotDX] Purging started " + diff);
+						var uraids = SRDotDX.gui.GetUnvisitedRaids();
+						uraids.sort(function(a,b){
 							if(!(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
 								if(a.timeStamp < b.timeStamp) return -1;
 							return 1;
 						});
-						while(i<raids.length && diff > 0){
+						var i=0, total=0;;
+						while(i<uraids.length && diff > 0){
 							if((new Date).getTime() - uraids[i].timeStamp > 60000){//only if it's older than 1 hour
-								console.log('[SRDotDX] Purging ' + raids[i].id);
-								SRDotDX.gui.deleteRaid(raids[i].ele.getElementsByClassName("FPXDeleteLink")[0], raids[i].id);
+								console.log('[SRDotDX] Purging ' + uraids[i].id);
+								SRDotDX.gui.deleteRaid(uraids[i].ele.getElementsByClassName("FPXDeleteLink")[0], uraids[i].id);
 								i++;
 								diff--;
 							} else break;
 						}
-					}
-					total += i;
-					SRDotDX.gui.doStatusOutput('Maximum raid count exceeded. ' + total + ' old raids purged.');
-					console.log("[SRDotDX] Purging ended");
+						total += i;
+						i=0;
+						if(diff > 0){
+							var raids = SRDotDX.gui.GetAllRaids();
+							raids.sort(function(a,b){
+								if(!(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
+									if(a.timeStamp < b.timeStamp) return -1;
+								return 1;
+							});
+							while(i<raids.length && diff > 0){
+								if((new Date).getTime() - uraids[i].timeStamp > 60000){//only if it's older than 1 hour
+									console.log('[SRDotDX] Purging ' + raids[i].id);
+									SRDotDX.gui.deleteRaid(raids[i].ele.getElementsByClassName("FPXDeleteLink")[0], raids[i].id);
+									i++;
+									diff--;
+								} else break;
+							}
+						}
+						total += i;
+						SRDotDX.gui.doStatusOutput('Maximum raid count exceeded. ' + total + ' old raids purged.');
+						console.log("[SRDotDX] Purging ended");
+					}else setTimeout("SRDotDX.purge();", 1000);
 				}
 			}
 		},
@@ -773,7 +723,6 @@ function main() {
 								<a href="'+url+'" class="link">' + rd.name + '</a> \
 								<span class="link" style="font-weight: normal !important; float: right"><a class="FPXDeleteLink" href="#">delete</a></span> \
 								<a class="FPXlink" href="'+url+'" ></a> \
-								<span class="CopyLink">[</span><span style="color:blue; text-decoration:underline; cursor:pointer" id="copy_'+r.id+'" class="CopyLink" link="http://www.kongregate.com'+url+'">Copy</span><span class="CopyLink">]</span> \
 								<span class="RaidQuickLink">[</span><a style="color:blue; text-decoration:underline; cursor:pointer" class="RaidQuickLink" href="'+url+'">Link</a><span class="RaidQuickLink">]</span> \
 								<span class="FPXtext">' + rd.name + '</span> <span class="FPXtext" style="float: right">'+(r.visited?'visited':'')+'</span><span class="FPXtext" style="display: block; width: 25px; float: left; font-weight: bold; color: ' + diffColor + ';">' + diffText + '</span> \
 							').attach("to",li).ele()/* .addEventListener("click",function(e) {
@@ -785,7 +734,6 @@ function main() {
 							rh=SRDotDX.gui.cHTML('div').set({class: 'raid_list_item_head'}).html(' \
 								<a href="'+url+'" class="link">' + rd.name + '</a> \
 								<span class="link" style="font-weight: normal !important; float: right"><a class="FPXDeleteLink" href="#">delete</a></span> \
-								<span class="CopyLink">[</span><span style="color:blue; text-decoration:underline; cursor:pointer" id="copy_'+r.id+'" class="CopyLink" link="http://www.kongregate.com'+url+'">Copy</span><span class="CopyLink">]</span> \
 								<span class="RaidQuickLink">[</span><a style="color:blue; text-decoration:underline; cursor:pointer" class="RaidQuickLink" href="'+url+'">Link</a><span class="RaidQuickLink">]</span> \
 								<span class="FPXtext">' + rd.name + '</span> <span class="FPXtext" style="float: right">'+(r.visited?'visited':'')+'</span><span class="FPXtext" style="display: block; width: 25px; float: left; font-weight: bold; color: ' + diffColor + ';">' + diffText + '</span> \
 							').attach("to",li).ele()/* .addEventListener("click",function(e) {
@@ -902,11 +850,13 @@ function main() {
 					if(typeof sender == "object") sender.className = sender.className.replace("opened_link", "closed_link");
 				}
 			},
+			Importing:false,
 			FPXimportRaids: function(user){
 				var linklist=document.FPXRaidSpamForm.FPXRaidSpamInput.value;
 				if(linklist.length>10)
 				{
 					console.log("[SRDotDX] Import started");
+					SRDotDX.gui.Importing=true;
 					document.FPXRaidSpamForm.FPXRaidSpamInput.value="";
 					var link,tagged=false,haspb=false,imct=0,total=document.getElementById('raid_list').childNodes.length;
 					var patt = new RegExp("http...www.kongregate.com.games.5thPlanetGames.dawn.of.the.dragons.[\\w\\s\\d_=&]+[^,]", "ig");
@@ -921,8 +871,10 @@ function main() {
 						tagged=true;
 						while(imct<objs.length){
 							var obj = objs[imct].split(",");
-							console.log("[SRDotDX] Object importing " + imct + ": " + obj[2] + " : " + obj[1] + " : " + obj[3]);
-							SRDotDX.getRaidDetails(obj[0], obj[2], SRDotDX.config.markImportedVisited, SRDotDX.config.markImportedVisited, obj[1],obj[3]);
+							if(obj.length == 4 && patt.test(obj[0])){
+								console.log("[SRDotDX] Object importing " + imct + ": " + obj[2] + " : " + obj[1] + " : " + obj[3]);
+								SRDotDX.getRaidDetails(obj[0], obj[2], SRDotDX.config.markImportedVisited, SRDotDX.config.markImportedVisited, obj[1],obj[3]);
+							}
 							imct++;
 						}
 					}
@@ -943,6 +895,7 @@ function main() {
 						var diff = document.getElementById('raid_list').childNodes.length - total;
 						SRDotDX.gui.doStatusOutput('Import complete, ' + diff + ' of ' + imct + ' new raids');
 					}
+					SRDotDX.gui.Importing=false;
 					SRDotDX.config.save(false);
 					return {totalnew: diff, total:imct}
 				}
@@ -1389,7 +1342,7 @@ function main() {
 				SRDotDX.gui.AutoJoin = b;
 				if(typeof b=='boolean' && b){
 					console.log("[SRDotDX] Joining visible raids");
-					var raids = SRDotDX.gui.GetVisibleRaids(),timer = (!(typeof t==='undefined')?t:200),ttw = 50000;//make configurable
+					var raids = SRDotDX.gui.GetVisibleRaids(),timer = (!(typeof t==='undefined')?t:200),ttw = SRDotDX.config.AutoJoinInterval;//make configurable
 					if(raids.length > 0){
 						timeFinished = (ttw*raids.length)+(new Date().getTime());
 						for(i=0; i<raids.length; i++){
@@ -1397,25 +1350,25 @@ function main() {
 							SRDotDX.gui.AutoJoinTimerArray[SRDotDX.gui.AutoJoinTimerArray.length]=setTimeout("if(SRDotDX.gui.AutoJoin){SRDotDX.gui.doStatusOutput('Joining "+(i+1)+" of "+raids.length+", '+timeSince("+timeFinished+",true), false);SRDotDX.gui.FPXraidLinkClickChat("+raid.id+",'"+raid.ele.firstChild.getElementsByTagName('a')[0].href+"', false)}", timer)
 							timer += ttw;
 						}
-						SRDotDX.gui.AutoJoinTimerArray[SRDotDX.gui.AutoJoinTimerArray.length]=setTimeout("SRDotDX.gui.doStatusOutput('Finished Auto Joining');SRDotDX.gui.AutoJoining=false;SRDotDX.gui.AutoJoinRepeater();", timer-ttw);
+						SRDotDX.gui.AutoJoinTimerArray[SRDotDX.gui.AutoJoinTimerArray.length]=setTimeout("SRDotDX.reload();SRDotDX.gui.doStatusOutput('Finished Auto Joining');SRDotDX.gui.AutoJoining=false;", timer);//removed SRDotDX.gui.AutoJoinRepeater();
 						SRDotDX.gui.AutoJoining=true;
 						console.log("[SRDotDX] Joining prepared");
-					}else{
-						console.log("[SRDotDX] No visible raids found. Checking again in "+(ttw/1000)+" seconds");
-						SRDotDX.gui.AutoJoining=false;
-						setTimeout("SRDotDX.gui.AutoJoinRepeater();", ttw);
-					}
+					}//else{
+					//	console.log("[SRDotDX] No visible raids found. Checking again in "+(ttw/1000)+" seconds");
+					//	SRDotDX.gui.AutoJoining=false;
+					//	setTimeout("SRDotDX.gui.AutoJoinRepeater();", ttw);
+					//}
 				} else SRDotDX.gui.doStatusOutput('Cancelled Auto Joining');
 				return b;
 			},
-			AutoJoinRepeater: function () {
-				if(SRDotDX.gui.AutoJoin){
-					if(!SRDotDX.gui.AutoJoining){
-						console.log("[SRDotDX] Auto joiner checking for new visible raids");
-						SRDotDX.gui.AutoJoinVisible(true);
-					}else setTimeout("SRDotDX.gui.AutoJoinRepeater();", 5000*60);//check every 5 minutes
-				}
-			},
+			//AutoJoinRepeater: function () {
+			//	if(SRDotDX.gui.AutoJoin){
+			//		if(!SRDotDX.gui.AutoJoining){
+			//			console.log("[SRDotDX] Auto joiner checking for new visible raids");
+			//			SRDotDX.gui.AutoJoinVisible(true);
+			//		}else setTimeout("SRDotDX.gui.AutoJoinRepeater();", 5000*60);//check every 5 minutes
+			//	}
+			//},
 			DeleteVisibleRaids: function () {
 				console.log("[SRDotDX] Deleting visible raids");
 				var raids = SRDotDX.gui.GetVisibleRaids();
@@ -1537,12 +1490,10 @@ function main() {
 						#kong_game_ui div#lots_tab_pane ul li.tab.active div.tab_pane #raid_list .raid_list_item.hidden {display:none;} \
 						#kong_game_ui div#lots_tab_pane ul li.tab.active div.tab_pane #raid_list .raid_list_item .raid_list_item_info {display:none;} \
 						#kong_game_ui div#lots_tab_pane ul li.tab.active div.tab_pane #raid_list .raid_list_item .raid_list_item_info hr {clear:both; margin: 5px 15px; } \
-						"+(!SRDotDX.config.showCopyLink?'#kong_game_ui div#lots_tab_pane ul li.tab.active div.tab_pane #raid_list .raid_list_item .raid_list_item_head .CopyLink{display:none;}':'') + "\
 						"+(!SRDotDX.config.showRaidLink?'#kong_game_ui div#lots_tab_pane ul li.tab.active div.tab_pane #raid_list .raid_list_item .raid_list_item_head .RaidQuickLink{display:none;}':'') + "\
 						#kong_game_ui div#lots_tab_pane ul li.tab.active div.tab_pane #raid_list .raid_list_item.active {cursor: default; background-color: #DEEAF6 !important;} \
 						#kong_game_ui div#lots_tab_pane ul li.tab.active div.tab_pane #raid_list .raid_list_item.active .raid_list_item_head .text{display:none;} \
 						#kong_game_ui div#lots_tab_pane ul li.tab.active div.tab_pane #raid_list .raid_list_item.active .raid_list_item_head .FPXtext{display:none;} \
-						#kong_game_ui div#lots_tab_pane ul li.tab.active div.tab_pane #raid_list .raid_list_item.active .raid_list_item_head .CopyLink{display:none !important;} \
 						#kong_game_ui div#lots_tab_pane ul li.tab.active div.tab_pane #raid_list .raid_list_item.active .raid_list_item_head .RaidQuickLink{display:none !important;} \
 						#kong_game_ui div#lots_tab_pane ul li.tab.active div.tab_pane #raid_list .raid_list_item.active .raid_list_item_head .link{display: inline-block; font-weight: bold;} \
 						#kong_game_ui div#lots_tab_pane ul li.tab.active div.tab_pane #raid_list .raid_list_item.active .raid_list_item_info {display:block;} \
@@ -1612,7 +1563,9 @@ function main() {
 											<input name="DeleteVisible" tabIndex="-1" type="button" value="Delete All Visible Raids" onClick="SRDotDX.gui.DeleteVisibleRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids currently visible.\');">?</a>) <br>\
 											<input name="DeleteHidden" tabIndex="-1" type="button" value="Delete All Hidden Raids" onClick="SRDotDX.gui.DeleteHiddenRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids that are currently not visible.\');">?</a>) <br>\
 											<input name="DeleteUnvisited" tabIndex="-1" type="button" value="Delete All Unvisited Raids" onClick="SRDotDX.gui.DeleteUnvisitedRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids that you have not visited.\');">?</a>) <br> \
-											<input name="AutoJoin" id="AutoJoinRaids" tabIndex="-1" type="checkbox" onClick="SRDotDX.gui.AutoJoinVisible(this.checked);"> Auto Join Visible Raids (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will join all visible raids by refreshing the game.  I was unable to find anything in the DotD or Kongregate ToS directly forbidding it, though have heard of people getting in trouble for using this method for joining raids.  Use at your own risk.\');">?</a>)<br> \
+											<input name="AutoJoinVisible" tabIndex="-1" type="button" value="Join Visible Raids" onClick="SRDotDX.gui.AutoJoinVisible(true);return false;"> \
+											<!--<input name="AutoJoin" id="AutoJoinRaids" tabIndex="-1" type="checkbox" onClick="SRDotDX.gui.AutoJoinVisible(this.checked);"> Join Visible Raids -->(<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will join all visible raids by refreshing the game.  I was unable to find anything in the DotD or Kongregate ToS directly forbidding it, though have heard of people getting in trouble for using this method for joining raids.  Use at your own risk.\');">?</a>) \
+											<input name="AutoJoinTimer" id="SRDotDX_options_autoJoinTimer" size="3" tabIndex="-1" type="text">Interval (ms) \
 											<hr> \
 										</div> \
 									</div> \
@@ -1632,7 +1585,6 @@ function main() {
 												Delay(milliseconds) (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Number of milliseconds to wait before marking raid link visited when it is right clicked.<br><strong>Only enabled if <i>\\\'Mark right click\\\'</i> is enabled.</strong> \');">?</a>) :: \
 												<INPUT id="FPX_options_markVisitedRightClickDelay" size="8"> <br>\
 												<input type="checkbox" id="SRDotDX_options_markMyRaidsVisited"> Automatically mark raids posted by me as visited <br> \
-												<input type="checkbox" id="SRDotDX_options_showCopyLink"> Show copy link in raid list (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\' Copies the raid link to the clipboard in a single click.  This is currently only working in FireFox. \');">?</a>)<br> \
 												<input type="checkbox" id="SRDotDX_options_showRaidLink"> Show raid link in raid list <br><br> \
 												Unvisited raid pruning (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'How fast the script will automatically remove unvisited raids.  Small and Medium raids: Aggressive 1h, Moderate 2h, Slow 3h.  Large Raids: Aggressive 4h, Moderate 12h, Slow 36h.  Epic and Colossal raids: Aggressive 24h, Moderate 48h, Slow 72h.\');">?</a>)<br> \
 												<input type="radio" id="FPX_options_unvisitedPruningAggressive" name="unvisitedPruning" value="Aggressive"/>Aggressive&nbsp;&nbsp; \
@@ -1879,7 +1831,7 @@ function main() {
 					var optsHideARaids = SRDotDX.gui.cHTML('#SRDotDX_options_hideRaidLinks');
 					var optsHideSRaids = SRDotDX.gui.cHTML('#SRDotDX_options_hideSeenRaids');
 					var optsHideVRaids = SRDotDX.gui.cHTML('#SRDotDX_options_hideVisitedRaids');
-					var optsShowCopyLink = SRDotDX.gui.cHTML('#SRDotDX_options_showCopyLink');
+					var optsAutoJoinInterval = SRDotDX.gui.cHTML('#SRDotDX_options_autoJoinTimer');
 					var optsShowRaidLink = SRDotDX.gui.cHTML('#SRDotDX_options_showRaidLink');
 					var optsHideVRaidsList = SRDotDX.gui.cHTML('#SRDotDX_options_hideVisitedRaidsInRaidList');
 					var optsWhisperToCheck = SRDotDX.gui.cHTML('#SRDotDX_options_whisperRaids');
@@ -1896,12 +1848,12 @@ function main() {
 					var rbUnvisitedPruningModerate = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningModerate');
 					var rbUnvisitedPruningSlow = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningSlow');
 					var rbUnvisitedPruningNone = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningNone');
+					if ((SRDotDX.config.AutoJoinInterval||'')!='') { optsAutoJoinInterval.ele().value = SRDotDX.config.AutoJoinInterval }
 					if (SRDotDX.config.FPXmarkRightClick) {	FPXoptsMarkRightClick.ele().checked = 'checked'}
 					if (SRDotDX.config.FPXdisplayListImgLink) {	FPXoptsDispLinkIcon.ele().checked = 'checked'}
 					if (SRDotDX.config.formatRaidLinks) {	optsFormatRaids.ele().checked = 'checked'}
 					if (SRDotDX.config.markMyRaidsVisted) { optsMarkMyRaidsVisited.ele().checked = 'checked' }
-					if (SRDotDX.config.showCopyLink) { optsShowCopyLink.ele().checked = 'checked'; optsShowRaidLink.ele().disabled = true}
-					if (SRDotDX.config.showRaidLink) { optsShowRaidLink.ele().checked = 'checked'; optsShowCopyLink.ele().disabled = true }
+					if (SRDotDX.config.showRaidLink) { optsShowRaidLink.ele().checked = 'checked';}
 					if (SRDotDX.config.formatLinkOutput) { optsFormatLinkOutput.ele().checked = 'checked'; optsPrettyPost.ele().disabled=true;}
 					if (SRDotDX.config.prettyPost) { optsPrettyPost.ele().checked='checked'; optsFormatLinkOutput.ele().disabled=true;}
 					if (SRDotDX.config.markImportedVisited) { optsMarkImportedVisited.ele().checked = 'checked'; }
@@ -1939,7 +1891,10 @@ function main() {
 					optsAutoImportPaste.ele().addEventListener('click', function (){
 						SRDotDX.config.autoImportPaste = this.checked;
 					});
-					
+					optsAutoJoinInterval.ele().addEventListener('change', function (){
+						if(isNumber(this.value)) SRDotDX.config.AutoJoinInterval = parseInt(this.value);
+						else SRDotDX.gui.errorMessage('Interval must be a number');
+					});
 					optsMaxRaidCount.ele().addEventListener('change', function (){
 						if(isNumber(this.value)) SRDotDX.config.maxRaidCount = parseInt(this.value);
 						else SRDotDX.gui.errorMessage('Raid count must be a number');
@@ -1980,20 +1935,8 @@ function main() {
 						document.getElementById("SRDotDX_options_prettyPost").disabled=this.checked;
 					});
 					
-					optsShowCopyLink.ele().addEventListener("click", function() {
-						if(navigator.userAgent.toLowerCase().indexOf('firefox')==-1 && !(this.checked && confirm("This functionality is only currently available in FireFox.  Are you sure you want to enable it?"))) 
-							this.checked = false;
-							
-						SRDotDX.config.showCopyLink = this.checked;
-						document.getElementById("SRDotDX_options_showRaidLink").disabled = this.checked;
-						var els = document.getElementsByClassName("CopyLink");
-						for(var i=0; i<els.length; i++){
-							els[i].style.display = (this.checked?'inline':'none');
-						}
-					});
 					optsShowRaidLink.ele().addEventListener("click", function() {
 						SRDotDX.config.showRaidLink = this.checked;
-						document.getElementById("SRDotDX_options_showCopyLink").disabled = this.checked;
 						var els = document.getElementsByClassName("RaidQuickLink");
 						for(var i=0; i<els.length; i++){
 							els[i].style.display = (this.checked?'inline':'none');
@@ -2821,323 +2764,6 @@ function main() {
 			$('gameiframe').contentWindow.location.replace("http://web1.dawnofthedragons.com/kong?" + Object.toQueryString(iframe_options));
 		}
 	}
-	window.ZeroClipboard = {
-		version: "1.0.7",
-		clients: {}, // registered upload clients on page, indexed by id
-		moviePath: 'ZeroClipboard.swf', // URL to movie
-		nextId: 1, // ID of next movie
-
-		$: function(thingy) {
-			// simple DOM lookup utility function
-			if (typeof(thingy) == 'string') thingy = document.getElementById(thingy);
-			if (!thingy.addClass) {
-				// extend element with a few useful methods
-				thingy.hide = function() { this.style.display = 'none'; };
-				thingy.show = function() { this.style.display = ''; };
-				thingy.addClass = function(name) { this.removeClass(name); this.className += ' ' + name; };
-				thingy.removeClass = function(name) {
-					var classes = this.className.split(/\s+/);
-					var idx = -1;
-					for (var k = 0; k < classes.length; k++) {
-						if (classes[k] == name) { idx = k; k = classes.length; }
-					}
-					if (idx > -1) {
-						classes.splice( idx, 1 );
-						this.className = classes.join(' ');
-					}
-					return this;
-				};
-				thingy.hasClass = function(name) {
-					return !!this.className.match( new RegExp("\\s*" + name + "\\s*") );
-				};
-			}
-			return thingy;
-		},
-
-		setMoviePath: function(path) {
-			// set path to ZeroClipboard.swf
-			this.moviePath = path;
-		},
-
-		// use this method in JSNI calls to obtain a new Client instance
-		newClient: function() {
-			return new ZeroClipboard.Client();
-		},
-
-		dispatch: function(id, eventName, args) {
-			// receive event from flash movie, send to client
-			var client = this.clients[id];
-			if (client) {
-				client.receiveEvent(eventName, args);
-			}
-		},
-
-		register: function(id, client) {
-			// register new client to receive events
-			this.clients[id] = client;
-		},
-
-		getDOMObjectPosition: function(obj, stopObj) {
-			// get absolute coordinates for dom element
-			var info = {
-				left: 0,
-				top: 0,
-				width: obj.width ? obj.width : obj.offsetWidth,
-				height: obj.height ? obj.height : obj.offsetHeight
-			};
-
-			while (obj && (obj != stopObj)) {
-				info.left += obj.offsetLeft;
-				info.top += obj.offsetTop;
-				obj = obj.offsetParent;
-			}
-
-			return info;
-		},
-
-		Client: function(elem) {
-			// constructor for new simple upload client
-			this.handlers = {};
-
-			// unique ID
-			this.id = ZeroClipboard.nextId++;
-			this.movieId = 'ZeroClipboardMovie_' + this.id;
-
-			// register client with singleton to receive flash events
-			ZeroClipboard.register(this.id, this);
-
-			// create movie
-			if (elem) this.glue(elem);
-		}
-	};
-
-	ZeroClipboard.Client.prototype = {
-
-		id: 0, // unique ID for us
-		ready: false, // whether movie is ready to receive events or not
-		movie: null, // reference to movie object
-		clipText: '', // text to copy to clipboard
-		handCursorEnabled: true, // whether to show hand cursor, or default pointer cursor
-		cssEffects: true, // enable CSS mouse effects on dom container
-		handlers: null, // user event handlers
-		zIndex: 99, // default zIndex of the movie object
-
-		glue: function(elem, appendElem, stylesToAdd) {
-			// glue to DOM element
-			// elem can be ID or actual DOM element object
-			this.domElement = ZeroClipboard.$(elem);
-
-			// float just above object, or default zIndex if dom element isn't set
-			if (this.domElement.style.zIndex) {
-				this.zIndex = parseInt(this.domElement.style.zIndex, 10) + 1;
-			}
-
-			if (typeof(appendElem) == 'string') {
-				appendElem = ZeroClipboard.$(appendElem);
-			}
-			else if (typeof(appendElem) == 'undefined') {
-				appendElem = document.getElementsByTagName('body')[0];
-			}
-
-			// find X/Y position of domElement
-			var box = ZeroClipboard.getDOMObjectPosition(this.domElement, appendElem);
-
-			// create floating DIV above element
-			this.div = document.createElement('div');
-			this.div.className = "CopyLink";
-			var style = this.div.style;
-			style.position = 'absolute';
-			style.left = '30px';
-			style.top = '0px';
-			style.width = '34px';
-			style.height = '18px';
-			style.zIndex = this.zIndex;
-
-			if (typeof(stylesToAdd) == 'object') {
-				for (var addedStyle in stylesToAdd) {
-					style[addedStyle] = stylesToAdd[addedStyle];
-				}
-			}
-
-			// style.backgroundColor = '#f00'; // debug
-
-			appendElem.appendChild(this.div);
-
-			this.div.innerHTML = this.getHTML( box.width, box.height );
-		},
-
-		getHTML: function(width, height) {
-			// return HTML for movie
-			var html = '';
-			var flashvars = 'id=' + this.id +
-				'&width=' + width +
-				'&height=' + height;
-
-			if (navigator.userAgent.match(/MSIE/)) {
-				// IE gets an OBJECT tag
-				var protocol = location.href.match(/^https/i) ? 'https://' : 'http://';
-				html += '<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="'+protocol+'download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,0,0" width="'+width+'" height="'+height+'" id="'+this.movieId+'" align="middle"><param name="allowScriptAccess" value="always" /><param name="allowFullScreen" value="false" /><param name="movie" value="'+ZeroClipboard.moviePath+'" /><param name="loop" value="false" /><param name="menu" value="false" /><param name="quality" value="best" /><param name="bgcolor" value="#ffffff" /><param name="flashvars" value="'+flashvars+'"/><param name="wmode" value="transparent"/></object>';
-			}
-			else {
-				// all other browsers get an EMBED tag
-				html += '<embed id="'+this.movieId+'" src="'+ZeroClipboard.moviePath+'" loop="false" menu="false" quality="best" bgcolor="#ffffff" width="'+width+'" height="'+height+'" name="'+this.movieId+'" align="middle" allowScriptAccess="always" allowFullScreen="false" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" flashvars="'+flashvars+'" wmode="transparent" />';
-			}
-			return html;
-		},
-
-		hide: function() {
-			// temporarily hide floater offscreen
-			if (this.div) {
-				this.div.style.left = '-2000px';
-			}
-		},
-
-		show: function() {
-			// show ourselves after a call to hide()
-			this.reposition();
-		},
-
-		destroy: function() {
-			// destroy control and floater
-			if (this.domElement && this.div) {
-				this.hide();
-				this.div.innerHTML = '';
-
-				var body = document.getElementsByTagName('body')[0];
-				try { body.removeChild( this.div ); } catch(e) {}
-
-				this.domElement = null;
-				this.div = null;
-			}
-		},
-
-		reposition: function(elem) {
-			// reposition our floating div, optionally to new container
-			// warning: container CANNOT change size, only position
-			if (elem) {
-				this.domElement = ZeroClipboard.$(elem);
-				if (!this.domElement) this.hide();
-			}
-
-			if (this.domElement && this.div) {
-				var box = ZeroClipboard.getDOMObjectPosition(this.domElement);
-				var style = this.div.style;
-				style.left = '' + box.left + 'px';
-				style.top = '' + box.top + 'px';
-			}
-		},
-
-		setText: function(newText) {
-			// set text to be copied to clipboard
-			this.clipText = newText;
-			if (this.ready) this.movie.setText(newText);
-		},
-
-		addEventListener: function(eventName, func) {
-			// add user event listener for event
-			// event types: load, queueStart, fileStart, fileComplete, queueComplete, progress, error, cancel
-			eventName = eventName.toString().toLowerCase().replace(/^on/, '');
-			if (!this.handlers[eventName]) this.handlers[eventName] = [];
-			this.handlers[eventName].push(func);
-		},
-
-		setHandCursor: function(enabled) {
-			// enable hand cursor (true), or default arrow cursor (false)
-			this.handCursorEnabled = enabled;
-			if (this.ready) this.movie.setHandCursor(enabled);
-		},
-
-		setCSSEffects: function(enabled) {
-			// enable or disable CSS effects on DOM container
-			this.cssEffects = !!enabled;
-		},
-
-		receiveEvent: function(eventName, args) {
-			// receive event from flash
-			eventName = eventName.toString().toLowerCase().replace(/^on/, '');
-
-			// special behavior for certain events
-			switch (eventName) {
-				case 'load':
-					// movie claims it is ready, but in IE this isn't always the case...
-					// bug fix: Cannot extend EMBED DOM elements in Firefox, must use traditional function
-					this.movie = document.getElementById(this.movieId);
-					if (!this.movie) {
-						var self = this;
-						setTimeout( function() { self.receiveEvent('load', null); }, 1 );
-						return;
-					}
-
-					// firefox on pc needs a "kick" in order to set these in certain cases
-					if (!this.ready && navigator.userAgent.match(/Firefox/) && navigator.userAgent.match(/Windows/)) {
-						var self = this;
-						setTimeout( function() { self.receiveEvent('load', null); }, 100 );
-						this.ready = true;
-						return;
-					}
-
-					this.ready = true;
-					this.movie.setText( this.clipText );
-					if(typeof this.movie.setHandCursor != 'undefined') 
-						this.movie.setHandCursor( this.handCursorEnabled );
-					break;
-
-				case 'mouseover':
-					if (this.domElement && this.cssEffects) {
-						this.domElement.addClass('hover');
-						if (this.recoverActive) this.domElement.addClass('active');
-					}
-					break;
-
-				case 'mouseout':
-					if (this.domElement && this.cssEffects) {
-						this.recoverActive = false;
-						if (this.domElement.hasClass('active')) {
-							this.domElement.removeClass('active');
-							this.recoverActive = true;
-						}
-						this.domElement.removeClass('hover');
-					}
-					break;
-
-				case 'mousedown':
-					if (this.domElement && this.cssEffects) {
-						this.domElement.addClass('active');
-					}
-					break;
-
-				case 'mouseup':
-					if (this.domElement && this.cssEffects) {
-						this.domElement.removeClass('active');
-						this.recoverActive = false;
-					}
-					break;
-			} // switch eventName
-
-			if (this.handlers[eventName]) {
-				for (var idx = 0, len = this.handlers[eventName].length; idx < len; idx++) {
-					var func = this.handlers[eventName][idx];
-
-					if (typeof(func) == 'function') {
-						// actual function reference
-						func(this, args);
-					}
-					else if ((typeof(func) == 'object') && (func.length == 2)) {
-						// PHP style object + method, i.e. [myObject, 'myMethod']
-						func[0][ func[1] ](this, args);
-					}
-					else if (typeof(func) == 'string') {
-						// name of function
-						window[func](this, args);
-					}
-				} // foreach event handler defined
-			} // user defined handler for event
-		}
-
-	};
-	if (typeof module !== "undefined") {
-		module.exports = ZeroClipboard;
-	}
 	window.addEventListener("message", function(event){
 		if(/pastebin\.com/i.test(event.origin)){//for pastebin import
 			var pbid = event.data.split("###")[0];
@@ -3158,6 +2784,7 @@ function main() {
 		}
 
 		if(/web[\w]+\.dawnofthedragons\.com/i.test(event.origin)) { // for Kong game iframe 
+			console.log("[SRDotDX] Reloading");
 			if (/reload/.test(event.data)) { // reload the frame
 				SRDotDX.reload();
 			}
@@ -3170,6 +2797,13 @@ function main() {
 function PBmain(){//pastebin script
 	var id = (window.location+"").substring((window.location+"").length-8);
 	window.parent.postMessage(id+"###"+document.getElementsByTagName("body")[0].innerHTML, 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
+}
+function DDmain(){//game frame script
+	var linkElements = document.getElementsByTagName('a');
+	if (linkElements[0]) {
+		linkElements[0].onclick = function() { window.parent.postMessage('reload','http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons'); return false; };
+		//linkElements[0].textContent = 'Reload Game';
+	} 
 }
 if (/^http:\/\/www\.kongregate\.com\/games\/5thplanetgames\/dawn-of-the-dragons(?:\/?$|\?|#)/i.test(document.location.href)) {
 	console.log("[SRDotDX] Initializing....");
@@ -3187,9 +2821,8 @@ if (/pastebin\.com\/raw\.php\?i\=/i.test(document.location.href)) {
 	(document.head || document.body || document.documentElement).appendChild(script);
 }
 if (/web[\w]+\.dawnofthedragons\.com\/kong/i.test(document.location.href)) {
-	var linkElements = document.getElementsByTagName('a');
-	if (linkElements[0]) {
-		linkElements[0].onclick = function() { window.parent.postMessage('reload','http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons'); return false; };
-		//linkElements[0].textContent = 'Reload Game';
-	} 
+	console.log("[SRDotDX] Gamescript Initializing....");
+	var script = document.createElement("script");
+	script.appendChild(document.createTextNode('('+DDmain+')()'));
+	(document.head || document.body || document.documentElement).appendChild(script);
 }
