@@ -1,12 +1,10 @@
-Some additions to <a href="http://userscripts.org/scripts/show/136127">JHunz's version</a> of the Kongregate DotD script.<br>
+Some additions to <a href="http://userscripts.org/scripts/show/136127" target="_blank">JHunz's version</a> of the Kongregate DotD script.<br>
 Feel free to add suggestions on the discussion tab and if they're good I'll work em in.<br><br>
+<b>We are now accepting paypal contributions, <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=2Y8C4RURY33AL&lc=US&currency_code=USD&bn=PP-DonationsBF:8DzHU.gif:NonHosted" target="_blank">click here</a> to contribute to our ongoing effort!</b>
+<br><br>
 
 *** If you're having trouble installing, please read the installation directions listed below ***
-<br><br>
-This is a fork of the ForceProjectX Easier DotD script with some additional features for raiding and raid sharing.
-<br/>
-His script is <a href="http://userscripts.org/scripts/show/132408">here</a>, and SReject's original version is <a href="http://userscripts.org/scripts/show/129700">here</a>.  I've taken much of his description as well.
-<br/><br/>
+<br><br/>
 <h3><b>About</b></h3>
 <p><b>What it Does</b>:<br />
 This script makes interactions between Kong and Dawn of the Dragons easier in a number of ways.<br /><b>1:</b> It customizes the way raid links are displayed so instead of getting the DOTD image and name you get information about the raid such as raid name, difficulty, fair share, optimal share and more!<br /><b>2:</b> Allows for certain raids to be hidden, such as those seen before, those you have already clicked on, or all raids.<br /><b>3:</b> Adds a tab to kongregate&#39;s chat to make toggling options easier and to view the raids you have seen posted in chat.<br /><b>4:</b> Adds a few commands to the chat input box to make things a little easier. These commands include, /clear, /toggle, /raid, and many more<br />5: Allows direct import of lists of raids, as well as support for large lists of raids stored on pastebin.<br /><br/><b>What&#39;s On This Page</b>:<br />
