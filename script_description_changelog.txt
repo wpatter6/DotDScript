@@ -17,6 +17,10 @@ Chat Commands: These are commands that can be used in chat<br />
 Contact Me: A list of ways to contact me for whatever reasons<br />
 &nbsp;</p>
 <h3><b>Changelog</b></h3><p>
+<b>0.1.7</b>
+<!--Pat, put your stuff here-->
+<br/>
+1) The Play Now! link shown after clicking raid links now reloads the frame rather than refreshing the page<br/>
 <b>0.1.6</b>
 <br/>
 1) Fixed FireFox pastebin import bug<br/>

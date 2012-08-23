@@ -3,10 +3,11 @@
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        0.1.6
-// @date           08.14.2012
+// @version        0.1.7
+// @date           08.22.2012
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
+// @include        *web*.dawnofthedragons.com/kong*
 // ==/UserScript==
 
 function main() {
@@ -185,7 +186,7 @@ function main() {
 			clip: null,
 			initialized: false
 		},
-		version: {major: "0.1.6", minor: "wpatter6/JHunz"},
+		version: {major: "0.1.7", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -3155,6 +3156,13 @@ function main() {
 			SRDotDX.gui.importingPastebin=false;
 			console.log("[SRDotDX] Pastebin import complete");
 		}
+
+		if(/web[\w]+\.dawnofthedragons\.com/i.test(event.origin)) { // for Kong game iframe 
+			if (/reload/.test(event.data)) { // reload the frame
+				SRDotDX.reload();
+			}
+		} 
+
 	}, false);
 	console.log("[SRDotDX] Initialized. Checking for needed Kongregate resources...");
 	SRDotDX.load(0);	
@@ -3177,4 +3185,11 @@ if (/pastebin\.com\/raw\.php\?i\=/i.test(document.location.href)) {
 	var script = document.createElement("script");
 	script.appendChild(document.createTextNode('('+PBmain+')()'));
 	(document.head || document.body || document.documentElement).appendChild(script);
+}
+if (/web[\w]+\.dawnofthedragons\.com\/kong/i.test(document.location.href)) {
+	var linkElements = document.getElementsByTagName('a');
+	if (linkElements[0]) {
+		linkElements[0].onclick = function() { window.parent.postMessage('reload','http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons'); return false; };
+		//linkElements[0].textContent = 'Reload Game';
+	} 
 }
