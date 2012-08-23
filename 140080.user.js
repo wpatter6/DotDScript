@@ -1396,6 +1396,11 @@ function main() {
 				console.log("[SRDotDX] Dumped "+(v?'visible':'all'));
 				return false;
 			},
+			BeginDeletingExpiredUnvisitedRaids: function() {
+				SRDotDX.gui.DeleteExpiredUnvisitedRaids();
+
+				setInterval('SRDotDX.gui.DeleteExpiredUnvisitedRaids();',600000);
+			},
 			DeleteExpiredUnvisitedRaids: function() {
 				console.log("[SRDotDX] Deleting expired unvisited raids");
 				if (SRDotDX.config.unvisitedRaidPruningMode <= 2 && SRDotDX.config.unvisitedRaidPruningMode >= 0) {
@@ -1408,17 +1413,23 @@ function main() {
 						if (SRDotDX.config.raidList[raidid]) {
 							try {
 								var raid = SRDotDX.config.raidList[raidid];
-								var raidInfo = SRDotDX.raids[raid.boss];
-								if (!raid.visited) {
-									if(SRDotDX.raidSizes[raidInfo.size] && SRDotDX.raidSizes[raidInfo.size].pruneTimers && SRDotDX.raidSizes[raidInfo.size].pruneTimers[SRDotDX.config.unvisitedRaidPruningMode]) {
-										var pruneTimer = SRDotDX.raidSizes[raidInfo.size].pruneTimers[SRDotDX.config.unvisitedRaidPruningMode];
-										if ((pruneTime - raid.timeStamp) >= pruneTimer) {
-											console.log("[SRDotDX] Deleting raid " + raidid);
-											SRDotDX.gui.deleteRaid(item.getElementsByClassName("FPXDeleteLink")[0], raidid);
-											ct++;
+								if (SRDotDX.raids[raid.boss]) {
+
+									var raidInfo = SRDotDX.raids[raid.boss];
+									if (!raid.visited) {
+										if(SRDotDX.raidSizes[raidInfo.size] && SRDotDX.raidSizes[raidInfo.size].pruneTimers && SRDotDX.raidSizes[raidInfo.size].pruneTimers[SRDotDX.config.unvisitedRaidPruningMode]) {
+											var pruneTimer = SRDotDX.raidSizes[raidInfo.size].pruneTimers[SRDotDX.config.unvisitedRaidPruningMode];
+											if ((pruneTime - raid.timeStamp) >= pruneTimer) {
+												console.log("[SRDotDX] Deleting raid " + raidid);
+												SRDotDX.gui.deleteRaid(item.getElementsByClassName("FPXDeleteLink")[0], raidid);
+												ct++;
+											}
 										}
 									}
-
+								} else {
+									console.log("[SRDotDX] Deleting raid " + raidid);
+									SRDotDX.gui.deleteRaid(item.getElementsByClassName("FPXDeleteLink")[0], raidid);
+									ct++;
 								}
 
 							} catch(err){console.log("[SRDotDX]::{FPX}:: error::"+err+"   raid var"+raidList[i]+raidList[i].innerHTML);return false;} 
@@ -1427,8 +1438,6 @@ function main() {
 					}
 					if(ct>0)SRDotDX.gui.doStatusOutput(ct + " old unvisited raids pruned.");
 				}
-				// recur every 10 minutes
-				setTimeout('SRDotDX.gui.DeleteExpiredUnvisitedRaids();',600000);
 			},
 			help: function (item) {
 			},
@@ -2153,7 +2162,7 @@ function main() {
 					}).html("<a href=\"http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons\" onclick=\"SRDotDX.reload(); return false;\">Reload Game</a>").attach("after","get_kreds_link");
 
 					// Start raid pruning 10 seconds after loading completion
-					setTimeout('SRDotDX.gui.DeleteExpiredUnvisitedRaids(); SRDotDX.purge();',10000);
+					setTimeout('SRDotDX.gui.BeginDeletingExpiredUnvisitedRaids(); SRDotDX.purge();',10000);
 
 					console.log("[SRDotDX] Loading is complete.");
 				}
@@ -2607,7 +2616,7 @@ function main() {
 					}
 				}
 				window.onbeforeunload = function(){
-					SRDotDX.config.pasteList = null;//for now just purge pastys when page is left
+					SRDotDX.config.pasteList = {};//for now just purge pastys when page is left
 					SRDotDX.config.save(false);
 				}
 

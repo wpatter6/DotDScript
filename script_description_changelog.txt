@@ -38,6 +38,9 @@ Contact Me: A list of ways to contact me for whatever reasons<br />
 <br/>
 1) Prince Obyron's health values have been corrected<br/>
 2) A button has been added to delete all unvisited raids<br/>
+3) Two different auto-purging features have been added<br/>
+&nbsp;a) There are four settings for how fast to purge unvisited raids 
+&nbsp;b) You can set a limit for the maximum number of raids to hold.  Once this limit is reached the oldest raids in the script will be deleted.
 
 <br/><br/>
 <b>0.1.4</b>
