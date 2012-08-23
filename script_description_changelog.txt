@@ -18,9 +18,14 @@ Contact Me: A list of ways to contact me for whatever reasons<br />
 &nbsp;</p>
 <h3><b>Changelog</b></h3><p>
 <b>0.1.7</b>
-<!--Pat, put your stuff here-->
 <br/>
-1) The Play Now! link shown after clicking raid links now reloads the frame rather than refreshing the page<br/>
+1) The Play Now! link shown after clicking raid links now reloads the game rather than refreshing the page<br/>
+2) Auto join visible raids button with configurable interval added.<br/>
+3) Fixed accuracy issues with getting hidden/visible raids for deletion or dumping to share<br/>
+4) Dumping raids to share now includes timestamp, posted by user, and room #, and imports these values as well.<br/>
+5) Removed "copy" link/functionality (sorry FireFox users, but it's pointless now thanks to the raid join update). <br/>
+
+<br/><br/>
 <b>0.1.6</b>
 <br/>
 1) Fixed FireFox pastebin import bug<br/>
