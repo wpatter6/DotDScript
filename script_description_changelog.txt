@@ -27,6 +27,7 @@ Contact Me: A list of ways to contact me for whatever reasons<br />
 6) Simple pastebin catching added, will track who posted it first so you know if it's a repeat<br/>
 7) Auto import pastebin option added, will only auto import if it's a new paste or if the original poster is reposting it. <br/>
 8) Added "/help" command to help track bug reports and other issues. <br/>
+9) Added "Support Us" link for paypal donations on the options tab <br/>
 
 <br/><br/>
 <b>0.1.6</b>
