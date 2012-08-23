@@ -2465,6 +2465,11 @@ function main() {
 					}else{SRDotDX.echo('<b>/stop</b>: Links are not being posted. Stop command invalid.');}
 					return false;
 				});
+				holodeck.addChatCommand("help", function(deck,text) {
+					window.open("https://docs.google.com/spreadsheet/viewform?formkey=dGM4Vy1jbUZXOUpzM3ZjNUY0V21fLWc6MQ");
+					SRDotDX.echo("Help window opened.");
+					return false;
+				});
 				holodeck.addChatCommand("reload",function(deck,text){
 					if (/^\/reload$/i.test(text)) {
 						SRDotDX.reload();

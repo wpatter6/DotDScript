@@ -25,7 +25,8 @@ Contact Me: A list of ways to contact me for whatever reasons<br />
 4) Dumping raids to share now includes timestamp, posted by user, and room #, and imports these values as well.<br/>
 5) Removed "copy" link/functionality (sorry FireFox users, but it's pointless now thanks to the raid join update). <br/>
 6) Simple pastebin catching added, will track who posted it first so you know if it's a repeat<br/>
-6) Auto import pastebin option added, will only auto import if it's a new paste or if the original poster is reposting it. <br/>
+7) Auto import pastebin option added, will only auto import if it's a new paste or if the original poster is reposting it. <br/>
+8) Added "/help" command to help track bug reports and other issues. <br/>
 
 <br/><br/>
 <b>0.1.6</b>
