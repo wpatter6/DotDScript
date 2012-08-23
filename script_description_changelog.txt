@@ -101,7 +101,7 @@ Contact Me: A list of ways to contact me for whatever reasons<br />
 
 <h3><b>Installation</b></h3><p><b>Google Chrome</b>:<br />
 Click the green button that says &quot;Install&quot; at the top right of the screen then refresh the DotD Page<br />
-<b>Note:</b> Newer versions of Chrome may give you an error stating that extensions may only be installed from the Chrome Webstore.  If you get this error, you will need to use the following steps instead:<br/>1) Download the userscript to your computer<br/>2) Open the url chrome://chrome/extensions/<br/>3)Drag the saved .user.js file and drop it to the page above.<br/><br />
+<b>Note:</b> Newer versions of Chrome may give you an error stating that extensions may only be installed from the Chrome Webstore.  If you get this error, you will need to use the following steps instead:<br/>1) Download the userscript to your computer<br/>2) Open the url chrome://chrome/extensions/<br/>3) Make sure the file is called "140080.user.js" and doesn't have a "(1)" appended.<br/>4)Drag the saved .user.js file and drop it to the page above.<br/><br />
 <b>Firefox</b>:<br />
 You need <a href="https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/">Grease Monkey for Firefox</a> before installing this script.<br />
 Click the green button that says &quot;Install&quot; at the top right of your screen then refresh the DotD Page<br /><br /><b>Opera</b>:<br />
