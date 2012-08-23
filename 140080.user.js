@@ -129,7 +129,7 @@ function main() {
 	}
 	//dateformatting utilities
 	window.dateFormat=function(){var token=/d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,timezone=/\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,timezoneClip=/[^-+\dA-Z]/g,pad=function(val,len){val=String(val);len=len||2;while(val.length<len)val="0"+val;return val};return function(date,mask,utc){var dF=dateFormat;if(arguments.length==1&&Object.prototype.toString.call(date)=="[object String]"&&!/\d/.test(date)){mask=date;date=undefined}date=date?new Date(date):new Date;if(isNaN(date))throw SyntaxError("invalid date");mask=String(dF.masks[mask]||mask||dF.masks["default"]);if(mask.slice(0,4)=="UTC:"){mask=mask.slice(4);utc=true}var _=utc?"getUTC":"get",d=date[_+"Date"](),D=date[_+"Day"](),m=date[_+"Month"](),y=date[_+"FullYear"](),H=date[_+"Hours"](),M=date[_+"Minutes"](),s=date[_+"Seconds"](),L=date[_+"Milliseconds"](),o=utc?0:date.getTimezoneOffset(),flags={d:d,dd:pad(d),ddd:dF.i18n.dayNames[D],dddd:dF.i18n.dayNames[D+7],m:m+1,mm:pad(m+1),mmm:dF.i18n.monthNames[m],mmmm:dF.i18n.monthNames[m+12],yy:String(y).slice(2),yyyy:y,h:H%12||12,hh:pad(H%12||12),H:H,HH:pad(H),M:M,MM:pad(M),s:s,ss:pad(s),l:pad(L,3),L:pad(L>99?Math.round(L/10):L),t:H<12?"a":"p",tt:H<12?"am":"pm",T:H<12?"A":"P",TT:H<12?"AM":"PM",Z:utc?"UTC":(String(date).match(timezone)||[""]).pop().replace(timezoneClip,""),o:(o>0?"-":"+")+pad(Math.floor(Math.abs(o)/60)*100+Math.abs(o)%60,4),S:["th","st","nd","rd"][d%10>3?0:(d%100-d%10!=10)*d%10]};return mask.replace(token,function($0){return $0 in flags?flags[$0]:$0.slice(1,$0.length-1)})}}();dateFormat.masks={"default":"ddd mmm dd yyyy HH:MM:ss",shortDate:"m/d/yy",mediumDate:"mmm d, yyyy",longDate:"mmmm d, yyyy",fullDate:"dddd, mmmm d, yyyy",shortTime:"h:MM TT",mediumTime:"h:MM:ss TT",longTime:"h:MM:ss TT Z",isoDate:"yyyy-mm-dd",isoTime:"HH:MM:ss",isoDateTime:"yyyy-mm-dd'T'HH:MM:ss",isoUtcDateTime:"UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"};dateFormat.i18n={dayNames:["Sun","Mon","Tue","Wed","Thu","Fri","Sat","Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],monthNames:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","January","February","March","April","May","June","July","August","September","October","November","December"]};
-	window.timeSince=function(date,after){if(typeof date=='number')date=new Date(date);var seconds=Math.abs(Math.floor((new Date().getTime()-date.getTime())/1000));var interval=Math.floor(seconds/31536000);var pretext="about ";var posttext=" ago";if(after)posttext=" left";if(interval>=1){return pretext+interval+" year"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/2592000);if(interval>=1){return pretext+interval+" month"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/86400);if(interval>=1){return pretext+interval+" day"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/3600);if(interval>=1){return pretext+interval+" hour"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/60);if(interval>=1){return interval+" minutes"+posttext}return Math.floor(seconds)+" seconds"+posttext}
+	window.timeSince=function(date,after){if(typeof date=='number')date=new Date(date);var seconds=Math.abs(Math.floor((new Date().getTime()-date.getTime())/1000));var interval=Math.floor(seconds/31536000);var pretext="about ";var posttext=" ago";if(after)posttext=" left";if(interval>=1){return pretext+interval+" year"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/2592000);if(interval>=1){return pretext+interval+" month"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/86400);if(interval>=1){return pretext+interval+" day"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/3600);if(interval>=1){return pretext+interval+" hour"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/60);if(interval>=1){return interval+" minute"+(interval==1?'':'s')+posttext}return Math.floor(seconds)+" seconds"+(seconds==1?'':'s')+posttext}
 	window.isNumber=function(n) {return !isNaN(parseFloat(n)) && isFinite(n);}
 	window.eliminateDuplicates=function(arr){var i,len=arr.length,out=[],obj={};for(i=0;i<len;i++){obj[arr[i]]=0}for(i in obj){out.push(i)}return out}
 	
@@ -157,6 +157,7 @@ function main() {
 			tmp.useMaxRaidCount = (typeof tmp.useMaxRaidCount =='boolean'?tmp.useMaxRaidCount:false);
 			tmp.maxRaidCount = (!(typeof tmp.maxRaidCount === 'undefined')?tmp.maxRaidCount:3000);
 			tmp.autoImportPaste = (typeof tmp.autoImportPaste =='boolean'?tmp.autoImportPaste:false);
+			tmp.AutoRefreshOnLinkClick = (typeof tmp.AutoRefreshOnLinkClick =='boolean'?tmp.AutoRefreshOnLinkClick:true);
 			tmp.whisperTo = (typeof tmp.whisperTo == 'string'?tmp.whisperTo:'');
 			tmp.showRaidLink = (typeof tmp.showRaidLink == 'boolean'?tmp.showRaidLink:(navigator.userAgent.toLowerCase().indexOf('chrome')>-1));
 			tmp.formatLinkOutput = (typeof tmp.formatLinkOutput == 'boolean'?tmp.formatLinkOutput:false);
@@ -685,7 +686,6 @@ function main() {
 							raidBoss: r.boss,
 							raidVisited: r.visited,
 							raidSeen: r.seen,
-							onmouseover:'SRDotDX.clipboard.add("' +r.id+'")'
 						});
 						if (SRDotDX.config.newRaidsAtTopOfRaidList == true) {
 							var arr = a.getElementsByClassName("raid_list_item");
@@ -1335,6 +1335,10 @@ function main() {
 			AutoJoining: false,
 			AutoJoinTimerArray: [],
 			AutoJoinVisible: function (b, t) {
+				if(typeof b === 'undefined'){
+					b=!SRDotDX.gui.AutoJoin;
+					document.getElementById('AutoJoinVisibleButton').value=b?"Cancel Auto Join":"Join Visible Raids";
+				}
 				for(i=0; i<SRDotDX.gui.AutoJoinTimerArray.length; i++){
 					clearTimeout(SRDotDX.gui.AutoJoinTimerArray[i]);
 				}
@@ -1350,7 +1354,7 @@ function main() {
 							SRDotDX.gui.AutoJoinTimerArray[SRDotDX.gui.AutoJoinTimerArray.length]=setTimeout("if(SRDotDX.gui.AutoJoin){SRDotDX.gui.doStatusOutput('Joining "+(i+1)+" of "+raids.length+", '+timeSince("+timeFinished+",true), false);SRDotDX.gui.FPXraidLinkClickChat("+raid.id+",'"+raid.ele.firstChild.getElementsByTagName('a')[0].href+"', false)}", timer)
 							timer += ttw;
 						}
-						SRDotDX.gui.AutoJoinTimerArray[SRDotDX.gui.AutoJoinTimerArray.length]=setTimeout("SRDotDX.reload();SRDotDX.gui.doStatusOutput('Finished Auto Joining');SRDotDX.gui.AutoJoining=false;", timer);//removed SRDotDX.gui.AutoJoinRepeater();
+						SRDotDX.gui.AutoJoinTimerArray[SRDotDX.gui.AutoJoinTimerArray.length]=setTimeout("SRDotDX.reload();SRDotDX.gui.doStatusOutput('Finished Auto Joining');SRDotDX.gui.AutoJoin=false;SRDotDX.gui.AutoJoining=false;document.getElementById('AutoJoinVisibleButton').value='Join Visible Raids';", timer);//removed SRDotDX.gui.AutoJoinRepeater();
 						SRDotDX.gui.AutoJoining=true;
 						console.log("[SRDotDX] Joining prepared");
 					}//else{
@@ -1563,13 +1567,12 @@ function main() {
 											<input name="DeleteVisible" tabIndex="-1" type="button" value="Delete All Visible Raids" onClick="SRDotDX.gui.DeleteVisibleRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids currently visible.\');">?</a>) <br>\
 											<input name="DeleteHidden" tabIndex="-1" type="button" value="Delete All Hidden Raids" onClick="SRDotDX.gui.DeleteHiddenRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids that are currently not visible.\');">?</a>) <br>\
 											<input name="DeleteUnvisited" tabIndex="-1" type="button" value="Delete All Unvisited Raids" onClick="SRDotDX.gui.DeleteUnvisitedRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids that you have not visited.\');">?</a>) <br> \
-											<input name="AutoJoinVisible" tabIndex="-1" type="button" value="Join Visible Raids" onClick="SRDotDX.gui.AutoJoinVisible(true);return false;"> \
+											<input name="AutoJoinVisible" id="AutoJoinVisibleButton" tabIndex="-1" type="button" value="Join Visible Raids" onClick="SRDotDX.gui.AutoJoinVisible();return false;"> \
 											<!--<input name="AutoJoin" id="AutoJoinRaids" tabIndex="-1" type="checkbox" onClick="SRDotDX.gui.AutoJoinVisible(this.checked);"> Join Visible Raids -->(<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will join all visible raids by refreshing the game.  I was unable to find anything in the DotD or Kongregate ToS directly forbidding it, though have heard of people getting in trouble for using this method for joining raids.  Use at your own risk.\');">?</a>) \
 											<input name="AutoJoinTimer" id="SRDotDX_options_autoJoinTimer" size="3" tabIndex="-1" type="text">Interval (ms) \
 											<hr> \
 										</div> \
 									</div> \
-									<div id="SRDotDX_clipboard"><span id="SRDotDX_clipboardButton"></span></div> \
 									<div id="raid_list" tabIndex="-1"> \
 									</div> \
 								</div> \
@@ -1586,6 +1589,7 @@ function main() {
 												<INPUT id="FPX_options_markVisitedRightClickDelay" size="8"> <br>\
 												<input type="checkbox" id="SRDotDX_options_markMyRaidsVisited"> Automatically mark raids posted by me as visited <br> \
 												<input type="checkbox" id="SRDotDX_options_showRaidLink"> Show raid link in raid list <br><br> \
+												<input type="checkbox" id="SRDotDX_options_autoRefreshOnLinkClick"> Automatically refresh the game after raid clicked<br><br> \
 												Unvisited raid pruning (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'How fast the script will automatically remove unvisited raids.  Small and Medium raids: Aggressive 1h, Moderate 2h, Slow 3h.  Large Raids: Aggressive 4h, Moderate 12h, Slow 36h.  Epic and Colossal raids: Aggressive 24h, Moderate 48h, Slow 72h.\');">?</a>)<br> \
 												<input type="radio" id="FPX_options_unvisitedPruningAggressive" name="unvisitedPruning" value="Aggressive"/>Aggressive&nbsp;&nbsp; \
 												<input type="radio" id="FPX_options_unvisitedPruningModerate" name="unvisitedPruning" value="Moderate"/>Moderate&nbsp;&nbsp; \
@@ -1832,6 +1836,7 @@ function main() {
 					var optsHideSRaids = SRDotDX.gui.cHTML('#SRDotDX_options_hideSeenRaids');
 					var optsHideVRaids = SRDotDX.gui.cHTML('#SRDotDX_options_hideVisitedRaids');
 					var optsAutoJoinInterval = SRDotDX.gui.cHTML('#SRDotDX_options_autoJoinTimer');
+					var optsAutoRefreshOnLinkClick = SRDotDX.gui.cHTML('#SRDotDX_options_autoRefreshOnLinkClick');
 					var optsShowRaidLink = SRDotDX.gui.cHTML('#SRDotDX_options_showRaidLink');
 					var optsHideVRaidsList = SRDotDX.gui.cHTML('#SRDotDX_options_hideVisitedRaidsInRaidList');
 					var optsWhisperToCheck = SRDotDX.gui.cHTML('#SRDotDX_options_whisperRaids');
@@ -1848,6 +1853,7 @@ function main() {
 					var rbUnvisitedPruningModerate = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningModerate');
 					var rbUnvisitedPruningSlow = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningSlow');
 					var rbUnvisitedPruningNone = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningNone');
+					if (SRDotDX.config.AutoRefreshOnLinkClick) { optsAutoRefreshOnLinkClick.ele().checked = SRDotDX.config.AutoRefreshOnLinkClick }
 					if ((SRDotDX.config.AutoJoinInterval||'')!='') { optsAutoJoinInterval.ele().value = SRDotDX.config.AutoJoinInterval }
 					if (SRDotDX.config.FPXmarkRightClick) {	FPXoptsMarkRightClick.ele().checked = 'checked'}
 					if (SRDotDX.config.FPXdisplayListImgLink) {	FPXoptsDispLinkIcon.ele().checked = 'checked'}
@@ -1888,6 +1894,9 @@ function main() {
 					}
 					if (SRDotDX.config.newRaidsAtTopOfRaidList) { optsNewRaidsAtTopOfRaidList.ele().checked = 'checked'}
 					
+					optsAutoRefreshOnLinkClick.ele().addEventListener('click', function (){
+						SRDotDX.config.AutoRefreshOnLinkClick = this.checked;
+					});
 					optsAutoImportPaste.ele().addEventListener('click', function (){
 						SRDotDX.config.autoImportPaste = this.checked;
 					});
@@ -2173,14 +2182,8 @@ function main() {
 				
 			},
 			FPXraidLinkClickRaidList: function (ele,isRightClick, isCopy) {
-				if(isCopy){
-					var id= ele.parentNode.parentNode.getAttribute("raidid");	
-					SRDotDX.config.raidList[id].visited = true;
-					SRDotDX.gui.toggleRaid('visited',id,true);				
-					SRDotDX.gui.raidListItemUpdate(id);
-					return;
-				}
 				if(!isRightClick){
+					console.log("[SRDotDX] FPXraidLinkClickRaidList");
 					SRDotDX.loadRaid(ele.href);
 				}
 				else if(document.getElementById('FPX_options_markVisitedRightClick').checked){
@@ -2192,6 +2195,7 @@ function main() {
 			},
 			FPXraidLinkClickChat: function (id,link,isRightClick) {
 				if(!isRightClick){
+					console.log("[SRDotDX] FPXraidLinkClickChat");
 					SRDotDX.loadRaid(link);
 				}
 				else if(SRDotDX.config.FPXmarkRightClick){
@@ -2615,7 +2619,6 @@ function main() {
 
 				SRDotDX.config.save();
 				SRDotDX.gui.load();
-				SRDotDX.clipboard.load();
 				setTimeout(function(){delete SRDotDX.load},1);
 				console.log("[SRDotDX] Core loaded; Loading user interface...");
 			}
@@ -2645,6 +2648,7 @@ function main() {
 				SRDotDX.config.raidList[r.id].visited = true;
 				SRDotDX.gui.toggleRaid("visited",r.id,true);
 				SRDotDX.gui.raidListItemUpdate(r.id);
+				if(!SRDotDX.gui.AutoJoining && SRDotDX.config.AutoRefreshOnLinkClick) setTimeout("SRDotDX.reload()", SRDotDX.config.AutoJoinInterval);
 			}
 		},
 		zoneRaidRegex:{
