@@ -15,6 +15,11 @@ Chat Commands: These are commands that can be used in chat<br />
 Contact Me: A list of ways to contact me for whatever reasons<br />
 &nbsp;</p>
 <h3><b>Changelog</b></h3><p>
+<b>0.2.0</b>
+1) Added pastebin GUI with basic information.<br />
+<!-- New Stuff here-->
+
+<br/><br/>
 <b>0.1.7</b>
 <br/>
 1) The Play Now! link shown after clicking raid links now reloads the game rather than refreshing the page<br/>
@@ -25,7 +30,6 @@ Contact Me: A list of ways to contact me for whatever reasons<br />
 6) Simple pastebin catching added, will track who posted it first so you know if it's a repeat<br/>
 7) Auto import pastebin option added, will only auto import if it's a new paste or if the original poster is reposting it. <br/>
 8) Added "/help" command to help track bug reports and other issues. <br/>
-9) Added "Support Us" link for paypal donations on the options tab <br/>
 
 <br/><br/>
 <b>0.1.6</b>
@@ -102,7 +106,9 @@ Contact Me: A list of ways to contact me for whatever reasons<br />
 2) I've added a button on the raid list tab titled "Dump Raids to Share", which takes the list of currently visible raids in the raid list, and dumps all of the links to the Share Raids tab, ready to share out.
 <br/></p>
 
-<h3><b>Installation</b></h3><p><b>Google Chrome</b>:<br />
+<h3><b>Installation</b></h3>
+<p>If you are using an old version of the script, remove it from your browser before installing.</p>
+<p><b>Google Chrome</b>:<br />
 Click the green button that says &quot;Install&quot; at the top right of the screen then refresh the DotD Page<br />
 <b>Note:</b> Newer versions of Chrome may give you an error stating that extensions may only be installed from the Chrome Webstore.  If you get this error, you will need to use the following steps instead:<br/>1) Download the userscript to your computer<br/>2) Open the url chrome://chrome/extensions/<br/>3) Make sure the file you downloaded is called "140080.user.js" and doesn't have a "(1)" appended.  If it does, delete the old version and remove the "(1)" from the new.<br/>4)Drag the saved .user.js file and drop it to the page above.<br/><br />
 <b>Firefox</b>:<br />
@@ -133,6 +139,8 @@ Generates a message showing your disdain for the cruddy raid someone has posted.
 Changes your current raid format to the one you specify<br /><i>Example: <code>/raidformat &lt;visited:(v) &gt;&lt;name&gt; - &lt;diff&gt; &lt;fs&gt;/&lt;os&gt;</code></i><br />
 <b>Command</b>: <code>/stop</code><br />
 Cancels raid posting. <br /><i>Example: <code>/stop</code></i><br />
+<b>Command</b>: <code>/help</code><br />
+Opens a support submission window. <br /><i>Example: <code>/help</code></i><br />
 &nbsp;</p><table><tr><th>
 Tag name</th><th>
 Description</th></tr><tr><td><center><code>&lt;seen:text&gt;</code></center></td><td>
@@ -160,14 +168,8 @@ Displays the raid link&#39;s unique Id.</td></tr><tr><td><center><code>&lt;hash&
 Displays the raid link&#39;s hash code.</td></tr></tbody></table><br /><br />
 </p>
 <h3><b>Contact Me</b></h3><p>
-If you wish to contact me for any reason about this script, please do so on Kongregate.<br/>
-I use the name JHunz there as well, feel free to send me a PM.  Or, if I'm online and playing DotD, you can find me in chat room 5.</p>
+If you wish to contact us for any reason about this script, please do so on Kongregate.<br/>
+Feel free to send me a PM to wpatter6 or JHunz on Kongregate.  Or, if we're online and playing DotD, you can find us in chat room 1.</p>
 <h3><b>To-Do List</b></h3><p>
 * I've been thinking about various forms of export functionality.  CSV export would be nice, and some sort of web export/import would be <b>really</b> nice.<br/>
 * I've noticed some performance issues with the new version, especially upon loading the page.  I'm not sure what I did, but I'll work on fixing it.<br/>
-* It would be cool if any raids bounced back by the Kong bot during raid spamming were automatically re-queued for sending<br/>
-* Sorting options for the raid list<br/>
-* Some way to delete multiple raids at a time without deleting all<br/>
-* Searching the raid list by poster name<br/>
-* Auto-delete after x hours functionality<br/>
-* Clipboard listener functionality to add a raid to script as visited automatically as soon as rallying cry is clicked (See http://code.google.com/p/js-clipboard/downloads/detail?name=clipboard.js&can=2&q=)<br/>
