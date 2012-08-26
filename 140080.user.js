@@ -408,7 +408,7 @@ function main() {
 
 						} else {
 
-							r.optimalShare = r.fairShare * {"1": 1, "10":1.25, "13":1.25, "50": 2.2, "100":2.3, "250": 1, "500": 1.5}[r.size];					
+							r.optimalShare = r.fairShare * {"1": 1, "10":1.25, "13":1.25, "15":1.25, "50": 2.2, "100":2.3, "250": 1, "500": 1.5}[r.size];					
 							r.optimalShareText = SRDotDX.getShortNum(r.optimalShare);
 						}
 						
@@ -628,7 +628,7 @@ function main() {
 						else if (!isNaN(rd.health[r.diff-1])) {
 							var h = rd.health[r.diff -1];
 							var f = h / rd.size;
-							var o = f * {"1":1, "10":1.25, "50":2.2, "100":2.3, "250":1,"500":1.5}[rd.size];
+							var o = f * {"1":1, "10":1.25, "15":1.25, "50":2.2, "100":2.3, "250":1,"500":1.5}[rd.size];
 							info += '<div style="float: left; width: 49%;">';
 							info += 'Posted By:<br>In Room:<br>Timestamp:<br><br><hr>Difficulty:<br>Stats Used:<br>Size:<br>Health:<br>';
 							if (typeof rd.loottiers == 'object' && typeof rd.loottiers[r.diff-1] == 'object') {
@@ -2034,8 +2034,10 @@ function main() {
 								parentTable.attach('to','FPXRaidFilterWhatPersonal');
 							} else if (raid.stat == 'H' || raid.stat == 'h') {
 								parentTable.attach('to','FPXRaidFilterWhatGuild');
-							} else if (raid.size == 10 || raid.size == 13) {
+							} else if (raid.size == 10 || raid.id == 'dragons_lair') {
 								parentTable.attach('to','FPXRaidFilterWhatSmall');
+							} else if (raid.id == 'serpina' || raid.id == 'tisiphone') {
+								parentTable.attach('to','FPXRaidFilterWhatSpecial');
 							} else if (raid.size == 50) {
 								parentTable.attach('to','FPXRaidFilterWhatMedium');
 							} else if (raid.size == 100) {
@@ -2563,7 +2565,7 @@ function main() {
 												msg += "Loot Tiers: " + SRDotDX.getLootTierText(raid.id,n) + "<br>";
 											} else {
 												var fs = h / raid.size;
-												var os = fs*{"1": 1, "10": 1.25,"50":2.2, "100": 2.3, "250": 1, "500": 1.5}[raid.size + ""];
+												var os = fs*{"1": 1, "10": 1.25, "15": 1.25, "50":2.2, "100": 2.3, "250": 1, "500": 1.5}[raid.size + ""];
 												msg += "Fair Share: "+SRDotDX.getShortNum(fs)+"<br>";
 												msg += "Optimal Share: "+SRDotDX.getShortNum(os)+"<br>";
 											}
@@ -2682,7 +2684,7 @@ function main() {
 			harpy:{name: 'Celeano', shortname: 'Cel',  id: 'harpy', stat: 'H', size:10, duration:120, health: [3000000,3750000,4800000,6000000,,]},
 			kobold:{name: 'Chieftain Horgrak', shortname: 'Horgrak',  id: 'kobold', stat: 'S', size:10, duration:168, health: [150000,187500,240000,300000,,]},
 			corrupterebus:{name: 'Corrupted Erebus', shortname: 'Corrupted', id: 'corrupterebus', stat: 'ESH', size:90000, duration:72, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited'], loottiers: [['1M','5M','10M','20M','50M','100M','150M','300M','450M','600M','750M','1B','2B','5B','20B'],[],[],[],[],[]]},
-			serpina:{name: 'Countess Serpina', shortname: 'Countess',  id: 'serpina', stat: 'E', size:10, duration:5, health: [75000000,112500000,150000000,187500000,,]},
+			serpina:{name: 'Countess Serpina', shortname: 'Countess',  id: 'serpina', stat: 'E', size:15, duration:5, health: [75000000,112500000,150000000,187500000,,]},
 			dahrizons_general:{name: "Dahrizon's General", shortname: 'General', id: 'dahrizons_general', stat: 'S', size:1, duration:12, health: [1000000,,,,,]},
 			basilisk:{name: 'Deathglare', shortname: 'Deathglare',  id: 'basilisk', stat: 'H', size:50, duration:144, health: [45000000,56250000,72000000,90000000,,]},
 			dirthax:{name: 'Dirthax', shortname: 'Dirthax',  id: 'dirthax', stat: 'H', size:100, duration:168, health: [550000000,687500000,880000000,1100000000,,]},
@@ -2749,6 +2751,7 @@ function main() {
 		raidSizes: {
 			10: { name: 'Small', visible: 'Yes', pruneTimers: [3600000,10800000,32400000]}, // 1h, 2h, 3h
 			13: { name: 'Small', visible: 'No', pruneTimers: [3600000,10800000,32400000]},  // 1h, 2h, 3h
+			15: { name: 'Small', visible: 'No', prumeTimers: [18000000,18000000,18000000]}, // Serpina only, so 5h/5h/5h
 			50: { name: 'Medium', visible: 'Yes', pruneTimers: [3600000,10800000,32400000]}, // 1h, 2h, 3h
 			100:{ name: 'Large', visible: 'Yes', pruneTimers: [14400000,43200000,129600000]}, // 4h, 12h, 36h
 			250:{ name: 'Epic', visible: 'Yes', pruneTimers: [86400000,172800000,259200000]}, // 24h, 48h, 72h
