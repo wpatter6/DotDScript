@@ -150,7 +150,6 @@ function main() {
 			tmp.FPXmarkRightClick = (typeof tmp.FPXmarkRightClick == 'boolean'?tmp.FPXmarkRightClick:false);
 			tmp.markMyRaidsVisted = (typeof tmp.markMyRaidsVisted == 'boolean'?tmp.markMyRaidsVisted:false);
 			tmp.whisperSpam = false;
-			tmp.AutoJoinInterval = (typeof tmp.AutoJoinInterval == 'number'?tmp.AutoJoinInterval:1000);
 			tmp.autoWhisper = (typeof tmp.autoWhisper == 'boolean'?tmp.autoWhisper:false);
 			tmp.markImportedVisited = (typeof tmp.markImportedVisited == 'boolean'?tmp.markImportedVisited:false);
 			tmp.prettyPost = (typeof tmp.prettyPost == 'boolean'?tmp.prettyPost:false);
@@ -834,7 +833,12 @@ function main() {
 				msecs=(typeof msecs === 'undefined'?4000:msecs);
 				var el = document.getElementById('StatusOutput');
 				el.innerHTML=str;
-				if(msecs)setTimeout(function(){ el.innerHTML=SRDotDX.gui.standardMessage(); }, msecs);
+				if(msecs) {
+					if (SRDotDX.gui.CurrentStatusOutputTimer) {
+						clearTimeout(SRDotDX.gui.CurrentStatusOutputTimer);
+					}
+					SRDotDX.gui.CurrentStatusOutputTimer = setTimeout(function(){ el.innerHTML=SRDotDX.gui.standardMessage(); }, msecs);
+				}
 			},
 			raidsTabClicked: function (){
 				var els = document.getElementsByClassName("SRDotDX_NewRaidsCount");
@@ -1334,47 +1338,34 @@ function main() {
 				console.log("[SRDotDX] Finished deleting hidden raids");
 			},
 			AutoJoin: false,
-			AutoJoining: false,
-			AutoJoinTimerArray: [],
+			AutoJoinRaids: [],
+			AutoJoinCurrentIndex: 0,
+			AutoJoinCurrentSuccesses: 0,
+			AutoJoinCurrentDeads: 0,
+			AutoJoinCurrentInvalids: 0,
 			AutoJoinVisible: function (b, t) {
 				if(typeof b === 'undefined'){
 					b=!SRDotDX.gui.AutoJoin;
 					document.getElementById('AutoJoinVisibleButton').value=b?"Cancel Auto Join":"Join Visible Raids";
 				}
-				for(i=0; i<SRDotDX.gui.AutoJoinTimerArray.length; i++){
-					clearTimeout(SRDotDX.gui.AutoJoinTimerArray[i]);
-				}
-				SRDotDX.gui.AutoJoinTimerArray=[];
 				SRDotDX.gui.AutoJoin = b;
+				SRDotDX.gui.AutoJoinCurrentIndex=0;
+				SRDotDX.gui.AutoJoinCurrentSuccesses = 0;
+				SRDotDX.gui.AutoJoinCurrentDeads = 0;				
+				SRDotDX.gui.AutoJoinCurrentInvalids = 0;
 				if(typeof b=='boolean' && b){
 					console.log("[SRDotDX] Joining visible raids");
-					var raids = SRDotDX.gui.GetVisibleRaids(),timer = (!(typeof t==='undefined')?t:200),ttw = SRDotDX.config.AutoJoinInterval;//make configurable
-					if(raids.length > 0){
-						timeFinished = (ttw*raids.length)+(new Date().getTime());
-						for(i=0; i<raids.length; i++){
-							var raid = raids[i];
-							SRDotDX.gui.AutoJoinTimerArray[SRDotDX.gui.AutoJoinTimerArray.length]=setTimeout("if(SRDotDX.gui.AutoJoin){SRDotDX.gui.doStatusOutput('Joining "+(i+1)+" of "+raids.length+", '+timeSince("+timeFinished+",true), false);SRDotDX.loadRaid('" + raid.ele.firstChild.getElementsByTagName('a')[0].href + "')}", timer)
-							timer += ttw;
-						}
-						SRDotDX.gui.AutoJoinTimerArray[SRDotDX.gui.AutoJoinTimerArray.length]=setTimeout("SRDotDX.reload();SRDotDX.gui.doStatusOutput('Finished Auto Joining');SRDotDX.gui.AutoJoin=false;SRDotDX.gui.AutoJoining=false;document.getElementById('AutoJoinVisibleButton').value='Join Visible Raids';", timer);//removed SRDotDX.gui.AutoJoinRepeater();
-						SRDotDX.gui.AutoJoining=true;
+					SRDotDX.gui.AutoJoinRaids = SRDotDX.gui.GetVisibleRaids();
+					if(SRDotDX.gui.AutoJoinRaids.length > 0){
+
+						SRDotDX.gui.doStatusOutput('Joining 1 of '+SRDotDX.gui.AutoJoinRaids.length);
+						SRDotDX.loadRaid(SRDotDX.gui.AutoJoinRaids[0].ele.firstChild.getElementsByTagName('a')[0].href);
+
 						console.log("[SRDotDX] Joining prepared");
-					}//else{
-					//	console.log("[SRDotDX] No visible raids found. Checking again in "+(ttw/1000)+" seconds");
-					//	SRDotDX.gui.AutoJoining=false;
-					//	setTimeout("SRDotDX.gui.AutoJoinRepeater();", ttw);
-					//}
+					}
 				} else SRDotDX.gui.doStatusOutput('Cancelled Auto Joining');
 				return b;
 			},
-			//AutoJoinRepeater: function () {
-			//	if(SRDotDX.gui.AutoJoin){
-			//		if(!SRDotDX.gui.AutoJoining){
-			//			console.log("[SRDotDX] Auto joiner checking for new visible raids");
-			//			SRDotDX.gui.AutoJoinVisible(true);
-			//		}else setTimeout("SRDotDX.gui.AutoJoinRepeater();", 5000*60);//check every 5 minutes
-			//	}
-			//},
 			DeleteVisibleRaids: function () {
 				console.log("[SRDotDX] Deleting visible raids");
 				var raids = SRDotDX.gui.GetVisibleRaids();
@@ -1583,7 +1574,6 @@ function main() {
 											<input name="DeleteUnvisited" tabIndex="-1" type="button" value="Delete All Unvisited Raids" onClick="SRDotDX.gui.DeleteUnvisitedRaids();return false;"> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will delete all raids that you have not visited.\');">?</a>) <br> \
 											<input name="AutoJoinVisible" id="AutoJoinVisibleButton" tabIndex="-1" type="button" value="Join Visible Raids" onClick="SRDotDX.gui.AutoJoinVisible();return false;"> \
 											<!--<input name="AutoJoin" id="AutoJoinRaids" tabIndex="-1" type="checkbox" onClick="SRDotDX.gui.AutoJoinVisible(this.checked);"> Join Visible Raids -->(<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will join all visible raids by refreshing the game.  I was unable to find anything in the DotD or Kongregate ToS directly forbidding it, though have heard of people getting in trouble for using this method for joining raids.  Use at your own risk.\');">?</a>) \
-											<input name="AutoJoinTimer" id="SRDotDX_options_autoJoinTimer" size="3" tabIndex="-1" type="text">Interval (ms) \
 											<hr> \
 										</div> \
 									</div> \
@@ -1848,7 +1838,6 @@ function main() {
 					var optsHideARaids = SRDotDX.gui.cHTML('#SRDotDX_options_hideRaidLinks');
 					var optsHideSRaids = SRDotDX.gui.cHTML('#SRDotDX_options_hideSeenRaids');
 					var optsHideVRaids = SRDotDX.gui.cHTML('#SRDotDX_options_hideVisitedRaids');
-					var optsAutoJoinInterval = SRDotDX.gui.cHTML('#SRDotDX_options_autoJoinTimer');
 					var optsShowRaidLink = SRDotDX.gui.cHTML('#SRDotDX_options_showRaidLink');
 					var optsHideVRaidsList = SRDotDX.gui.cHTML('#SRDotDX_options_hideVisitedRaidsInRaidList');
 					var optsWhisperToCheck = SRDotDX.gui.cHTML('#SRDotDX_options_whisperRaids');
@@ -1865,7 +1854,6 @@ function main() {
 					var rbUnvisitedPruningModerate = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningModerate');
 					var rbUnvisitedPruningSlow = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningSlow');
 					var rbUnvisitedPruningNone = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningNone');
-					if ((SRDotDX.config.AutoJoinInterval||'')!='') { optsAutoJoinInterval.ele().value = SRDotDX.config.AutoJoinInterval }
 					if (SRDotDX.config.FPXmarkRightClick) {	FPXoptsMarkRightClick.ele().checked = 'checked'}
 					if (SRDotDX.config.FPXdisplayListImgLink) {	FPXoptsDispLinkIcon.ele().checked = 'checked'}
 					if (SRDotDX.config.formatRaidLinks) {	optsFormatRaids.ele().checked = 'checked'}
@@ -1908,10 +1896,7 @@ function main() {
 					optsAutoImportPaste.ele().addEventListener('click', function (){
 						SRDotDX.config.autoImportPaste = this.checked;
 					});
-					optsAutoJoinInterval.ele().addEventListener('change', function (){
-						if(isNumber(this.value)) SRDotDX.config.AutoJoinInterval = parseInt(this.value);
-						else SRDotDX.gui.errorMessage('Interval must be a number');
-					});
+					
 					optsMaxRaidCount.ele().addEventListener('change', function (){
 						if(isNumber(this.value)) SRDotDX.config.maxRaidCount = parseInt(this.value);
 						else SRDotDX.gui.errorMessage('Raid count must be a number');
@@ -2368,7 +2353,7 @@ function main() {
 		load: function (fails) {
 			if (typeof holodeck == 'object' && typeof ChatDialogue == 'function' && typeof activateGame == 'function' && typeof document.getElementById('kong_game_ui') != 'null') {
 				ChatDialogue.prototype.SRDotDX_echo = function(msg){
-					this.SRDotDX_DUM("DotD Extention","<br>"+msg,{class: "whisper whisper_recieved"},{non_user: true})
+					this.SRDotDX_DUM("DotD Extension","<br>"+msg,{class: "whisper whisper_received"},{non_user: true})
 				}
 				ChatDialogue.prototype.SRDotDX_DUM = ChatDialogue.prototype.displayUnsanitizedMessage;
 				ChatDialogue.prototype.displayUnsanitizedMessage=function (b,d,e,f) {
@@ -2666,12 +2651,9 @@ function main() {
 		},
 		nukeRaid: function (id) {
 			if (SRDotDX.config.raidList[id]) {
-				alert("id found, should be nuking");
 				SRDotDX.config.raidList[id].nuked = true;
 				SRDotDX.gui.toggleRaid("nuked",id,true);
-			} else {
-				alert("id not found, not nuking");
-			}
+			} 
 		},
 		zoneRaidRegex:{
 			z1: 'horgrak|mazalu|grune',
@@ -2818,35 +2800,73 @@ function main() {
 				SRDotDX.reload();
 			}
 
-			// message to nuke a raid
-			if (/nuke/i.test(event.data)) {
+			// message to nuke a raid because it's dead
+			if (/dead/i.test(event.data)) {
 				console.log("[SRDotDX] Nuking raid " + SRDotDX.lastJoinedRaidId);
-				alert("[SRDotDX] Nuking raid " + SRDotDX.lastJoinedRaidId);
-
 				SRDotDX.nukeRaid(SRDotDX.lastJoinedRaidId);
-			}
 
-			// message to delete a raid
-			if (/delete/i.test(event.data)) {
-				console.log("[SRDotDX] Deleting raid " + SRDotDX.lastJoinedRaidId);
-				alert("[SRDotDX] Deleting raid " + SRDotDX.lastJoinedRaidId);
-
-				var raidListEle = document.getElementById('raid_list');
-				if (raidListEle) {
-					alert("raidListEle found");
-					var raidEle = raidListEle.getElementsByClassName("raid_list_item_"+SRDotDX.lastJoinedRaidId)[0];
-					if (raidEle) {
-						alert("raidEle found");
-						var deleteEle = raidEle.getElementsByClassName("FPXDeleteLink")[0];
-						if (deleteEle) {
-							alert("deleteEle found");
-							SRDotDX.gui.deleteRaid(deleteEle,SRDotDX.lastJoinedRaidId,true);
-						}
-					}
+				if (SRDotDX.gui.AutoJoin) {
+					SRDotDX.gui.AutoJoinCurrentDeads++;
 				}
 			}
 
+			// message to nuke a raid because it's from the wrong guild
+			if (/wrongguild/i.test(event.data)) {
+				console.log("[SRDotDX] Nuking raid " + SRDotDX.lastJoinedRaidId);
+				SRDotDX.nukeRaid(SRDotDX.lastJoinedRaidId);				
+			}
+
+			// message to delete a raid (invalid raid id or hash)
+			if (/invalid/i.test(event.data)) {
+				console.log("[SRDotDX] Deleting raid " + SRDotDX.lastJoinedRaidId);
+				
+				var raidListEle = document.getElementById('raid_list');
+				if (raidListEle) {
+					var raidEle = raidListEle.getElementsByClassName("raid_list_item_"+SRDotDX.lastJoinedRaidId)[0];
+					if (raidEle) {
+						var deleteEle = raidEle.getElementsByClassName("FPXDeleteLink")[0];
+						if (deleteEle) {
+							SRDotDX.gui.deleteRaid(deleteEle,SRDotDX.lastJoinedRaidId,false);
+						}
+					}
+				}
+
+				if (SRDotDX.gui.AutoJoin) {
+					SRDotDX.gui.AutoJoinCurrentInvalids++;
+				}
+			}
+
+			// message indicating the join was successful
+			if (/success/i.test(event.data)) {
+				if (SRDotDX.gui.AutoJoin) {
+					SRDotDX.gui.AutoJoinCurrentSuccesses++;
+				}
+
+			}
+
 			// message indicating the landing page is loaded
+			if (/landed/i.test(event.data)) {
+				if (SRDotDX.gui.AutoJoin) {
+					SRDotDX.gui.AutoJoinCurrentIndex++;
+					if (SRDotDX.gui.AutoJoinCurrentIndex < SRDotDX.gui.AutoJoinRaids.length) {
+						// auto-join next raid
+						SRDotDX.gui.doStatusOutput('Joining '+(SRDotDX.gui.AutoJoinCurrentIndex+1)+' of '+SRDotDX.gui.AutoJoinRaids.length+'. New: '+SRDotDX.gui.AutoJoinCurrentSuccesses+', Dead: '+SRDotDX.gui.AutoJoinCurrentDeads+', Invalid: '+SRDotDX.gui.AutoJoinCurrentInvalids);
+						SRDotDX.loadRaid(SRDotDX.gui.AutoJoinRaids[SRDotDX.gui.AutoJoinCurrentIndex].ele.firstChild.getElementsByTagName('a')[0].href);
+
+					} else {
+						// finished auto-joining
+						SRDotDX.reload();
+						SRDotDX.gui.doStatusOutput('Finished Auto Joining. New: '+SRDotDX.gui.AutoJoinCurrentSuccesses+', Dead: '+SRDotDX.gui.AutoJoinCurrentDeads+', Invalid: '+SRDotDX.gui.AutoJoinCurrentInvalids, 2000);
+						SRDotDX.gui.AutoJoin=false;
+						SRDotDX.gui.AutoJoinCurrentIndex=0;
+						SRDotDX.gui.AutoJoinCurrentSuccesses=0;
+						SRDotDX.gui.AutoJoinCurrentDeads=0;
+						SRDotDX.gui.AutoJoinCurrentInvalids=0;
+						document.getElementById('AutoJoinVisibleButton').value='Join Visible Raids';
+						
+					}
+				}
+			}
 		} 
 
 	}, false);
@@ -2870,12 +2890,24 @@ function DDmain(){//game frame script
 			// This should be the div containing the result text from the landing page
 			var text = pageDivs[1].textContent;
 
-			if (/(already completed)|(not a member of the guild)/i.test(text)) {
+			// The following text in a (case-insensitive) regex will catch the following cases.  Only a few of these are currently used by the script
+			// Joined successfully:  successfully joined
+			// Re-joined successfully: successfully re-joined
+			// Already in: already a member
+			// Dead: already completed
+			// Bad hash: invalid raid hash
+			// Bad ID: invalid raid id
+			// Guild raid from other guild: not a member of the guild
+			if (/successfully (re-)?joined/i.test(text)) {
+				message += " success";
+			} else if (/already completed/i.test(text)) {
+				message += " dead";
+			} else if (/not a member of the guild/i.test(text)) {
 				// If the raid is dead or it's a raid from another guild, add to the message to nuke it so it's invisible and unshareable
-				message += " nuke";
+				message += " wrongguild";
 			} else if (/invalid raid (hash|ID)/i.test(text)) {
 				// If the hash or ID is invalid, add to the message to delete it so that hopefully a version with the right hash/ID can be added later
-				message += " delete";
+				message += " invalid";
 			}
 		}
 
