@@ -3,8 +3,9 @@
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        0.1.8
-// @date           08.25.2012
+// @version        1.0.0
+// @date           08.27.2012
+// @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
 // @include        *web*.dawnofthedragons.com/kong*
@@ -134,7 +135,7 @@ function main() {
 	window.eliminateDuplicates=function(arr){var i,len=arr.length,out=[],obj={};for(i=0;i<len;i++){obj[arr[i]]=0}for(i in obj){out.push(i)}return out}
 	
 	window.SRDotDX = {
-		version: {major: "0.1.8", minor: "wpatter6/JHunz"},
+		version: {major: "1.0.0", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -253,20 +254,25 @@ function main() {
 				SRDotDX.config.raidList[id].lastUser = user;
 				return SRDotDX.config.raidList[id]
 			}
-			tmp.addPaste = function(url,id,user){
+			tmp.addPaste = function(url,id,user,newtotal,total){
 				if (typeof SRDotDX.config.getPaste(id) != 'object') {
 					SRDotDX.config.pasteList[id]={
 						url: url,
 						id: id,
 						user: user,
 						lastUser: user,
-						timeStamp: new Date().getTime()
+						timeStamp: new Date().getTime(),
+						lastseen: new Date().getTime(),
+						newTotal:newtotal,
+						total:total
 					}
 					console.log("[SRDotDX] New pastebin added " + id + " : " + user)
 					//onNewPastie
 					//TODO ADD TO GUI/PURGE
+					SRDotDX.gui.addPaste(id);
 				}
 				SRDotDX.config.pasteList[id].lastuser = user;
+				SRDotDX.config.pasteList[id].lastseen = new Date().getTime();
 				return SRDotDX.config.pasteList[id]				
 			}
 			tmp.export = function () {
@@ -315,13 +321,27 @@ function main() {
 				if(SRDotDX.config.useMaxRaidCount && diff > 0){
 					if(!SRDotDX.gui.Importing){
 						console.log("[SRDotDX] Purging started " + diff);
+						
+						var i=0, total=0;
+						var draids = SRDotDX.gui.GetNukedRaids();
+						draids.sort(function(a,b){
+							if(!(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
+								if(a.timeStamp < b.timeStamp) return -1;
+							return 1;
+						});
+						while(i<draids.length && diff > 0){
+							console.log('[SRDotDX] Purging ' + draids[i].id);
+							SRDotDX.gui.deleteRaid(draids[i].ele.getElementsByClassName("FPXDeleteLink")[0], draids[i].id);
+							i++;
+							diff--;
+						}
+						total+=i; i=0;
 						var uraids = SRDotDX.gui.GetUnvisitedRaids();
 						uraids.sort(function(a,b){
 							if(!(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
 								if(a.timeStamp < b.timeStamp) return -1;
 							return 1;
 						});
-						var i=0, total=0;;
 						while(i<uraids.length && diff > 0){
 							if((new Date).getTime() - uraids[i].timeStamp > 60000){//only if it's older than 1 hour
 								console.log('[SRDotDX] Purging ' + uraids[i].id);
@@ -330,8 +350,7 @@ function main() {
 								diff--;
 							} else break;
 						}
-						total += i;
-						i=0;
+						total+=i; i=0;
 						if(diff > 0){
 							var raids = SRDotDX.gui.GetAllRaids();
 							raids.sort(function(a,b){
@@ -752,6 +771,45 @@ function main() {
 					delete SRDotDX.config.raidList[a];
 				}
 			},
+			addPaste: function (id) {
+				var p = id;
+				if(typeof id == "string") p = SRDotDX.config.pasteList[id];
+				if(p.url) {
+					var a = document.getElementById("paste_list");
+					if (typeof a != 'undefined' && a) {
+						var b = 1
+						if (a.hasChildNodes()) b += a.childNodes.length;
+						var url = "http://pastebin.com/"+p.id;
+						var lii = SRDotDX.gui.cHTML('div').set({
+							class: 'paste_list_item paste_list_item_'+ p.id,
+							pasteId: p.id
+						});
+						if (SRDotDX.config.newPasteAtTopOfPasteList == true) {
+							var arr = a.getElementsByClassName("paste_list_item");
+							if (arr.length > 0) {
+								lii.attach("before",arr[0]);
+							} else {
+								lii.attach("to",a);
+							}
+						} else {
+							lii.attach("to",a);
+						}
+						var li = lii.ele();
+						var rh;
+						rh=SRDotDX.gui.cHTML('div').set({class: 'paste_list_item_head'}).html(' \
+							<div style="float:left; width:49%; white-space:nowrap; overflow:hidden; '+(b%2==0?'background-color:#e0e0e0; ':'')+'"> \
+								<a href="'+url+'" class="link">' + p.user + '\'s Pastebin</a><br> \
+								<span class="imct_'+p.id+'">'+(typeof p.newTotal=='number' && typeof p.total=='number'?p.newTotal+'/'+p.total+' new raids':'Unimported')+'</span>\
+							</div> \
+							<div style="float:right; width: 51%; '+(b%2==0?'background-color:#e0e0e0; ':'')+'"> \
+								<span style="float:right">'+(typeof p.lastseen == 'number'?dateFormat(new Date(p.lastseen), 'ddd, h:MM TT') :'Unknown') +'</span><br> \
+								<span style="float:right">&nbsp;<a class="FPXDeleteLink" href="#" style="color:blue; text-decoration:underline; cursor:pointer;">Delete</a></span> \
+								<span style="float:right">&nbsp;<a style="color:blue; text-decoration:underline; cursor:pointer;" class="FPXImportLink" href="'+url+'" >Import</a></span> \
+							</div> \
+						').attach("to",li).ele();
+					}
+				}
+			},
 			cHTML: function (ele) {
 				function cEle(ele) {
 					this._ele = ele;
@@ -857,10 +915,11 @@ function main() {
 				}
 			},
 			Importing:false,
-			FPXimportRaids: function(user){
+			FPXimportRaids: function(save){
 				var linklist=document.FPXRaidSpamForm.FPXRaidSpamInput.value;
 				if(linklist.length>10)
 				{
+					save = (typeof save ==="undefined"?true:save);
 					console.log("[SRDotDX] Import started");
 					SRDotDX.gui.Importing=true;
 					document.FPXRaidSpamForm.FPXRaidSpamInput.value="";
@@ -902,9 +961,18 @@ function main() {
 						SRDotDX.gui.doStatusOutput('Import complete, ' + diff + ' of ' + imct + ' new raids');
 					}
 					SRDotDX.gui.Importing=false;
-					SRDotDX.config.save(false);
+					if(save) SRDotDX.config.save(false);
 					return {totalnew: diff, total:imct}
 				}
+			},
+			deletePaste: function (ele,id){
+				console.log("[SRDotDX] delete paste " + id);
+				if (SRDotDX.config.pasteList[id]) {
+					delete SRDotDX.config.pasteList[id];
+				}
+				setTimeout(function(ele) {
+					ele.parentNode.removeChild(ele);
+				},1,ele.parentNode.parentNode.parentNode)
 			},
 			deleteRaid: function (ele,id,upd) {
 				upd=(typeof upd === 'undefined'?true:upd);
@@ -1167,6 +1235,62 @@ function main() {
 				}
 			},
 			importingPastebin:false,
+			FPXSortPaste: function () {
+				var pasteArray = [];
+				var selectedSort = document.getElementById("FPXPasteSortSelection").value;
+				var selectedDir = document.getElementById("FPXPasteSortDirection").value;
+				
+				console.log("[SRDotDX] Sorting started " + selectedSort + " : " + selectedDir);
+				var pastelistDIV=document.getElementById('paste_list');
+				var pasteList = pastelistDIV.childNodes;
+				for(i=0; i<pasteList.length; i+=1) {
+					var item = SRDotDX.config.pasteList[pasteList[i].getAttribute("pasteid")];
+					pasteArray.push(item);
+				}
+				var sortFunc;
+				if(selectedSort == "Time")
+					if(selectedDir == "asc")
+						sortFunc = function(a,b){
+							if(!(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
+								if(a.timeStamp < b.timeStamp) return -1;
+							return 1;
+						}
+					else
+						sortFunc = function(a,b){
+							if(!(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
+								if(a.timeStamp > b.timeStamp) return -1;
+							return 1;
+						}
+				else if(selectedSort == "Name")
+					if(selectedDir == "asc")
+						sortFunc = function(a,b){
+							if(!(typeof a.user === 'undefined' || typeof b.user === 'undefined'))
+								if(a.user > b.user) return -1
+							return 1;
+						}
+					else
+						sortFunc = function(a,b){
+							if(!(typeof a.user === 'undefined' || typeof b.user === 'undefined'))
+								if(a.user < b.user) return -1
+							return 1;
+						}
+				try{
+					pasteArray.sort(sortFunc);
+				}catch(e){
+					console.log("[SRDotDX] Sorting error: " +e);
+					return;
+				}
+				
+				while (pastelistDIV.hasChildNodes()) {
+					pastelistDIV.removeChild(pastelistDIV.lastChild);
+				}
+				
+				for(var i=0; i<pasteArray.length; i++){
+					SRDotDX.gui.addPaste(pasteArray[i]);
+				}
+				
+				console.log("[SRDotDX] Sorting finished");
+			},
 			FPXSortRaids: function () {
 				var raidArray = [];
 				var selectedSort = document.getElementById("FPXRaidSortSelection").value;
@@ -1297,6 +1421,15 @@ function main() {
 			},
 			GetVisibleRaids: function () {
 				return this.GetAllRaids(true);
+			},
+			GetNukedRaids: function () {
+				var r = [];
+				var rds = this.GetAllRaids();
+				for(i=0; i<rds.length; i++){
+					var rd = rds[i];
+					if(rd.nuked) r.push(rd);
+				}
+				return r;
 			},
 			GetUnvisitedRaids: function () {
 				console.log("[SRDotDX] Getting unvisited raids (gui)");
@@ -1544,7 +1677,7 @@ function main() {
 											</FORM> \
 										</div> \
 									</div> \
-									<div id="FPXRaidActionsDiv" class="collapsible_panel"> \
+									<div id="FPXRaidSortingDiv" class="collapsible_panel"> \
 										<p class="panel_handle spritegame mts closed_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXRaidSort\', this)"> <a> Raid Sorting </a> </p> \
 										<div id="FPXRaidSort" style="display:none"> \
 											Sort By: \
@@ -1582,8 +1715,31 @@ function main() {
 								</div> \
 							</li> \
 							<li class="tab"> \
+								<div class="tab_head">Pastebins</div> \
+								<div class="tab_pane"> \
+									<div id="FPXRaidSortingDiv" class="collapsible_panel"> \
+										<p class="panel_handle spritegame mts closed_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXPasteSort\', this)"> <a> Pastebin Sorting </a> </p> \
+										<div id="FPXPasteSort" style="display:none"> \
+											Sort By: \
+											<select id="FPXPasteSortSelection" tabIndex="-1"> \
+												<option value="Time" selected>TimeStamp</option> \
+												<option value="Name">Posted By</option> \
+											</select> \
+											<select id="FPXPasteSortDirection" tabIndex="-1"> \
+												<option value="asc" selected>Ascending</option> \
+												<option value="desc">Descending</option> \
+											</select> \
+											<input type="button" onClick="SRDotDX.gui.FPXSortPaste();return false;" value="Sort"> \
+											<input type="checkbox" id="SRDotDX_options_newPasteAtTopOfRaidList"> New pastebins at top of raid list <br> \
+										</div> \
+									</div><br> \
+									<div id="paste_list" tabIndex="-1" style="overflow:auto"> No pastys :( \
+									</div> \
+								</div> \
+							</li> \
+							<li class="tab"> \
 							<div class="tab_head">Options</div> \
-									<div class="tab_pane"><br> \
+								<div class="tab_pane"><br> \
 									<div id="FPXRaidOptionsDiv" class="collapsible_panel"> \
 										<p class="panel_handle spritegame mts opened_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXRaidOptions\', this)"> <a> Raid Options </a> </p> \
 										<div id="FPXRaidOptions"> \
@@ -1618,6 +1774,13 @@ function main() {
 											<hr> \
 										</div> \
 									</div> \
+									<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank"> \
+									<input type="hidden" name="cmd" value="_s-xclick"> \
+									<input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----"> \
+									<input type="image" src="http://i.imgur.com/8DzHU.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!"> \
+									<img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1"><br/> \
+									<font size="1">We are not a commercial enterprise.  Any contributions are completely of the contributors free will and will help fund future enhancements and feeding wpatter6 & JHunz :)</font> \
+									</form>\
 								</div> \
 							</li> \
 							<li class="tab"> \
@@ -1813,7 +1976,21 @@ function main() {
 							this.value = "";
 						}
 					});*/
-
+					//Pastebin tab
+					var paste_list = document.getElementById('paste_list');
+					paste_list.style.height = (h - paste_list.offsetTop -3) + "px";
+					SRDotDX.gui.loadPasteList();//TODO
+					
+					//pastelist global click listener
+					paste_list.addEventListener("mouseup",function(event) {
+						SRDotDX.gui.FPXpasteListMouseDown(event);//TODO
+					},false);
+					paste_list.addEventListener("click",function(e) {
+						e.preventDefault();
+						e.stopPropagation();
+						return false;
+					},false);
+					
 					// Raids Tab
 					var raid_list = document.getElementById('raid_list');
 					raid_list.style.height = (h - raid_list.offsetTop -3) + "px";
@@ -1847,6 +2024,7 @@ function main() {
 					var optsUseMaxRaidCount = SRDotDX.gui.cHTML('#FPX_options_useMaxRaidCount');
 					var optsMaxRaidCount = SRDotDX.gui.cHTML('#FPX_options_maxRaidCount');
 					var optsNewRaidsAtTopOfRaidList = SRDotDX.gui.cHTML('#SRDotDX_options_newRaidsAtTopOfRaidList');
+					var optsNewPasteAtTopOfPasteList = SRDotDX.gui.cHTML('#SRDotDX_options_newPasteAtTopOfRaidList');
 					var optsFormatLinkOutput = SRDotDX.gui.cHTML('#SRDotDX_options_formatLinkOutput');
 					var optsPrettyPost = SRDotDX.gui.cHTML('#SRDotDX_options_prettyPost');
 					var optsAutoImportPaste = SRDotDX.gui.cHTML('#SRDotDX_options_autoImportPaste');
@@ -1859,7 +2037,7 @@ function main() {
 					if (SRDotDX.config.formatRaidLinks) {	optsFormatRaids.ele().checked = 'checked'}
 					if (SRDotDX.config.markMyRaidsVisted) { optsMarkMyRaidsVisited.ele().checked = 'checked' }
 					if (SRDotDX.config.showRaidLink) { optsShowRaidLink.ele().checked = 'checked';}
-					if (SRDotDX.config.formatLinkOutput) { optsFormatLinkOutput.ele().checked = 'checked'; optsPrettyPost.ele().disabled=true;}
+					if (SRDotDX.config.formatLinkOutput) { optsFormatLinkOutput.ele().checked = 'checked'; optsPrettyPost.ele().disabled=true;} else { optsRaidFormat.ele().disabled = 'disabled' }
 					if (SRDotDX.config.prettyPost) { optsPrettyPost.ele().checked='checked'; optsFormatLinkOutput.ele().disabled=true;}
 					if (SRDotDX.config.markImportedVisited) { optsMarkImportedVisited.ele().checked = 'checked'; }
 					if (SRDotDX.config.whisperSpam) { optsWhisperToCheck.ele().checked = 'checked'; }
@@ -1867,7 +2045,7 @@ function main() {
 					if (SRDotDX.config.useMaxRaidCount) { optsUseMaxRaidCount.ele().checked = 'checked'; }
 					if (SRDotDX.config.maxRaidCount>0) { optsMaxRaidCount.ele().value = SRDotDX.config.maxRaidCount; }
 					if (SRDotDX.config.autoImportPaste) { optsAutoImportPaste.ele().checked = 'checked'; }
-					else { optsRaidFormat.ele().disabled = 'disabled' }
+					if (SRDotDX.config.newPasteAtTopOfPasteList) { optsNewPasteAtTopOfPasteList.ele().checked = 'checked'}
 		
 					if (SRDotDX.config.unvisitedRaidPruningMode == 0) {
 						rbUnvisitedPruningAggressive.ele().checked = true;
@@ -1936,7 +2114,9 @@ function main() {
 						}
 						document.getElementById("SRDotDX_options_prettyPost").disabled=this.checked;
 					});
-					
+					optsNewPasteAtTopOfPasteList.ele().addEventListener("click",function(){
+						SRDotDX.config.newPasteAtTopOfPasteList = this.checked;
+					},true);
 					optsShowRaidLink.ele().addEventListener("click", function() {
 						SRDotDX.config.showRaidLink = this.checked;
 						var els = document.getElementsByClassName("RaidQuickLink");
@@ -2173,8 +2353,17 @@ function main() {
 					}
 				}
 			},
-			loadPasteList: function () {//todo after gui
-				
+			loadPasteList: function () {
+
+				var i = document.getElementById("paste_list");
+				while (i.hasChildNodes() && i.childNodes.length > 0) {
+					i.removeChild(i.firstChild);
+				}
+				for (var a in SRDotDX.config.pasteList) {
+					if (SRDotDX.config.pasteList.hasOwnProperty(a)) {
+						SRDotDX.gui.addPaste(a);
+					}
+				}
 			},
 			FPXraidLinkClickRaidList: function (ele,isRightClick, isCopy) {
 				if(!isRightClick){
@@ -2242,6 +2431,29 @@ function main() {
 						(function() { return setTimeout(function() {SRDotDX.gui.FPXraidLinkClickRaidList(e.element(),true);}, SRDotDX.config.FPXoptsMarkRightClickDelay)})();
 						return false;
 					}
+				}
+			},
+			FPXpasteListMouseDown: function (e) {
+				var classtype=e.element().className;
+				e = e || window.event;
+				e.stopPropagation();
+				console.log("[SRDotDX]::{FPX}:: Clicked on::"+classtype+"::"+e.which);
+				if(e.which == 1){
+					if(classtype == "paste_list_item_head"){
+						var con = document.getElementById("paste_list").getElementsByClassName("active");
+						if (con.length == 1) con[0].className = con[0].className.replace(/ active/gi,"");
+						e.element().parentNode.className += " active";
+						//SRDotDX.gui.pasteListItemUpdateTimeSince(e.element().parentNode.getAttribute("pasteid"));paste todo
+						return false;
+					}else if(classtype == "FPXDeleteLink"){
+						SRDotDX.gui.deletePaste(e.element(),e.element().parentNode.parentNode.parentNode.parentNode.getAttribute("pasteid")); return false;
+						return false;
+					}else if(classtype == "FPXImportLink"){
+						SRDotDX.gui.FPXImportPasteBin(e.element().href);
+						return false;
+					}
+				}else if(e.which == 3){//right click
+				
 				}
 			},
 			FPXraidLinkMouseDown: function (e,param1,param2,isChat) {
@@ -2509,6 +2721,16 @@ function main() {
 					}
 					return false;
 				});
+				holodeck.addChatCommand("donate", function(deck,text) {
+					window.open("https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=2Y8C4RURY33AL&lc=US&currency_code=USD&bn=PP-DonationsBF:8DzHU.gif:NonHosted");
+					SRDotDX.echo("Donation window opened.");
+					return false;
+				});
+				holodeck.addChatCommand("help", function(deck,text) {
+					window.open("https://docs.google.com/spreadsheet/viewform?formkey=dGM4Vy1jbUZXOUpzM3ZjNUY0V21fLWc6MQ");
+					SRDotDX.echo("Help window opened.");
+					return false;
+				});
 				holodeck.addChatCommand("clear",function(deck,text){
 					holodeck.activeDialogue().clear();
 					return false
@@ -2610,7 +2832,7 @@ function main() {
 					}
 				}
 				window.onbeforeunload = function(){
-					SRDotDX.config.pasteList = {};//for now just purge pastys when page is left
+					//SRDotDX.config.pasteList = {};//for now just purge pastys when page is left
 					SRDotDX.config.save(false);
 				}
 
@@ -2781,16 +3003,23 @@ function main() {
 			var pbid = event.data.split("###")[0];
 			console.log("[SRDotDX] Pastebin message recieved "+pbid);
 			document.FPXRaidSpamForm.FPXRaidSpamInput.value=event.data.replace(/&amp;/g, '&');
-			var ct = SRDotDX.gui.FPXimportRaids();
-			
-			SRDotDX.config.pasteList[pbid].newTotal=ct.totalnew;
-			SRDotDX.config.pasteList[pbid].total=ct.total;
-			SRDotDX.config.pasteList[pbid].lastImport=new Date().getTime();
-			
-			var els = document.getElementsByClassName("pb_"+pbid);
-			for(i=0;i<els.length;i++){
-				els[i].innerHTML="(Imported, "+ct.totalnew+" new)";
+			var ct = SRDotDX.gui.FPXimportRaids(false);
+			if(typeof SRDotDX.config.pasteList[pbid] === 'undefined')
+				SRDotDX.config.addPaste("http://pastebin.com/"+pbid, pbid, 'User Import',ct.totalnew,ct.total);
+			if(typeof SRDotDX.config.pasteList[pbid].newTotal != 'number' || ct.totalnew != 0){
+				SRDotDX.config.pasteList[pbid].newTotal=ct.totalnew;
+				SRDotDX.config.pasteList[pbid].total=ct.total;
+				SRDotDX.config.pasteList[pbid].lastImport=new Date().getTime();
+				var els = document.getElementsByClassName("pb_"+pbid);
+				for(i=0;i<els.length;i++){
+					els[i].innerHTML="(Imported, "+ct.totalnew+" new)";
+				}
+				els = document.getElementsByClassName("imct_"+pbid);
+				for(i=0;i<els.length;i++){
+					els[i].innerHTML=ct.totalnew+"/"+ct.total + " new raids";
+				}
 			}
+			SRDotDX.config.save(false);
 			SRDotDX.gui.importingPastebin=false;
 			console.log("[SRDotDX] Pastebin import complete");
 		}
