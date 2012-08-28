@@ -1780,7 +1780,7 @@ function main() {
 												Delay(milliseconds) (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Number of milliseconds to wait before marking raid link visited when it is right clicked.<br><strong>Only enabled if <i>\\\'Mark right click\\\'</i> is enabled.</strong> \');">?</a>) :: \
 												<INPUT id="FPX_options_markVisitedRightClickDelay" size="8"> <br>\
 												<input type="checkbox" id="SRDotDX_options_markMyRaidsVisited"> Automatically mark raids posted by me as visited <br> \
-												<input type="checkbox" id="SRDotDX_options_refreshGameToJoin"> Refresh game to join raids. <br> \
+												<input type="checkbox" id="SRDotDX_options_refreshGameToJoin"> Refresh game to join raids (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Unchecking this will cause raids to be joined behind the scenes without refreshing the game.  You will have to refresh your raid list in game for newly added raids to show up.\');">?</a>) <br> \
 												<input type="checkbox" id="SRDotDX_options_showRaidLink"> Show raid link in raid list <br><br> \
 												Unvisited raid pruning (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'How fast the script will automatically remove unvisited raids.  Small and Medium raids: Aggressive 1h, Moderate 2h, Slow 3h.  Large Raids: Aggressive 4h, Moderate 12h, Slow 36h.  Epic and Colossal raids: Aggressive 24h, Moderate 48h, Slow 72h.\');">?</a>)<br> \
 												<input type="radio" id="FPX_options_unvisitedPruningAggressive" name="unvisitedPruning" value="Aggressive"/>Aggressive&nbsp;&nbsp; \
@@ -2015,7 +2015,7 @@ function main() {
 					});*/
 					//Pastebin tab
 					var paste_list = document.getElementById('paste_list');
-					paste_list.style.height = (h - paste_list.offsetTop -3) + "px";
+					paste_list.style.height = (h - paste_list.offsetTop -50) + "px";
 					SRDotDX.gui.loadPasteList();//TODO
 					
 					//pastelist global click listener
