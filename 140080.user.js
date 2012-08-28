@@ -133,6 +133,7 @@ function main() {
 	window.timeSince=function(date,after){if(typeof date=='number')date=new Date(date);var seconds=Math.abs(Math.floor((new Date().getTime()-date.getTime())/1000));var interval=Math.floor(seconds/31536000);var pretext="about ";var posttext=" ago";if(after)posttext=" left";if(interval>=1){return pretext+interval+" year"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/2592000);if(interval>=1){return pretext+interval+" month"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/86400);if(interval>=1){return pretext+interval+" day"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/3600);if(interval>=1){return pretext+interval+" hour"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/60);if(interval>=1){return interval+" minute"+(interval==1?'':'s')+posttext}return Math.floor(seconds)+" seconds"+(seconds==1?'':'s')+posttext}
 	window.isNumber=function(n) {return !isNaN(parseFloat(n)) && isFinite(n);}
 	window.eliminateDuplicates=function(arr){var i,len=arr.length,out=[],obj={};for(i=0;i<len;i++){obj[arr[i]]=0}for(i in obj){out.push(i)}return out}
+	window.elfade=function(elem,time){if(typeof time!='number')time=500;if(typeof elem=='string')elem=document.getElementById(elem);if(elem==null)return;var startOpacity=elem.style.opacity||1;elem.style.opacity=startOpacity;var tick=1/(time/100);(function go(){elem.style.opacity=Math.round((elem.style.opacity-tick)*100)/100;if(elem.style.opacity>0)setTimeout(go,100);else elem.style.display='none'})()}
 	
 	window.SRDotDX = {
 		version: {major: "1.0.0", minor: "wpatter6/JHunz"},
@@ -157,6 +158,8 @@ function main() {
 			tmp.useMaxRaidCount = (typeof tmp.useMaxRaidCount =='boolean'?tmp.useMaxRaidCount:false);
 			tmp.maxRaidCount = (!(typeof tmp.maxRaidCount === 'undefined')?tmp.maxRaidCount:3000);
 			tmp.autoImportPaste = (typeof tmp.autoImportPaste =='boolean'?tmp.autoImportPaste:false);
+			tmp.refreshGameToJoin = (typeof tmp.refreshGameToJoin == 'boolean'? tmp.refreshGameToJoin:true);
+			tmp.showStatusOverlay = (typeof tmp.showStatusOverlay == 'boolean'? tmp.showStatusOverlay:false);
 			tmp.whisperTo = (typeof tmp.whisperTo == 'string'?tmp.whisperTo:'');
 			tmp.showRaidLink = (typeof tmp.showRaidLink == 'boolean'?tmp.showRaidLink:(navigator.userAgent.toLowerCase().indexOf('chrome')>-1));
 			tmp.formatLinkOutput = (typeof tmp.formatLinkOutput == 'boolean'?tmp.formatLinkOutput:false);
@@ -887,15 +890,25 @@ function main() {
 			standardMessage: function (){//message to show 
 				return 'JHunz/wpatter6 - <span class="room_name_container h6_alt mbs">' +document.getElementById("raid_list").childNodes.length + ' raids stored</span>';
 			},
-			doStatusOutput: function (str, msecs){
+			fadeChatOverlay: function (){
+				elfade('chat_status_overlay');
+			},
+			doStatusOutput: function (str, msecs, showInChat){
+				showInChat=(typeof showInChat === 'undefined'?true:showInChat);
 				msecs=(typeof msecs === 'undefined'?4000:msecs);
 				var el = document.getElementById('StatusOutput');
 				el.innerHTML=str;
+				if(SRDotDX.config.showStatusOverlay && showInChat){
+					var ov=document.getElementById('chat_status_overlay')
+					ov.innerHTML = str;
+					ov.style.display="block";
+					ov.style.opacity=1;
+				}
 				if(msecs) {
 					if (SRDotDX.gui.CurrentStatusOutputTimer) {
 						clearTimeout(SRDotDX.gui.CurrentStatusOutputTimer);
 					}
-					SRDotDX.gui.CurrentStatusOutputTimer = setTimeout(function(){ el.innerHTML=SRDotDX.gui.standardMessage(); }, msecs);
+					SRDotDX.gui.CurrentStatusOutputTimer = setTimeout(function(){ SRDotDX.gui.fadeChatOverlay();el.innerHTML=SRDotDX.gui.standardMessage(); }, msecs);
 				}
 			},
 			raidsTabClicked: function (){
@@ -1476,6 +1489,7 @@ function main() {
 			AutoJoinCurrentSuccesses: 0,
 			AutoJoinCurrentDeads: 0,
 			AutoJoinCurrentInvalids: 0,
+			AutoJoinCurrentTotal: 0,
 			AutoJoinVisible: function (b, t) {
 				if(typeof b === 'undefined'){
 					b=!SRDotDX.gui.AutoJoin;
@@ -1490,8 +1504,8 @@ function main() {
 					console.log("[SRDotDX] Joining visible raids");
 					SRDotDX.gui.AutoJoinRaids = SRDotDX.gui.GetVisibleRaids();
 					if(SRDotDX.gui.AutoJoinRaids.length > 0){
-
-						SRDotDX.gui.doStatusOutput('Joining 1 of '+SRDotDX.gui.AutoJoinRaids.length);
+						SRDotDX.gui.AutoJoinCurrentTotal = SRDotDX.gui.AutoJoinRaids.length;
+						SRDotDX.gui.doStatusOutput('Joining 1 of '+ SRDotDX.gui.AutoJoinCurrentTotal);
 						SRDotDX.loadRaid(SRDotDX.gui.AutoJoinRaids[0].ele.firstChild.getElementsByTagName('a')[0].href);
 
 						console.log("[SRDotDX] Joining prepared");
@@ -1748,6 +1762,7 @@ function main() {
 												Delay(milliseconds) (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Number of milliseconds to wait before marking raid link visited when it is right clicked.<br><strong>Only enabled if <i>\\\'Mark right click\\\'</i> is enabled.</strong> \');">?</a>) :: \
 												<INPUT id="FPX_options_markVisitedRightClickDelay" size="8"> <br>\
 												<input type="checkbox" id="SRDotDX_options_markMyRaidsVisited"> Automatically mark raids posted by me as visited <br> \
+												<input type="checkbox" id="SRDotDX_options_refreshGameToJoin"> Refresh game to join raids. <br> \
 												<input type="checkbox" id="SRDotDX_options_showRaidLink"> Show raid link in raid list <br><br> \
 												Unvisited raid pruning (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'How fast the script will automatically remove unvisited raids.  Small and Medium raids: Aggressive 1h, Moderate 2h, Slow 3h.  Large Raids: Aggressive 4h, Moderate 12h, Slow 36h.  Epic and Colossal raids: Aggressive 24h, Moderate 48h, Slow 72h.\');">?</a>)<br> \
 												<input type="radio" id="FPX_options_unvisitedPruningAggressive" name="unvisitedPruning" value="Aggressive"/>Aggressive&nbsp;&nbsp; \
@@ -1767,6 +1782,7 @@ function main() {
 											<input type="checkbox" id="SRDotDX_options_hideRaidLinks"> Hide all raid links in chat <br> \
 											<input type="checkbox" id="SRDotDX_options_hideSeenRaids"> Hide seen raids in chat <br> \
 											<input type="checkbox" id="SRDotDX_options_hideVisitedRaids"> Hide visited raids in chat <br> \
+											<input type="checkbox" id="SRDotDX_options_statusChatOverlay"> Show status output chat overlay <br> \
 											<input type="checkbox" id="FPX_options_displayLinkImg"> Display icon beside raid (refresh req.) (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Show a link Icon (\
 												<img src=\\\'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAVklEQVR4Xn3PgQkAMQhDUXfqTu7kTtkpd5RA8AInfArtQ2iRXFWT2QedAfttj2FsPIOE1eCOlEuoWWjgzYaB/IkeGOrxXhqB+uA9Bfcm0lAZuh+YIeAD+cAqSz4kCMUAAAAASUVORK5CYII=\\\'/> ) next to the boss name Inside the raid list.<br><strong>This may cause script to become excessively laggy as the list becomes larger.</strong>\');">?</a>)<br> \ \
 											<hr><input type="checkbox" id="SRDotDX_options_formatRaids"> Enable Raid Link Formatting (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Set formatting options for raid links posted in chat.<br><strong>See the userscript page for a list of all formatting options.</strong> \');">?</a>)<br><br> \
@@ -1779,7 +1795,6 @@ function main() {
 									<input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----"> \
 									<input type="image" src="http://i.imgur.com/8DzHU.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!"> \
 									<img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1"><br/> \
-									<font size="1">We are not a commercial enterprise.  Any contributions are completely of the contributors free will and will help fund future enhancements and feeding wpatter6 & JHunz :)</font> \
 									</form>\
 								</div> \
 							</li> \
@@ -1912,6 +1927,7 @@ function main() {
 												</table> \
 											</div> \
 										</div> \
+										<iframe id="SRDotDX_joiner" style="display:none"></iframe> \
 										<iframe id="SRDotDX_pastebin" style="display:none"></iframe> \
 									</div> \
 								</div> \
@@ -1945,7 +1961,10 @@ function main() {
 						e[i].style.width = w + "px";
 						e[i].style.height = h + "px";
 					}
-
+					
+					//Chat overlay div
+					SRDotDX.gui.cHTML('div').set({id: 'chat_status_overlay', style: 'position:absolute;top:157px;z-index:20000;width:284px;display:none;background-color:#DDDDDD;padding:3px 5px;' }).attach("to",'chat_tab_pane').ele();
+					
 					//spam tab
 					var FPXimpSpam= SRDotDX.gui.cHTML('#FPXRaidSpamTA');
 					FPXimpSpam.ele().style.width = e[0].offsetWidth - 12 + "px";
@@ -2015,7 +2034,9 @@ function main() {
 					var optsHideARaids = SRDotDX.gui.cHTML('#SRDotDX_options_hideRaidLinks');
 					var optsHideSRaids = SRDotDX.gui.cHTML('#SRDotDX_options_hideSeenRaids');
 					var optsHideVRaids = SRDotDX.gui.cHTML('#SRDotDX_options_hideVisitedRaids');
+					var optsStatusOverlay = SRDotDX.gui.cHTML('#SRDotDX_options_statusChatOverlay');
 					var optsShowRaidLink = SRDotDX.gui.cHTML('#SRDotDX_options_showRaidLink');
+					var optsRefreshGameToJoin = SRDotDX.gui.cHTML('#SRDotDX_options_refreshGameToJoin')
 					var optsHideVRaidsList = SRDotDX.gui.cHTML('#SRDotDX_options_hideVisitedRaidsInRaidList');
 					var optsWhisperToCheck = SRDotDX.gui.cHTML('#SRDotDX_options_whisperRaids');
 					var optsMarkImportedVisited = SRDotDX.gui.cHTML('#SRDotDX_options_markImportedRaidsVisited');
@@ -2046,6 +2067,8 @@ function main() {
 					if (SRDotDX.config.maxRaidCount>0) { optsMaxRaidCount.ele().value = SRDotDX.config.maxRaidCount; }
 					if (SRDotDX.config.autoImportPaste) { optsAutoImportPaste.ele().checked = 'checked'; }
 					if (SRDotDX.config.newPasteAtTopOfPasteList) { optsNewPasteAtTopOfPasteList.ele().checked = 'checked'}
+					if (SRDotDX.config.refreshGameToJoin) { optsRefreshGameToJoin.ele().checked = 'checked' }
+					if (SRDotDX.config.showStatusOverlay) { optsStatusOverlay.ele().checked = 'checked' }
 		
 					if (SRDotDX.config.unvisitedRaidPruningMode == 0) {
 						rbUnvisitedPruningAggressive.ele().checked = true;
@@ -2070,6 +2093,14 @@ function main() {
 						optsHideSRaids.ele().disabled = true;
 					}
 					if (SRDotDX.config.newRaidsAtTopOfRaidList) { optsNewRaidsAtTopOfRaidList.ele().checked = 'checked'}
+					
+					optsStatusOverlay.ele().addEventListener('click', function () {
+						SRDotDX.config.showStatusOverlay = this.checked;
+					});
+					
+					optsRefreshGameToJoin.ele().addEventListener('click', function (){
+						SRDotDX.config.refreshGameToJoin = this.checked;
+					});
 					
 					optsAutoImportPaste.ele().addEventListener('click', function (){
 						SRDotDX.config.autoImportPaste = this.checked;
@@ -2340,7 +2371,7 @@ function main() {
 					console.log("[SRDotDX] Loading is complete.");
 				}
 				else {setTimeout(SRDotDX.gui.load,5)}
-				SRDotDX.gui.doStatusOutput('Loaded successfully');
+				SRDotDX.gui.doStatusOutput('Loaded successfully', 4000, false);
 			},
 			loadRaidList: function () {
 				var i = document.getElementById("raid_list");
@@ -2864,13 +2895,15 @@ function main() {
 				iframe_options['kv_raid_id'] = r.id;
 
 				SRDotDX.lastJoinedRaidId = r.id;
-
-				$('gameiframe').replace(new Element('iframe', {"id":"gameiframe","name":"gameiframe","style":"border:none;position:relative;z-index:1;","scrolling":"auto","border":0,"frameborder":0,"width":760,"height":700,"class":"dont_hide"}));
-				$('gameiframe').contentWindow.location.replace("http://web1.dawnofthedragons.com/kong?" + Object.toQueryString(iframe_options));
+				if(SRDotDX.config.refreshGameToJoin){
+					$('gameiframe').replace(new Element('iframe', {"id":"gameiframe","name":"gameiframe","style":"border:none;position:relative;z-index:1;","scrolling":"auto","border":0,"frameborder":0,"width":760,"height":700,"class":"dont_hide"}));
+					$('gameiframe').contentWindow.location.replace("http://web1.dawnofthedragons.com/kong?" + Object.toQueryString(iframe_options));
+				} else {
+					document.getElementById('SRDotDX_joiner').src="http://web1.dawnofthedragons.com/kong?" + Object.toQueryString(iframe_options);
+				}
 				SRDotDX.config.raidList[r.id].visited = true;
 				SRDotDX.gui.toggleRaid("visited",r.id,true);
 				SRDotDX.gui.raidListItemUpdate(r.id);
-				//if(!SRDotDX.gui.AutoJoining && SRDotDX.config.AutoRefreshOnLinkClick) setTimeout("SRDotDX.reload()", SRDotDX.config.AutoJoinInterval);
 			}
 		},
 		nukeRaid: function (id) {
@@ -3006,14 +3039,15 @@ function main() {
 			var ct = SRDotDX.gui.FPXimportRaids(false);
 			if(typeof SRDotDX.config.pasteList[pbid] === 'undefined')
 				SRDotDX.config.addPaste("http://pastebin.com/"+pbid, pbid, 'User Import',ct.totalnew,ct.total);
+			var els = document.getElementsByClassName("pb_"+pbid);
+			for(i=0;i<els.length;i++){
+				els[i].innerHTML="(Imported, "+ct.totalnew+" new)";
+			}
 			if(typeof SRDotDX.config.pasteList[pbid].newTotal != 'number' || ct.totalnew != 0){
 				SRDotDX.config.pasteList[pbid].newTotal=ct.totalnew;
 				SRDotDX.config.pasteList[pbid].total=ct.total;
 				SRDotDX.config.pasteList[pbid].lastImport=new Date().getTime();
-				var els = document.getElementsByClassName("pb_"+pbid);
-				for(i=0;i<els.length;i++){
-					els[i].innerHTML="(Imported, "+ct.totalnew+" new)";
-				}
+				
 				els = document.getElementsByClassName("imct_"+pbid);
 				for(i=0;i<els.length;i++){
 					els[i].innerHTML=ct.totalnew+"/"+ct.total + " new raids";
@@ -3028,24 +3062,31 @@ function main() {
 			
 			// message to reload the frame
 			if (/reload/i.test(event.data)) { 
-				console.log("[SRDotDX] Reloading");
-				SRDotDX.reload();
+				if(SRDotDX.config.refreshGameToJoin){
+					console.log("[SRDotDX] Reloading");
+					SRDotDX.reload();
+				}
 			}
 
 			// message to nuke a raid because it's dead
 			if (/dead/i.test(event.data)) {
 				console.log("[SRDotDX] Nuking raid " + SRDotDX.lastJoinedRaidId);
 				SRDotDX.nukeRaid(SRDotDX.lastJoinedRaidId);
-
+				
 				if (SRDotDX.gui.AutoJoin) {
 					SRDotDX.gui.AutoJoinCurrentDeads++;
+				} else {
+					SRDotDX.gui.doStatusOutput("Join Failed. Raid is dead.");
 				}
 			}
 
 			// message to nuke a raid because it's from the wrong guild
 			if (/wrongguild/i.test(event.data)) {
 				console.log("[SRDotDX] Nuking raid " + SRDotDX.lastJoinedRaidId);
-				SRDotDX.nukeRaid(SRDotDX.lastJoinedRaidId);				
+				SRDotDX.nukeRaid(SRDotDX.lastJoinedRaidId);	
+				if (!SRDotDX.gui.AutoJoin){
+					SRDotDX.gui.doStatusOutput("Join Failed. Wrong guild.");
+				}
 			}
 
 			// message to delete a raid (invalid raid id or hash)
@@ -3065,6 +3106,9 @@ function main() {
 
 				if (SRDotDX.gui.AutoJoin) {
 					SRDotDX.gui.AutoJoinCurrentInvalids++;
+					SRDotDX.gui.AutoJoinCurrentTotal--;
+				} else {
+					SRDotDX.gui.doStatusOutput("Join failed. Invalid hash.");
 				}
 			}
 
@@ -3072,6 +3116,8 @@ function main() {
 			if (/success/i.test(event.data)) {
 				if (SRDotDX.gui.AutoJoin) {
 					SRDotDX.gui.AutoJoinCurrentSuccesses++;
+				} else {
+					SRDotDX.gui.doStatusOutput("Raid joined successfully.");
 				}
 
 			}
@@ -3082,20 +3128,19 @@ function main() {
 					SRDotDX.gui.AutoJoinCurrentIndex++;
 					if (SRDotDX.gui.AutoJoinCurrentIndex < SRDotDX.gui.AutoJoinRaids.length) {
 						// auto-join next raid
-						SRDotDX.gui.doStatusOutput('Joining '+(SRDotDX.gui.AutoJoinCurrentIndex+1)+' of '+SRDotDX.gui.AutoJoinRaids.length+'. New: '+SRDotDX.gui.AutoJoinCurrentSuccesses+', Dead: '+SRDotDX.gui.AutoJoinCurrentDeads+', Invalid: '+SRDotDX.gui.AutoJoinCurrentInvalids);
+						SRDotDX.gui.doStatusOutput('Joining '+(SRDotDX.gui.AutoJoinCurrentIndex+1)+' of '+SRDotDX.gui.AutoJoinCurrentTotal+'. New: '+SRDotDX.gui.AutoJoinCurrentSuccesses+', Dead: '+SRDotDX.gui.AutoJoinCurrentDeads);
 						SRDotDX.loadRaid(SRDotDX.gui.AutoJoinRaids[SRDotDX.gui.AutoJoinCurrentIndex].ele.firstChild.getElementsByTagName('a')[0].href);
 
 					} else {
 						// finished auto-joining
 						SRDotDX.reload();
-						SRDotDX.gui.doStatusOutput('Finished Auto Joining. New: '+SRDotDX.gui.AutoJoinCurrentSuccesses+', Dead: '+SRDotDX.gui.AutoJoinCurrentDeads+', Invalid: '+SRDotDX.gui.AutoJoinCurrentInvalids, 2000);
+						SRDotDX.gui.doStatusOutput('Finished. New: '+SRDotDX.gui.AutoJoinCurrentSuccesses+', Dead: '+SRDotDX.gui.AutoJoinCurrentDeads+', Invalid:'+SRDotDX.gui.AutoJoinCurrentInvalids, 10000);
 						SRDotDX.gui.AutoJoin=false;
 						SRDotDX.gui.AutoJoinCurrentIndex=0;
 						SRDotDX.gui.AutoJoinCurrentSuccesses=0;
 						SRDotDX.gui.AutoJoinCurrentDeads=0;
 						SRDotDX.gui.AutoJoinCurrentInvalids=0;
 						document.getElementById('AutoJoinVisibleButton').value='Join Visible Raids';
-						
 					}
 				}
 			}
