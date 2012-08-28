@@ -267,7 +267,8 @@ function main() {
 						timeStamp: new Date().getTime(),
 						lastseen: new Date().getTime(),
 						newTotal:newtotal,
-						total:total
+						total:total,
+						favorite:false
 					}
 					console.log("[SRDotDX] New pastebin added " + id + " : " + user)
 					//onNewPastie
@@ -799,7 +800,10 @@ function main() {
 						}
 						var li = lii.ele();
 						var rh;
+						var img = 'http://cdn1.iconfinder.com/data/icons/icojoy/shadow/standart/gif/24x24/001_17.gif';
+						if(p.favorite) img = 'http://cdn1.iconfinder.com/data/icons/icojoy/noshadow/standart/png/24x24/001_15.png';
 						rh=SRDotDX.gui.cHTML('div').set({class: 'paste_list_item_head'}).html(' \
+							<table><tr style="'+(b%2==0?'background-color:#e0e0e0; ':'')+'"><td><img src="'+img+'" onclick="SRDotDX.gui.FavoritePaste(\''+p.id+'\', this);" style="cursor:pointer" title="Click to toggle this pastebin\'s favorited status.  Favorited raids will not be purged."/></td><td width="100%"> \
 							<div style="float:left; width:49%; white-space:nowrap; overflow:hidden; '+(b%2==0?'background-color:#e0e0e0; ':'')+'"> \
 								<a href="'+url+'" class="link">' + p.user + '\'s Pastebin</a><br> \
 								<span class="imct_'+p.id+'">'+(typeof p.newTotal=='number' && typeof p.total=='number'?p.newTotal+'/'+p.total+' new raids':'Unimported')+'</span>\
@@ -808,10 +812,16 @@ function main() {
 								<span style="float:right">'+(typeof p.lastseen == 'number'?dateFormat(new Date(p.lastseen), 'ddd, h:MM TT') :'Unknown') +'</span><br> \
 								<span style="float:right">&nbsp;<a class="FPXDeleteLink" href="#" style="color:blue; text-decoration:underline; cursor:pointer;">Delete</a></span> \
 								<span style="float:right">&nbsp;<a style="color:blue; text-decoration:underline; cursor:pointer;" class="FPXImportLink" href="'+url+'" >Import</a></span> \
-							</div> \
+							</div></td></tr></table> \
 						').attach("to",li).ele();
 					}
 				}
+			},
+			FavoritePaste: function (id, el){
+				var p = SRDotDX.config.pasteList[id];
+				p.favorite = (typeof p.favorite=='boolean'?!p.favorite:true);
+				if(p.favorite) el.setAttribute("src","http://cdn1.iconfinder.com/data/icons/icojoy/noshadow/standart/png/24x24/001_15.png");
+				else el.setAttribute("src","http://cdn1.iconfinder.com/data/icons/icojoy/shadow/standart/gif/24x24/001_17.gif");
 			},
 			cHTML: function (ele) {
 				function cEle(ele) {
@@ -882,7 +892,7 @@ function main() {
 				SRDotDX.gui.doStatusOutput('<'+tag+'>'+s+'</'+tag+'>');
 			},
 			updateMessage: function () {
-				SRDotDX.gui.doStatusOutput(SRDotDX.gui.standardMessage(), false);
+				SRDotDX.gui.doStatusOutput(SRDotDX.gui.standardMessage(), false, false);
 			},
 			postingMessage: function(i, ct) {
 				SRDotDX.gui.doStatusOutput('Posting message ' + i + (typeof ct==='undefined'?'': ' of ' + ct + '...'), false);
@@ -985,7 +995,7 @@ function main() {
 				}
 				setTimeout(function(ele) {
 					ele.parentNode.removeChild(ele);
-				},1,ele.parentNode.parentNode.parentNode)
+				},1,ele.parentNode.parentNode.parentNode.parentNode)
 			},
 			deleteRaid: function (ele,id,upd) {
 				upd=(typeof upd === 'undefined'?true:upd);
@@ -1579,6 +1589,14 @@ function main() {
 						}
 					}
 					if(ct>0)SRDotDX.gui.doStatusOutput(ct + " old unvisited raids pruned.");
+				}
+
+				var pasteList = document.getElementById('paste_list').childNodes;
+				for(i=0;i<pasteList.length;i++){
+					var item = pasteList[i];
+					var p = SRDotDX.config.pasteList[item.getAttribute("pasteid")];
+					if(p.timeStamp < (new Date().getTime() - (3600000*24)) && (typeof p.favorite != 'boolean' || !p.favorite))
+						SRDotDX.gui.deletePaste(item.getElementsByClassName('FPXDeleteLink')[0], p.id);
 				}
 			},
 			help: function (item) {
