@@ -336,8 +336,7 @@ function main() {
 						while(i<draids.length && diff > 0){
 							console.log('[SRDotDX] Purging ' + draids[i].id);
 							SRDotDX.gui.deleteRaid(draids[i].ele.getElementsByClassName("FPXDeleteLink")[0], draids[i].id);
-							i++;
-							diff--;
+							i++; diff--;
 						}
 						total+=i; i=0;
 						var uraids = SRDotDX.gui.GetUnvisitedRaids();
@@ -347,11 +346,10 @@ function main() {
 							return 1;
 						});
 						while(i<uraids.length && diff > 0){
-							if((new Date).getTime() - uraids[i].timeStamp > 60000){//only if it's older than 1 hour
+							if((new Date).getTime() - uraids[i].timeStamp > 3600000){//only if it's older than 1 hour
 								console.log('[SRDotDX] Purging ' + uraids[i].id);
 								SRDotDX.gui.deleteRaid(uraids[i].ele.getElementsByClassName("FPXDeleteLink")[0], uraids[i].id);
-								i++;
-								diff--;
+								i++; diff--;
 							} else break;
 						}
 						total+=i; i=0;
@@ -363,11 +361,10 @@ function main() {
 								return 1;
 							});
 							while(i<raids.length && diff > 0){
-								if((new Date).getTime() - uraids[i].timeStamp > 60000){//only if it's older than 1 hour
+								if((new Date).getTime() - uraids[i].timeStamp > 3600000){//only if it's older than 1 hour
 									console.log('[SRDotDX] Purging ' + raids[i].id);
 									SRDotDX.gui.deleteRaid(raids[i].ele.getElementsByClassName("FPXDeleteLink")[0], raids[i].id);
-									i++;
-									diff--;
+									i++; diff--;
 								} else break;
 							}
 						}
@@ -1003,37 +1000,28 @@ function main() {
 					delete SRDotDX.config.raidList[id];
 				}
 				setTimeout(function(ele) {
-					//var e = ele.nextSibling;
-					//while (e) {
-					//	if (e.getAttribute("style").indexOf('background-color:#e0e0e0') > -1) {
-					//		e.setAttribute("style","");
-					//	}
-					//	else {
-					//		e.setAttribute("style",'background-color:#e0e0e0');
-					//	}
-					//	e = e.nextSibling;
-					//}
-					//delete the element
 					ele.parentNode.removeChild(ele);
 					if(upd)SRDotDX.gui.updateMessage();
 				},1,ele.parentNode.parentNode.parentNode)
 			},
 			FPXdeleteAllRaids: function () {
-				console.log("[SRDotDX]::{FPX}:: DELETE ALL STARTED...");
-				for (var id in SRDotDX.config.raidList){					
-						if (SRDotDX.config.raidList[id]) {
-							delete SRDotDX.config.raidList[id];
-						}				
+				if(confirm("This will delete all " + SRDotDX.config.raidList.length + " raids stored. Continue?")){
+					console.log("[SRDotDX]::{FPX}:: DELETE ALL STARTED...");
+					for (var id in SRDotDX.config.raidList){					
+							if (SRDotDX.config.raidList[id]) {
+								delete SRDotDX.config.raidList[id];
+							}				
+					}
+					console.log("[SRDotDX]::{FPX}:: removing from raid_list div");
+					var raidlistDIV=document.getElementById('raid_list');
+					while (raidlistDIV.hasChildNodes()) {
+						raidlistDIV.removeChild(raidlistDIV.lastChild);
+					}
+					console.log("[SRDotDX]::{FPX}:: removing from local storage...");
+					localStorage.removeItem('raidList');
+					SRDotDX.gui.updateMessage();
+					console.log("[SRDotDX]::{FPX}:: DELETE ALL FINISHED...");
 				}
-				console.log("[SRDotDX]::{FPX}:: removing from raid_list div");
-				var raidlistDIV=document.getElementById('raid_list');
-				while (raidlistDIV.hasChildNodes()) {
-					raidlistDIV.removeChild(raidlistDIV.lastChild);
-				}
-				console.log("[SRDotDX]::{FPX}:: removing from local storage...");
-				localStorage.removeItem('raidList');
-				SRDotDX.gui.updateMessage();
-				console.log("[SRDotDX]::{FPX}:: DELETE ALL FINISHED...");
 			},
 			FPXdoWork: function (param1, whisper, whisperTo) {
 				console.log("[SRDotDX]::{FPX}::"+param1+"\n");
@@ -1477,21 +1465,25 @@ function main() {
 			DeleteUnvisitedRaids: function () {
 				console.log("[SRDotDX] Deleting unvisited raids");
 				var raids = SRDotDX.gui.GetUnvisitedRaids();
-				for (i=0;i<raids.length;i++){
-					var raid = raids[i];
-					SRDotDX.gui.deleteRaid(raid.ele.getElementsByClassName("FPXDeleteLink")[0], raid.id, false);
+				if(confirm("This will delete " + raids.length + " unvisited raids. Continue?")){
+					for (i=0;i<raids.length;i++){
+						var raid = raids[i];
+						SRDotDX.gui.deleteRaid(raid.ele.getElementsByClassName("FPXDeleteLink")[0], raid.id, false);
+					}
+					SRDotDX.gui.doStatusOutput(raids.length + ' unvisited raids deleted');
 				}
-				SRDotDX.gui.doStatusOutput(raids.length + ' unvisited raids deleted');
 			},
 			DeleteHiddenRaids: function () {
 				console.log("[SRDotDX] Deleting hidden raids");
 				var raids = SRDotDX.gui.GetHiddenRaids();
-				for(i=0;i<raids.length;i++){
-					var raid = raids[i];
-					SRDotDX.gui.deleteRaid(raid.ele.getElementsByClassName("FPXDeleteLink")[0], raid.id, false);
+				if(confirm("This will delete " + raids.length + " hidden raids. Continue?")){
+					for(i=0;i<raids.length;i++){
+						var raid = raids[i];
+						SRDotDX.gui.deleteRaid(raid.ele.getElementsByClassName("FPXDeleteLink")[0], raid.id, false);
+					}
+					SRDotDX.gui.doStatusOutput(raids.length+' hidden raids deleted');
+					console.log("[SRDotDX] Finished deleting hidden raids");
 				}
-				SRDotDX.gui.doStatusOutput(raids.length+' hidden raids deleted');
-				console.log("[SRDotDX] Finished deleting hidden raids");
 			},
 			AutoJoin: false,
 			AutoJoinRaids: [],
@@ -1526,12 +1518,14 @@ function main() {
 			DeleteVisibleRaids: function () {
 				console.log("[SRDotDX] Deleting visible raids");
 				var raids = SRDotDX.gui.GetVisibleRaids();
-				for(i=0; i<raids.length; i++){
-					var raid = raids[i];
-					SRDotDX.gui.deleteRaid(raid.ele.getElementsByClassName("FPXDeleteLink")[0], raid.id, false);
+				if(confirm("This will delete " + raids.length + " visible raids. Continue?")){
+					for(i=0; i<raids.length; i++){
+						var raid = raids[i];
+						SRDotDX.gui.deleteRaid(raid.ele.getElementsByClassName("FPXDeleteLink")[0], raid.id, false);
+					}
+					SRDotDX.gui.doStatusOutput(raids.length + ' visible raids deleted');
+					console.log("[SRDotDX] Deleting complete");
 				}
-				SRDotDX.gui.doStatusOutput(raids.length + ' visible raids deleted');
-				console.log("[SRDotDX] Deleting complete");
 			},
 			DumpRaidsToShare: function(v) {
 				console.log("[SRDotDX] Dumping "+(v?'visible':'all'));
@@ -1566,11 +1560,11 @@ function main() {
 							try {
 								var raid = SRDotDX.config.raidList[raidid];
 								if (SRDotDX.raids[raid.boss]) {
-
 									var raidInfo = SRDotDX.raids[raid.boss];
 									if (!raid.visited) {
 										if(SRDotDX.raidSizes[raidInfo.size] && SRDotDX.raidSizes[raidInfo.size].pruneTimers && SRDotDX.raidSizes[raidInfo.size].pruneTimers[SRDotDX.config.unvisitedRaidPruningMode]) {
 											var pruneTimer = SRDotDX.raidSizes[raidInfo.size].pruneTimers[SRDotDX.config.unvisitedRaidPruningMode];
+											if(raid.nuked) pruneTimer = pruneTimer / 2;//double time nuked pruning
 											if ((pruneTime - raid.timeStamp) >= pruneTimer) {
 												console.log("[SRDotDX] Deleting raid " + raidid);
 												SRDotDX.gui.deleteRaid(item.getElementsByClassName("FPXDeleteLink")[0], raidid);
@@ -3153,7 +3147,7 @@ function main() {
 						// finished auto-joining
 						if(SRDotDX.config.refreshGameToJoin)
 							SRDotDX.reload();
-						SRDotDX.gui.doStatusOutput('Finished. New: '+SRDotDX.gui.AutoJoinCurrentSuccesses+', Dead: '+SRDotDX.gui.AutoJoinCurrentDeads+', Invalid:'+SRDotDX.gui.AutoJoinCurrentInvalids, 10000);
+						SRDotDX.gui.doStatusOutput('Join finished. New: '+SRDotDX.gui.AutoJoinCurrentSuccesses+', Dead: '+SRDotDX.gui.AutoJoinCurrentDeads+', Invalid:'+SRDotDX.gui.AutoJoinCurrentInvalids, 10000);
 						SRDotDX.gui.AutoJoin=false;
 						SRDotDX.gui.AutoJoinCurrentIndex=0;
 						SRDotDX.gui.AutoJoinCurrentSuccesses=0;
