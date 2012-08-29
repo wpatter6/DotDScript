@@ -1977,7 +1977,7 @@ function main() {
 					}
 					
 					//Chat overlay div
-					SRDotDX.gui.cHTML('div').set({id: 'chat_status_overlay', style: 'position:absolute;top:157px;z-index:20000;width:284px;display:none;background-color:#DDDDDD;padding:3px 5px;' }).attach("to",'chat_tab_pane').ele();
+					SRDotDX.gui.cHTML('div').set({id: 'chat_status_overlay', style: 'position:absolute;top:157px;z-index:20000;width:284px;display:none;background-color:#c0c0c0;padding:3px 5px;font-family: Verdana, Arial;' }).attach("to",'chat_tab_pane').ele();
 					
 					//spam tab
 					var FPXimpSpam= SRDotDX.gui.cHTML('#FPXRaidSpamTA');
