@@ -1192,10 +1192,38 @@ function main() {
 				var posterSwitch = document.FPXRaidFilterForm.FPXPostedNameSwitch.value;
 				var roomSwitch = document.FPXRaidFilterForm.FPXRoomNameSwitch.value;
 				var roomFilter = document.FPXRaidFilterForm.FPXRoomNameFilter.value;
+
+				// Split the search string by the defined delimiters
+				var splits = document.FPXRaidFilterForm.FPXRaidBossNameFilter.value.split(/\||,|(\sor\s)/i);
+
+				// Make substitutions for search keywords
+				for (i in SRDotDX.searchKeywords) {
+					if (SRDotDX.searchKeywords.hasOwnProperty(i)) {
+						var keyWord = SRDotDX.searchKeywords[i];
+
+						for (j=0;j<splits.length;j+=2) {
+							if (keyWord.reg && keyWord.sub && keyWord.reg.test(splits[j])) {
+								splits[j] = keyWord.sub;
+							} 
+						}
+
+					}
+				}
+
+				// Construct the final regex string to use in search
+				var reString = "";
+				for(i=0;i<splits.length;i+=2) {
+					if (splits[i].trim() != "") {
+						reString += (i==0)?"":"|";
+						reString += "(";
+						reString += splits[i];
+						reString += ")";
+					}
+				}
 				
-				var str = (!(typeof SRDotDX.zoneRaidRegex[document.FPXRaidFilterForm.FPXRaidBossNameFilter.value]==='undefined')?SRDotDX.zoneRaidRegex[document.FPXRaidFilterForm.FPXRaidBossNameFilter.value]:document.FPXRaidFilterForm.FPXRaidBossNameFilter.value);
+				//var str = (!(typeof SRDotDX.zoneRaidRegex[document.FPXRaidFilterForm.FPXRaidBossNameFilter.value]==='undefined')?SRDotDX.zoneRaidRegex[document.FPXRaidFilterForm.FPXRaidBossNameFilter.value]:document.FPXRaidFilterForm.FPXRaidBossNameFilter.value);
 				
-				var re = new RegExp(str, "i");
+				var re = new RegExp(reString, "i");
 				var p_re = new RegExp(document.FPXRaidFilterForm.FPXPostedNameFilter.value, "i");
 				
 				for(i=0; i< raidList.length; i++)
@@ -2932,17 +2960,25 @@ function main() {
 				SRDotDX.gui.toggleRaid("nuked",id,true);
 			} 
 		},
-		zoneRaidRegex:{
-			z1: 'horgrak|mazalu|grune',
-			z2: 'ataxes|alice|lurking',
-			z3: 'briareus|scylla|gravlok|erebus',
-			z4: 'bloodmane|kerberos|hydra|cai|tyranthius',
-			z5: 'ironclad|zombie|stein|bogstench|nalagarst',
-			z6: 'gunnar|nidhogg|kang|ulfrik|kalaxia',
-			z7: 'maraak|erakka|wexxa|guilbert|bellarius',
-			z8: 'hargamesh|grimsly|rift|sisters|mardachus',
-			z9: 'mesyra|nimrod|phaedra|tenebra|valanazes'
+
+		searchKeywords: {
+			z1: { reg: /^(z1)|(kobold\sbelts?)|(hilted\sspears?)$/i, sub: 'horgrak|mazalu|grune' },
+			z2: { reg: /^(z2)|(bandit\sinsignias?)$/i, sub: 'ataxes|alice|lurking' },
+			z3: { reg: /^(z3)|(dragon\sscales?)$/i, sub: 'briareus|scylla|gravlok|erebus' },
+			z4: { reg: /^(z4)|(scabbards?)|(wizard'?s\s?hats?)$/i, sub: 'bloodmane|kerberos|hydra|cai|tyranthius' },
+			z5: { reg: /^(z5)|(skulls?)|(souls?)|(notes?\sfrom\sthe\sfront)$/i, sub: 'ironclad|zombie|stein|bogstench|nalagarst' },
+			z6: { reg: /^(z6)|(war horns?)|(lutes?)|(rune\s?stones?)$/i, sub: 'gunnar|nidhogg|kang|ulfrik|kalaxia' },
+			z7: { reg: /^(z7)|(oroc crystals?)|(glyphs?)$/i, sub: 'maraak|erakka|wexxa|guilbert|bellarius' },
+			z8: { reg: /^(z8)|(dream\s?catchers?)|(dream\s?threads?)$/i, sub: 'hargamesh|grimsly|rift|sisters|mardachus' },
+			z9: { reg: /^(z9)|(dragon'?s\st[eo][eo]th)$/i, sub: 'mesyra|nimrod|phaedra|tenebra|valanazes' },
+			farm: { reg: /^farm$/i, sub: 'maraak|erakka|wexxa|guilbert|bellarius|erebus|grune|mazalu' },
+			gloves: { reg: /^gloves?$/i, sub: 'ataxes|alice|lurking|slaughterers|lunatics|felendis|agony|obyron|hammer|dirthax|dreadbloom' },
+			flute: { reg: /^flutes?$/i, sub: 'horgrak|mazalu|grune|ataxes|alice|lurking|butcher|scylla|gravlok|erebus|celeano|arachna|azab|groblar|deathglare|ragetalon|gladiator|tetrarchos|scuttlegore|tithrasia|moon|varlachleth|euphronios' },
+			trim: { reg: /^((brown|grey|gray|green|blue|purple|orange)\s+)?trim(\s+(helm|shield|boots|chest|ring|hammer))?$/i, sub: 'butcher|scylla|gravlok' },
+			dragonsbane: { reg: /^(sword\s(hilt|guard|blade|tip|emblem))|(dragon eye pearls)|(dragonsbane)$/i, sub: 'erebus' }
+			
 		},
+
 		raids: {
 			agony:{name: 'Agony', shortname: 'Agony',  id: 'agony', stat: 'H', size:100, duration:168, health: [700000000,875000000,1120000000,1400000000,,]},
 			djinn:{name: 'Al-Azab', shortname: 'Al-Azab',  id: 'djinn', stat: 'H', size:100, duration:168, health: [55000000,68750000,88000000,110000000,,]},
