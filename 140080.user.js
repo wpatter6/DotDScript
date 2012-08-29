@@ -160,6 +160,7 @@ function main() {
 			tmp.autoImportPaste = (typeof tmp.autoImportPaste =='boolean'?tmp.autoImportPaste:false);
 			tmp.refreshGameToJoin = (typeof tmp.refreshGameToJoin == 'boolean'? tmp.refreshGameToJoin:true);
 			tmp.showStatusOverlay = (typeof tmp.showStatusOverlay == 'boolean'? tmp.showStatusOverlay:false);
+			tmp.confirmDeletes = (typeof tmp.confirmDeletes == 'boolean'?tmp.confirmDeletes:true);
 			tmp.whisperTo = (typeof tmp.whisperTo == 'string'?tmp.whisperTo:'');
 			tmp.showRaidLink = (typeof tmp.showRaidLink == 'boolean'?tmp.showRaidLink:(navigator.userAgent.toLowerCase().indexOf('chrome')>-1));
 			tmp.formatLinkOutput = (typeof tmp.formatLinkOutput == 'boolean'?tmp.formatLinkOutput:false);
@@ -1005,7 +1006,7 @@ function main() {
 				},1,ele.parentNode.parentNode.parentNode)
 			},
 			FPXdeleteAllRaids: function () {
-				if(confirm("This will delete all " + SRDotDX.config.raidList.length + " raids stored. Continue?")){
+				if(!SRDotDX.config.confirmDeletes || confirm("This will delete all " + SRDotDX.config.raidList.length + " raids stored. Continue? \n (This message can be disabled on the options tab.)")){
 					console.log("[SRDotDX]::{FPX}:: DELETE ALL STARTED...");
 					for (var id in SRDotDX.config.raidList){					
 							if (SRDotDX.config.raidList[id]) {
@@ -1465,7 +1466,7 @@ function main() {
 			DeleteUnvisitedRaids: function () {
 				console.log("[SRDotDX] Deleting unvisited raids");
 				var raids = SRDotDX.gui.GetUnvisitedRaids();
-				if(confirm("This will delete " + raids.length + " unvisited raids. Continue?")){
+				if(!SRDotDX.config.confirmDeletes || confirm("This will delete " + raids.length + " unvisited raids. Continue? \n (This message can be disabled on the options tab.)")){
 					for (i=0;i<raids.length;i++){
 						var raid = raids[i];
 						SRDotDX.gui.deleteRaid(raid.ele.getElementsByClassName("FPXDeleteLink")[0], raid.id, false);
@@ -1476,7 +1477,7 @@ function main() {
 			DeleteHiddenRaids: function () {
 				console.log("[SRDotDX] Deleting hidden raids");
 				var raids = SRDotDX.gui.GetHiddenRaids();
-				if(confirm("This will delete " + raids.length + " hidden raids. Continue?")){
+				if(!SRDotDX.config.confirmDeletes || confirm("This will delete " + raids.length + " hidden raids. Continue? \n (This message can be disabled on the options tab.)")){
 					for(i=0;i<raids.length;i++){
 						var raid = raids[i];
 						SRDotDX.gui.deleteRaid(raid.ele.getElementsByClassName("FPXDeleteLink")[0], raid.id, false);
@@ -1518,7 +1519,7 @@ function main() {
 			DeleteVisibleRaids: function () {
 				console.log("[SRDotDX] Deleting visible raids");
 				var raids = SRDotDX.gui.GetVisibleRaids();
-				if(confirm("This will delete " + raids.length + " visible raids. Continue?")){
+				if(!SRDotDX.config.confirmDeletes || confirm("This will delete " + raids.length + " visible raids. Continue? \n (This message can be disabled on the options tab.)")){
 					for(i=0; i<raids.length; i++){
 						var raid = raids[i];
 						SRDotDX.gui.deleteRaid(raid.ele.getElementsByClassName("FPXDeleteLink")[0], raid.id, false);
@@ -1771,10 +1772,11 @@ function main() {
 										<div id="FPXRaidOptions"> \
 											<hr> \
 												<input type="checkbox" id="FPX_options_markVisitedRightClick"> Mark raids as visited on RightClick (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'When you right-click on a raid (generally, to copy and paste), that raid will be marked as visited.\');">?</a>)<br> \
-												Delay(milliseconds) (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Number of milliseconds to wait before marking raid link visited when it is right clicked.<br><strong>Only enabled if <i>\\\'Mark right click\\\'</i> is enabled.</strong> \');">?</a>) :: \
+												&nbsp;&nbsp;&nbsp;&nbsp;Delay(milliseconds) (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Number of milliseconds to wait before marking raid link visited when it is right clicked.<br><strong>Only enabled if <i>\\\'Mark right click\\\'</i> is enabled.</strong> \');">?</a>) :: \
 												<INPUT id="FPX_options_markVisitedRightClickDelay" size="8"> <br>\
-												<input type="checkbox" id="SRDotDX_options_markMyRaidsVisited"> Automatically mark raids posted by me as visited <br> \
+												<input type="checkbox" id="SRDotDX_options_markMyRaidsVisited"> Mark raids posted by me as visited <br> \
 												<input type="checkbox" id="SRDotDX_options_refreshGameToJoin"> Refresh game to join raids (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Unchecking this will cause raids to be joined behind the scenes without refreshing the game.  You will have to refresh your raid list in game for newly added raids to show up.\');">?</a>) <br> \
+												<input type="checkbox" id="SRDotDX_options_confirmWhenDeleting"> Confirm when manually deleting raids <br> \
 												<input type="checkbox" id="SRDotDX_options_showRaidLink"> Show raid link in raid list <br><br> \
 												Unvisited raid pruning (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'How fast the script will automatically remove unvisited raids.  Small and Medium raids: Aggressive 1h, Moderate 2h, Slow 3h.  Large Raids: Aggressive 4h, Moderate 12h, Slow 36h.  Epic and Colossal raids: Aggressive 24h, Moderate 48h, Slow 72h.\');">?</a>)<br> \
 												<input type="radio" id="FPX_options_unvisitedPruningAggressive" name="unvisitedPruning" value="Aggressive"/>Aggressive&nbsp;&nbsp; \
@@ -2048,6 +2050,7 @@ function main() {
 					var optsHideVRaids = SRDotDX.gui.cHTML('#SRDotDX_options_hideVisitedRaids');
 					var optsStatusOverlay = SRDotDX.gui.cHTML('#SRDotDX_options_statusChatOverlay');
 					var optsShowRaidLink = SRDotDX.gui.cHTML('#SRDotDX_options_showRaidLink');
+					var optsConfirmDeletes = SRDotDX.gui.cHTML('#SRDotDX_options_confirmWhenDeleting');
 					var optsRefreshGameToJoin = SRDotDX.gui.cHTML('#SRDotDX_options_refreshGameToJoin')
 					var optsHideVRaidsList = SRDotDX.gui.cHTML('#SRDotDX_options_hideVisitedRaidsInRaidList');
 					var optsWhisperToCheck = SRDotDX.gui.cHTML('#SRDotDX_options_whisperRaids');
@@ -2081,6 +2084,7 @@ function main() {
 					if (SRDotDX.config.newPasteAtTopOfPasteList) { optsNewPasteAtTopOfPasteList.ele().checked = 'checked'}
 					if (SRDotDX.config.refreshGameToJoin) { optsRefreshGameToJoin.ele().checked = 'checked' }
 					if (SRDotDX.config.showStatusOverlay) { optsStatusOverlay.ele().checked = 'checked' }
+					if (SRDotDX.config.confirmDeletes) { optsConfirmDeletes.ele().checked = 'checked' }
 		
 					if (SRDotDX.config.unvisitedRaidPruningMode == 0) {
 						rbUnvisitedPruningAggressive.ele().checked = true;
@@ -2105,6 +2109,10 @@ function main() {
 						optsHideSRaids.ele().disabled = true;
 					}
 					if (SRDotDX.config.newRaidsAtTopOfRaidList) { optsNewRaidsAtTopOfRaidList.ele().checked = 'checked'}
+					
+					optsConfirmDeletes.ele().addEventListener('click', function () {
+						SRDotDX.config.confirmDeletes = this.checked;
+					});
 					
 					optsStatusOverlay.ele().addEventListener('click', function () {
 						SRDotDX.config.showStatusOverlay = this.checked;
