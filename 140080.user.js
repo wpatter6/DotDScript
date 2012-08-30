@@ -4,7 +4,7 @@
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
 // @version        1.0.0
-// @date           08.27.2012
+// @date           08.29.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -2005,7 +2005,7 @@ function main() {
 					}
 					
 					//Chat overlay div
-					SRDotDX.gui.cHTML('div').set({id: 'chat_status_overlay', style: 'position:absolute;top:157px;z-index:20000;width:284px;display:none;background-color:#c0c0c0;padding:3px 5px;font-family: Verdana, Arial;' }).attach("to",'chat_tab_pane').ele();
+					SRDotDX.gui.cHTML('div').set({id: 'chat_status_overlay', style: 'position:absolute;top:157px;left:-3px;z-index:20000;width:290px;display:none;background-color:#c0c0c0;padding:3px 8px;font-family: Verdana, Arial;' }).attach("to",'chat_tab_pane').ele();
 					
 					//spam tab
 					var FPXimpSpam= SRDotDX.gui.cHTML('#FPXRaidSpamTA');
@@ -2444,9 +2444,10 @@ function main() {
 					}
 				}
 			},
-			FPXraidLinkClickRaidList: function (ele,isRightClick, isCopy) {
+			FPXraidLinkClickRaidList: function (id, ele,isRightClick, isCopy) {
 				if(!isRightClick){
-					console.log("[SRDotDX] FPXraidLinkClickRaidList");
+					console.log("[SRDotDX] FPXraidLinkClickRaidList " + id);
+					SRDotDX.gui.doStatusOutput("Joining " + SRDotDX.raids[SRDotDX.config.raidList[id].boss].shortname + "...");
 					SRDotDX.loadRaid(ele.href);
 				}
 				else if(document.getElementById('FPX_options_markVisitedRightClick').checked){
@@ -2458,7 +2459,8 @@ function main() {
 			},
 			FPXraidLinkClickChat: function (id,link,isRightClick) {
 				if(!isRightClick){
-					console.log("[SRDotDX] FPXraidLinkClickChat");
+					console.log("[SRDotDX] FPXraidLinkClickChat " + id);
+					SRDotDX.gui.doStatusOutput("Joining " + SRDotDX.raids[SRDotDX.config.raidList[id].boss].shortname + "...");
 					SRDotDX.loadRaid(link);
 				}
 				else if(SRDotDX.config.FPXmarkRightClick){
@@ -2487,12 +2489,8 @@ function main() {
 						e.element().parentNode.parentNode.className += " active";
 						SRDotDX.gui.raidListItemUpdateTimeSince(e.element().parentNode.parentNode.getAttribute("raidid"));
 						return false;
-					}else if(classtype == "FPXlink"){
-						SRDotDX.gui.FPXraidLinkClickRaidList(e.element(), false); return false;
 					}else if(classtype == "FPXDeleteLink"){
 						SRDotDX.gui.deleteRaid(e.element(),e.element().parentNode.parentNode.parentNode.getAttribute("raidid")); return false;
-					}else if(classtype == "link"){
-						SRDotDX.gui.FPXraidLinkClickRaidList(e.element(), false); return false;
 					}else if(classtype == "FPXcbVisited"){
 						console.log("[SRDotDX]::{FPX}:: Clicked on::"+classtype+"::"+e.which+"::"+e.element().parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.getAttribute("raidid"));
 						e.element().checked=(e.element().checked == true?false:true);
@@ -2502,12 +2500,12 @@ function main() {
 						console.log("[SRDotDX]::{FPX}:: Clicked on::"+classtype+"::"+e.which+"::"+e.element().parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.getAttribute("raidid"));
 						e.element().checked=(e.element().checked == true?false:true);
 						SRDotDX.gui.raidListCBClicked(e.element(),'seen',e.element().parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.getAttribute("raidid"));
-					}else if(classtype == "RaidQuickLink"){
-						SRDotDX.gui.FPXraidLinkClickRaidList(e.element(), false); return false;
+					}else if(classtype == "RaidQuickLink" || classtype == "link" || classtype == "FPXlink"){
+						SRDotDX.gui.FPXraidLinkClickRaidList(e.element().parentNode.parentNode.getAttribute("raidid"), e.element(), false); return false;
 					}
 				}else if(e.which == 3){
-					if(classtype == "FPXlink" || classtype == "link" || classtype == "RaidQuickLink"){
-						(function() { return setTimeout(function() {SRDotDX.gui.FPXraidLinkClickRaidList(e.element(),true);}, SRDotDX.config.FPXoptsMarkRightClickDelay)})();
+					if(classtype == "RaidQuickLink" || classtype == "link" || classtype == "FPXlink"){
+						(function() { return setTimeout(function() {SRDotDX.gui.FPXraidLinkClickRaidList(e.element().parentNode.parentNode.getAttribute("raidid"), e.element(),true);}, SRDotDX.config.FPXoptsMarkRightClickDelay)})();
 						return false;
 					}
 				}
@@ -3173,7 +3171,7 @@ function main() {
 				if (SRDotDX.gui.AutoJoin) {
 					SRDotDX.gui.AutoJoinCurrentSuccesses++;
 				} else {
-					SRDotDX.gui.doStatusOutput("Raid joined successfully.");
+					SRDotDX.gui.doStatusOutput(SRDotDX.raids[SRDotDX.config.raidList[SRDotDX.lastJoinedRaidId].boss].shortname +" joined successfully.");
 				}
 
 			}
