@@ -3165,7 +3165,6 @@ function main() {
 
 				if (SRDotDX.gui.AutoJoin) {
 					SRDotDX.gui.AutoJoinCurrentInvalids++;
-					SRDotDX.gui.AutoJoinCurrentTotal--;
 				} else {
 					SRDotDX.gui.doStatusOutput("Join failed. Invalid hash.");
 				}
