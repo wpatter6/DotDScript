@@ -1614,7 +1614,7 @@ function main() {
 					if(ct>0)SRDotDX.gui.doStatusOutput(ct + " old unvisited raids pruned.");
 				}
 
-				var pasteList = document.getElementById('paste_list').childNodes, ct=0;//not sure if this is working
+				var pasteList = document.getElementById('paste_list').childNodes, ct=0;
 				console.log("[SRDotDX] Pruning pastebins");
 				for(i=0;i<pasteList.length;i++){
 					var item = pasteList[i];
@@ -3147,6 +3147,11 @@ function main() {
 					SRDotDX.gui.doStatusOutput("Join Failed. Wrong guild.");
 				}
 			}
+			if(/member/i.test(event.data)){
+				if (!SRDotDX.gui.AutoJoin){
+					SRDotDX.gui.doStatusOutput("Join Failed. You are already a member.");
+				}
+			}
 
 			// message to delete a raid (invalid raid id or hash)
 			if (/invalid/i.test(event.data)) {
@@ -3244,7 +3249,11 @@ function DDmain(){//game frame script
 			} else if (/invalid raid (hash|ID)/i.test(text)) {
 				// If the hash or ID is invalid, add to the message to delete it so that hopefully a version with the right hash/ID can be added later
 				message += " invalid";
+			} else if (/already a member/i.test(text)) {
+				// If the person is rejoining a raid
+				message += " member";
 			}
+			
 		}
 
 		window.parent.postMessage(message,'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
