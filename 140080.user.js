@@ -1614,13 +1614,18 @@ function main() {
 					if(ct>0)SRDotDX.gui.doStatusOutput(ct + " old unvisited raids pruned.");
 				}
 
-				var pasteList = document.getElementById('paste_list').childNodes;
+				var pasteList = document.getElementById('paste_list').childNodes, ct=0;//not sure if this is working
+				console.log("[SRDotDX] Pruning pastebins");
 				for(i=0;i<pasteList.length;i++){
 					var item = pasteList[i];
 					var p = SRDotDX.config.pasteList[item.getAttribute("pasteid")];
-					if(p.timeStamp < (new Date().getTime() - (3600000*24)) && (typeof p.favorite != 'boolean' || !p.favorite))
+					if(p.timeStamp < (new Date().getTime() - (3600000*24)) && (typeof p.favorite != 'boolean' || !p.favorite)){
 						SRDotDX.gui.deletePaste(item.getElementsByClassName('FPXDeleteLink')[0], p.id);
+						ct++;
+					}
 				}
+				if(ct>0)SRDotDX.gui.doStatusOutput(ct + " old unfavorited pastebins pruned.");
+				console.log("[SRDotDX] " + ct + " pastebins pruned");
 			},
 			help: function (item) {
 			},
