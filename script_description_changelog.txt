@@ -3,7 +3,7 @@ Feel free to add suggestions on the discussion tab and if they're good I'll work
 <b>We are now accepting paypal contributions, <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=2Y8C4RURY33AL&lc=US&currency_code=USD&bn=PP-DonationsBF:8DzHU.gif:NonHosted" target="_blank">click here</a> to contribute to our ongoing effort!</b>
 <br><br>
 
-*** If you're having trouble installing, please read the installation directions listed below ***
+<b>*** If you're having trouble installing, especially if using Chrome, please read the installation directions listed below ***</b>
 <br><br/>
 <h3><b>About</b></h3>
 <p><b>What it Does</b>:<br />
@@ -15,8 +15,16 @@ Chat Commands: These are commands that can be used in chat<br />
 Contact Me: A list of ways to contact me for whatever reasons<br />
 &nbsp;</p>
 <h3><b>Changelog</b></h3><p>
-<b>0.2.0</b>
+<b>1.0.0</b>
 1) Added pastebin GUI with basic information.<br />
+2) Revamped raid searching significantly<br/>
+&nbsp;&nbsp;a) You can now search for multiple items in the boss search window, using several different separators.  "bel|bus|guil" = "bel or bus or guil" = "bel,bus,guil".  
+&nbsp;&nbsp;b) The existing keyword search functionality has been greatly expanded.  In addition to the existing keywords (z1, z2, ... z9), you can now search by most common drops (runestone, glyph, war horn, dragon eye pearls, etc. etc.).  In addition, the keyword <b>farm</b> will search for all glyph raids, erebus, mazalu, and grune.<br/>
+3) A chat overlay has been added so you can monitor the script's status while chatting.  An option is available to enable or disable this feature.<br/>
+4) Raid autojoin no longer requires a time interval, instead loading the next raid whenever the last is done.  Additionally, raid status is now parsed from the response page during this process.  Raids that are found to be dead are permanently hidden and marked as unsharable by the script until they are purged.<br/>
+5) Countess Serpina's raid information has been updated<br/>
+6) A button has been added to the options page that you can use to support us via PayPal, if you are so inclined.<br/>
+7) A new /help command has been added which allows you to submit a bug report.<br/>
 <!-- New Stuff here-->
 
 <br/><br/>
