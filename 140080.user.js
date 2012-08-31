@@ -2903,6 +2903,17 @@ function main() {
 					SRDotDX.echo("After installation, you will need to refresh this page");
 					return false;
 				});
+
+				holodeck.addChatCommand("ad", function(deck,text){
+					var elems= document.getElementById("chat_rooms_container").firstChild.getElementsByTagName('textarea');
+					for (var i in elems){
+						if((" "+elems[i].className+" ").indexOf(" chat_input ") > -1)
+							{elems[i].value = "http://userscripts.org/scripts/show/140080";holodeck.activeDialogue().sendInput(); break;
+						}
+					}
+					return false;
+				});			
+
 				var i;
 				if (typeof (i = SRDotDX.getRaidDetails(document.location.href)) == 'object'){
 					if (SRDotDX.config.getRaid(i.id)) {
