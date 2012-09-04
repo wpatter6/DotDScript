@@ -2700,7 +2700,7 @@ function main() {
 						}
 						var pb = SRDotDX.getPastebinLink(d,b,isPublic)
 						if (typeof pb == 'object') {
-							var doImport = pb.user!=active_user.username() && SRDotDX.config.autoImportPaste && pb.user==b;
+							var doImport = pb.user!=active_user.username() && SRDotDX.config.autoImportPaste;
 							d = pb.ptext + '<a href="'+pb.url+'" target="_blank">'+(pb.isNew?'Pastebin Link':pb.user+'\'s Pastebin')+'</a> <span class="pb_'+pb.id+'">('+(doImport?'Importing...':'<a href="#" onClick="return false;" onMouseDown="SRDotDX.gui.FPXImportPasteBin(\''+pb.url+'\')">Import</a>')+')</span>'+pb.ntext;
 							if(doImport){
 								setTimeout("SRDotDX.gui.FPXImportPasteBin('"+pb.url+"');", 1000);
@@ -3236,6 +3236,14 @@ function PBmain(){//pastebin script
 	var id = (window.location+"").substring((window.location+"").length-8);
 	window.parent.postMessage(id+"###"+document.getElementsByTagName("body")[0].innerHTML, 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
 }
+function PBeditmain(){//pastebin edit script
+	window.addEventListener("message", function(event){
+		if(/kongregate\.com/i.test(event.origin)){
+			document.getElementById("paste_code").value = event.data;
+			document.myform.submit();
+		}
+	});
+}
 function DDmain(){//game frame script
 	var linkElements = document.getElementsByTagName('a');
 	if (linkElements[0]) {
@@ -3287,6 +3295,12 @@ if (/pastebin\.com\/raw\.php\?i\=/i.test(document.location.href)) {
 	console.log("[SRDotDX] PasteBin Initializing....");
 	var script = document.createElement("script");
 	script.appendChild(document.createTextNode('('+PBmain+')()'));
+	(document.head || document.body || document.documentElement).appendChild(script);
+}
+if (/pastebin\.com\/edit\.php\?i\=/i.test(document.location.href)) {
+	console.log("[SRDotDX] PasteBin Initializing....");
+	var script = document.createElement("script");
+	script.appendChild(document.createTextNode('('+PBeditmain+')()'));
 	(document.head || document.body || document.documentElement).appendChild(script);
 }
 if (/web[\w]+\.dawnofthedragons\.com\/kong/i.test(document.location.href)) {
