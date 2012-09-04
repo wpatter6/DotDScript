@@ -7,8 +7,14 @@ Feel free to add suggestions on the discussion tab and if they're good I'll work
 <br><br/>
 <h3><b>About</b></h3>
 <p><b>What it Does</b>:<br />
-This script makes interactions between Kong and Dawn of the Dragons easier in a number of ways.<br /><b>1:</b> It customizes the way raid links are displayed so instead of getting the DOTD image and name you get information about the raid such as raid name, difficulty, fair share, optimal share and more!<br /><b>2:</b> Allows for certain raids to be hidden, such as those seen before, those you have already clicked on, or all raids.<br /><b>3:</b> Adds a tab to kongregate&#39;s chat to make toggling options easier and to view the raids you have seen posted in chat.<br /><b>4:</b> Adds a few commands to the chat input box to make things a little easier. These commands include, /clear, /toggle, /raid, and many more<br />5: Allows direct import of lists of raids, as well as support for large lists of raids stored on pastebin.<br /><br/><b>What&#39;s On This Page</b>:<br />
-			
+This script makes interactions between Kong and Dawn of the Dragons easier in a number of ways.<br />
+<b>1:</b> It customizes the way raid links are displayed so instead of getting the DOTD image and name you get information about the raid such as raid name, difficulty, fair share, optimal share and more!<br />
+<b>2:</b> Allows for certain raids to be hidden, such as those seen before, those you have already clicked on, or all raids.<br />
+<b>3:</b> Adds a tab to kongregate&#39;s chat to make toggling options easier and to view the raids you have seen posted in chat.<br />
+<b>4:</b> Adds a few commands to the chat input box to make things a little easier. These commands include, /clear, /toggle, /raid, and many more (see below)<br />
+<b>5:</b> Allows direct import of lists of raids, as well as support for large lists of raids stored on pastebin.<br/><br/>
+
+<b>What&#39;s On This Page</b>:<br />	
 Changelog: Information about script updates.<br/>
 Installation: Information on how to install the script.<br />
 Chat Commands: These are commands that can be used in chat<br />
@@ -152,6 +158,8 @@ Changes your current raid format to the one you specify<br /><i>Example: <code>/
 Cancels raid posting. <br /><i>Example: <code>/stop</code></i><br />
 <b>Command</b>: <code>/help</code><br />
 Opens a support submission window. <br /><i>Example: <code>/help</code></i><br />
+<b>Command</b>: <code>/ad</code><br />
+Posts the url for the is userscript in chat. <br /><i>Example: <code>/ad</code></i><br />
 &nbsp;</p><table><tr><th>
 Tag name</th><th>
 Description</th></tr><tr><td><center><code>&lt;seen:text&gt;</code></center></td><td>
