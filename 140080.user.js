@@ -258,12 +258,13 @@ function main() {
 				SRDotDX.config.raidList[id].lastUser = user;
 				return SRDotDX.config.raidList[id]
 			}
-			tmp.addPaste = function(url,id,user,newtotal,total){
+			tmp.addPaste = function(url,id,poster,user,newtotal,total){
 				if (typeof SRDotDX.config.getPaste(id) != 'object') {
 					SRDotDX.config.pasteList[id]={
 						url: url,
 						id: id,
-						user: user,
+						user: user || poster,
+						poster: poster,
 						lastUser: user,
 						timeStamp: new Date().getTime(),
 						lastseen: new Date().getTime(),
@@ -807,8 +808,8 @@ function main() {
 								<span class="imct_'+p.id+'">'+(typeof p.newTotal=='number' && typeof p.total=='number'?p.newTotal+'/'+p.total+' new raids':'Unimported')+'</span>\
 							</div> \
 							<div style="float:right; width: 51%; '+(b%2==0?'background-color:#e0e0e0; ':'')+'"> \
-								<span style="float:right">'+(typeof p.lastseen == 'number'?dateFormat(new Date(p.lastseen), 'ddd, h:MM TT') :'Unknown') +'</span><br> \
-								<span style="float:right">&nbsp;<a class="FPXDeleteLink" href="#" style="color:blue; text-decoration:underline; cursor:pointer;">Delete</a></span> \
+								<span style="float:right" id="lastImport_'+p.id+'">'+(typeof p.lastImport == 'number'?dateFormat(new Date(p.lastImport), 'ddd, h:MM TT') :'Unimported') +'</span><br> \
+								<span style="float:right">&nbsp;<a class="FPXDeleteLink" pasteid="'+p.id+'" href="#" style="color:blue; text-decoration:underline; cursor:pointer;">Delete</a></span> \
 								<span style="float:right">&nbsp;<a style="color:blue; text-decoration:underline; cursor:pointer;" class="FPXImportLink" href="'+url+'" >Import</a></span> \
 							</div></td></tr></table> \
 						').attach("to",li).ele();
@@ -925,14 +926,24 @@ function main() {
 					i.innerHTML='0';
 				}
 			},
-			toggleDisplay: function(el, sender){
+			toggleDisplay: function(el, sender, el2){
 				if(typeof el == "string") el = document.getElementById(el);
+				if(typeof el2 == "string") el2 = document.getElementById(el2);
 				if(el.style.display == "none"){
 					el.style.display = "";
 					if(typeof sender == "object") sender.className = sender.className.replace("closed_link", "opened_link");
+					if(!(typeof el2 === "undefined")){
+						var oht = parseInt(String(el2.style.height).replace("px",""));
+						el2.style.height = (oht - el.offsetHeight - parseInt(el.offsetHeight/13)) + "px";
+					}
 				}else{
+					h = el.offsetHeight;
 					el.style.display = "none";
 					if(typeof sender == "object") sender.className = sender.className.replace("opened_link", "closed_link");
+					if(!(typeof el2 === "undefined")){
+						var oht = parseInt(String(el2.style.height).replace("px",""));
+						el2.style.height = (oht+h+parseInt(h/13)) + "px";
+					}
 				}
 			},
 			Importing:false,
@@ -1291,14 +1302,16 @@ function main() {
 				if(selectedSort == "Time")
 					if(selectedDir == "asc")
 						sortFunc = function(a,b){
-							if(!(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
-								if(a.timeStamp < b.timeStamp) return -1;
+							if(!(typeof a.lastImport === 'undefined' || typeof b.lastImport === 'undefined')){
+								if(a.lastImport < b.lastImport) return -1;
+							}else return -1;
 							return 1;
 						}
 					else
 						sortFunc = function(a,b){
-							if(!(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
-								if(a.timeStamp > b.timeStamp) return -1;
+							if(!(typeof a.lastImport === 'undefined' || typeof b.lastImport === 'undefined')){
+								if(a.lastImport > b.lastImport) return -1;
+							}else return -1;
 							return 1;
 						}
 				else if(selectedSort == "Name")
@@ -1559,7 +1572,7 @@ function main() {
 			DumpRaidsToShare: function(v) {
 				console.log("[SRDotDX] Dumping "+(v?'visible':'all'));
 				var raids = (v?SRDotDX.gui.GetVisibleRaids():SRDotDX.gui.GetAllRaids());
-				var dumptext = "!!OBJECT_IMPORT!!", el=document.getElementById('FPXRaidSpamTA');
+				var dumptext = "!!OBJECT_IMPORT!!|"+active_user.username()+"|"+new Date().getTime()+"|", el=document.getElementById('FPXRaidSpamTA');
 				for(i=0; i<raids.length; i++){
 					var raid = raids[i];
 					if (raid.nuked == true) { continue; }
@@ -1614,7 +1627,7 @@ function main() {
 					if(ct>0)SRDotDX.gui.doStatusOutput(ct + " old unvisited raids pruned.");
 				}
 
-				var pasteList = document.getElementById('paste_list').childNodes, ct=0;
+				var pasteList = document.getElementById('paste_list').childNodes, ct=0;//not sure if this is working
 				console.log("[SRDotDX] Pruning pastebins");
 				for(i=0;i<pasteList.length;i++){
 					var item = pasteList[i];
@@ -1709,7 +1722,7 @@ function main() {
 								<div class="tab_head">Raids</div> \
 								<div class="tab_pane"> \
 									<div id="FPXRaidFilterDiv" class="collapsible_panel"> \
-										<p class="panel_handle spritegame mts closed_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXRaidFiltering\', this)"> <a> Raid Filtering </a> </p> \
+										<p class="panel_handle spritegame mts closed_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXRaidFiltering\', this, \'raid_list\')"> <a> Raid Filtering </a> </p> \
 										<div id="FPXRaidFiltering" style="display:none"> \
 											<FORM name="FPXRaidFilterForm" onSubmit="return false;"> \
 												<table><tr><td align="right">Boss:</td> \
@@ -1738,7 +1751,7 @@ function main() {
 										</div> \
 									</div> \
 									<div id="FPXRaidSortingDiv" class="collapsible_panel"> \
-										<p class="panel_handle spritegame mts closed_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXRaidSort\', this)"> <a> Raid Sorting </a> </p> \
+										<p class="panel_handle spritegame mts closed_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXRaidSort\', this, \'raid_list\')"> <a> Raid Sorting </a> </p> \
 										<div id="FPXRaidSort" style="display:none"> \
 											Sort By: \
 											<select id="FPXRaidSortSelection" tabIndex="-1"> \
@@ -1756,7 +1769,7 @@ function main() {
 										</div> \
 									</div> \
 									<div id="FPXRaidActionsDiv" class="collapsible_panel"> \
-										<p class="panel_handle spritegame mts closed_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXRaidActions\', this)"> <a> Raid Actions </a> </p> \
+										<p class="panel_handle spritegame mts closed_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXRaidActions\', this, \'raid_list\')"> <a> Raid Actions </a> </p> \
 										<div id="FPXRaidActions" style="display:none"> \
 											<hr> \
 											<input name="DumpShare" tabIndex="-1" type="button" value="Dump All Raids to Share Tab" onClick="SRDotDX.gui.DumpRaidsToShare(false);return false;"/> (<a href="#" tabIndex="-1" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'All hidden and visible raids in the list will be dumped to the Share Raids tab.  You can then use the button in that tab to post them to chat, or load them into a pastebin to share.\');">?</a>) <br>\
@@ -1777,8 +1790,8 @@ function main() {
 							<li class="tab"> \
 								<div class="tab_head">Pastebins</div> \
 								<div class="tab_pane"> \
-									<div id="FPXRaidSortingDiv" class="collapsible_panel"> \
-										<p class="panel_handle spritegame mts closed_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXPasteSort\', this)"> <a> Pastebin Sorting </a> </p> \
+									<div id="FPXPasteSortingDiv" class="collapsible_panel"> \
+										<p class="panel_handle spritegame mts closed_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXPasteSort\', this, \'paste_list\')"> <a> Pastebin Sorting </a> </p> \
 										<div id="FPXPasteSort" style="display:none"> \
 											Sort By: \
 											<select id="FPXPasteSortSelection" tabIndex="-1"> \
@@ -2528,11 +2541,13 @@ function main() {
 						//SRDotDX.gui.pasteListItemUpdateTimeSince(e.element().parentNode.getAttribute("pasteid"));paste todo
 						return false;
 					}else if(classtype == "FPXDeleteLink"){
-						SRDotDX.gui.deletePaste(e.element(),e.element().parentNode.parentNode.parentNode.parentNode.getAttribute("pasteid")); return false;
+						SRDotDX.gui.deletePaste(e.element(),e.element().getAttribute("pasteid")); return false;
 						return false;
 					}else if(classtype == "FPXImportLink"){
 						SRDotDX.gui.FPXImportPasteBin(e.element().href);
 						return false;
+					}else if(classtype == "link") {
+						window.open(e.element().href);
 					}
 				}else if(e.which == 3){//right click
 				
@@ -2903,17 +2918,6 @@ function main() {
 					SRDotDX.echo("After installation, you will need to refresh this page");
 					return false;
 				});
-
-				holodeck.addChatCommand("ad", function(deck,text){
-					var elems= document.getElementById("chat_rooms_container").firstChild.getElementsByTagName('textarea');
-					for (var i in elems){
-						if((" "+elems[i].className+" ").indexOf(" chat_input ") > -1)
-							{elems[i].value = "http://userscripts.org/scripts/show/140080";holodeck.activeDialogue().sendInput(); break;
-						}
-					}
-					return false;
-				});			
-
 				var i;
 				if (typeof (i = SRDotDX.getRaidDetails(document.location.href)) == 'object'){
 					if (SRDotDX.config.getRaid(i.id)) {
@@ -3104,11 +3108,17 @@ function main() {
 	window.addEventListener("message", function(event){
 		if(/pastebin\.com/i.test(event.origin)){//for pastebin import
 			var pbid = event.data.split("###")[0];
-			console.log("[SRDotDX] Pastebin message recieved "+pbid);
+			var u='User Import', t=0;
+			if(event.data.split("|").length > 3){
+				u = event.data.split("|")[1]; t = event.data.split("|")[2];
+			}
+			console.log("[SRDotDX] Pastebin message recieved "+pbid + " : " + u + " : " + t);
 			document.FPXRaidSpamForm.FPXRaidSpamInput.value=event.data.replace(/&amp;/g, '&');
 			var ct = SRDotDX.gui.FPXimportRaids(false);
-			if(typeof SRDotDX.config.pasteList[pbid] === 'undefined')
-				SRDotDX.config.addPaste("http://pastebin.com/"+pbid, pbid, 'User Import',ct.totalnew,ct.total);
+			
+			if(typeof SRDotDX.config.pasteList[pbid] === 'undefined') SRDotDX.config.addPaste("http://pastebin.com/"+pbid, pbid, u, u,ct.totalnew,ct.total);
+			else if (u != 'User Import') SRDotDX.config.pasteList[pbid].user = u;
+			
 			var els = document.getElementsByClassName("pb_"+pbid);
 			for(i=0;i<els.length;i++){
 				els[i].innerHTML="(Imported, "+ct.totalnew+" new)";
@@ -3118,10 +3128,12 @@ function main() {
 				SRDotDX.config.pasteList[pbid].total=ct.total;
 				SRDotDX.config.pasteList[pbid].lastImport=new Date().getTime();
 				
+				document.getElementById('lastImport_'+pbid).innerHTML=dateFormat(new Date(SRDotDX.config.pasteList[pbid].lastImport), 'ddd, h:MM TT');
 				els = document.getElementsByClassName("imct_"+pbid);
 				for(i=0;i<els.length;i++){
 					els[i].innerHTML=ct.totalnew+"/"+ct.total + " new raids";
 				}
+				SRDotDX.gui.FPXSortPaste();
 			}
 			SRDotDX.config.save(false);
 			SRDotDX.gui.importingPastebin=false;
@@ -3156,11 +3168,6 @@ function main() {
 				SRDotDX.nukeRaid(SRDotDX.lastJoinedRaidId);	
 				if (!SRDotDX.gui.AutoJoin){
 					SRDotDX.gui.doStatusOutput("Join Failed. Wrong guild.");
-				}
-			}
-			if(/member/i.test(event.data)){
-				if (!SRDotDX.gui.AutoJoin){
-					SRDotDX.gui.doStatusOutput("Join Failed. You are already a member.");
 				}
 			}
 
@@ -3260,11 +3267,7 @@ function DDmain(){//game frame script
 			} else if (/invalid raid (hash|ID)/i.test(text)) {
 				// If the hash or ID is invalid, add to the message to delete it so that hopefully a version with the right hash/ID can be added later
 				message += " invalid";
-			} else if (/already a member/i.test(text)) {
-				// If the person is rejoining a raid
-				message += " member";
 			}
-			
 		}
 
 		window.parent.postMessage(message,'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
