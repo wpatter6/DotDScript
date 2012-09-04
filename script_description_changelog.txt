@@ -21,18 +21,18 @@ Chat Commands: These are commands that can be used in chat<br />
 Contact Me: A list of ways to contact me for whatever reasons<br />
 &nbsp;</p>
 <h3><b>Changelog</b></h3><p>
-<b>1.0.0</b>
-1) Added pastebin GUI with basic information.<br />
+<b>1.0.0</b><br>
+1) Added pastebin tab with basic information.  Pastebins can be favorited by clicking the star next to them, this will prevent them from being purged.  Pastebin purging occurs after 24 hours.<br />
 2) Revamped raid searching significantly<br/>
-&nbsp;&nbsp;a) You can now search for multiple items in the boss search window, using several different separators.  "bel|bus|guil" = "bel or bus or guil" = "bel,bus,guil".  
+&nbsp;&nbsp;a) You can now search for multiple items in the boss search window, using several different separators.  "bel|bus|guil" = "bel or bus or guil" = "bel,bus,guil".  <br>
 &nbsp;&nbsp;b) The existing keyword search functionality has been greatly expanded.  In addition to the existing keywords (z1, z2, ... z9), you can now search by most common drops (runestone, glyph, war horn, dragon eye pearls, etc. etc.).  In addition, the keyword <b>farm</b> will search for all glyph raids, erebus, mazalu, and grune.<br/>
 3) A chat overlay has been added so the user can monitor the script's status while chatting.  An option is available to enable or disable this feature.<br/>
 4) Raids can now be loaded into the game without refreshing the game window.  Uncheck the "Refresh game to join raids" option to enable this feature.<br/>
 5) Manually deleting raids will now give a confirmation to help prevent accidental deletion.  An option is available to enable or disable this feature<br/>
-6) Raid autojoin no longer accepts a time interval, it now loads the next raid whenever the previous is done.  
+6) Raid autojoin no longer accepts a time interval, it now loads the next raid whenever the previous is done, ensuring optimal loading speed, while preventing any from being missed due to lag.  
 7) Raid status is now parsed from the response page when joining a raid through the script.  Raids that are found to be dead are permanently hidden and marked as unsharable by the script until they are purged.<br/>
 8) Countess Serpina's raid information has been updated<br/>
-9) A button has been added to the options page that the user can use to support us via PayPal, if you are so inclined.<br/>
+9) A button has been added to the options page that the user can use to support us via PayPal, if one is so inclined.<br/>
 10) A new /help command has been added which allows the user to submit a bug report.<br/>
 11) Fixed a few styling issues, now the element containing the raids on the raid tab resizes when an option set is expanded.<br/>
 
