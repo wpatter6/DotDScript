@@ -4,7 +4,7 @@
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
 // @version        1.1.0
-// @date           08.29.2012
+// @date           09.08.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -1519,10 +1519,12 @@ function main() {
 					return dumptext;
 				}
 			},
+			ExportingPaste: false,
 			RaidsForPaste: [],
 			DumpRaidsToPaste: function(v) {
 				console.log("[SRDotDX] Dumping to paste " + 'http://pastebin.com/edit.php?i='+SRDotDX.config.pastebinUrl.substring(SRDotDX.config.pastebinUrl.length-8));
 				if(SRDotDX.config.pastebinUrl != ""){
+					SRDotDX.gui.ExportingPaste = true;
 					SRDotDX.gui.RaidsForPaste = v;
 					document.getElementById('SRDotDX_pastebinExport').src = 'http://pastebin.com/edit.php?i='+SRDotDX.config.pastebinUrl.substring(SRDotDX.config.pastebinUrl.length-8);
 				} else alert("You must have a valid pastebin url entered on the options tab to perform this action.");
@@ -3152,9 +3154,14 @@ function main() {
 				console.log("[SRDotDX] Pastebin edit ready");
 				document.getElementById('SRDotDX_pastebinExport').contentWindow.postMessage(SRDotDX.gui.GetDumpText(SRDotDX.gui.RaidsForPaste), 'http://pastebin.com');
 			} else if(event.data == "pbedit_done"){
+				SRDotDX.gui.ExportingPaste = false;
+				console.log("[SRDotDX] Pastebin edit done");
 				SRDotDX.gui.doStatusOutput(SRDotDX.gui.RaidsForPaste.length + " raids updated into your pastebin.");
 			} else if(event.data =="pbedit_fail"){
-				alert("An error occured when updating your pastebin.  Make sure you are logged in to pastebin and your pastebin url is correct, and try again.");
+				if(SRDotDX.gui.ExportingPaste){
+					console.log("[SRDotDX] Pastebin edit fail");
+					alert("An error occured when updating your pastebin.  Make sure you are logged in to pastebin and your pastebin url is correct, and try again.");
+				}
 			} else {
 				var pbid = event.data.split("###")[0];
 				var u='User Import', t=0;
@@ -3287,6 +3294,9 @@ function main() {
 	console.log("[SRDotDX] Initialized. Checking for needed Kongregate resources...");
 	SRDotDX.load(0);	
 }
+function PBmain(){
+	window.parent.postMessage("pbedit_fail", 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
+}
 function PBrawmain(){//pastebin script
 	var id = (window.location+"").substring((window.location+"").length-8);
 	window.parent.postMessage(id+"###"+document.getElementsByTagName("body")[0].innerHTML, 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
@@ -3355,17 +3365,23 @@ if (/^http:\/\/www\.kongregate\.com\/games\/5thplanetgames\/dawn-of-the-dragons(
 	script.appendChild(document.createTextNode('('+main+')()'));
 	(document.head || document.body || document.documentElement).appendChild(script);
 }
-if (/pastebin\.com\/raw\.php\?i\=/i.test(document.location.href)) {
-	console.log("[SRDotDX] PasteBin Import Initializing....");
-	var script = document.createElement("script");
-	script.appendChild(document.createTextNode('('+PBrawmain+')()'));
-	(document.head || document.body || document.documentElement).appendChild(script);
-}
-if (/pastebin\.com\/edit\.php\?i\=/i.test(document.location.href)) {
-	console.log("[SRDotDX] PasteBin Edit Initializing....");
-	var script = document.createElement("script");
-	script.appendChild(document.createTextNode('('+PBeditmain+')()'));
-	(document.head || document.body || document.documentElement).appendChild(script);
+if(/pastebin\.com/.test(document.location.href)){
+	if (/raw\.php\?i\=/i.test(document.location.href)) {
+		console.log("[SRDotDX] PasteBin Import Initializing....");
+		var script = document.createElement("script");
+		script.appendChild(document.createTextNode('('+PBrawmain+')()'));
+		(document.head || document.body || document.documentElement).appendChild(script);
+	} else if (/edit\.php\?i\=/i.test(document.location.href)) {
+		console.log("[SRDotDX] PasteBin Edit Initializing....");
+		var script = document.createElement("script");
+		script.appendChild(document.createTextNode('('+PBeditmain+')()'));
+		(document.head || document.body || document.documentElement).appendChild(script);
+	} else {
+		console.log("[SRDotDX] PasteBin Initializing....");
+		var script = document.createElement("script");
+		script.appendChild(document.createTextNode('('+PBmain+')()'));
+		(document.head || document.body || document.documentElement).appendChild(script);
+	}
 }
 if (/web[\w]+\.dawnofthedragons\.com\/kong/i.test(document.location.href)) {
 	console.log("[SRDotDX] Gamescript Initializing....");
