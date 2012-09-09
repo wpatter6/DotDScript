@@ -2514,7 +2514,7 @@ function main() {
 						SRDotDX.loadRaid(ele.href);
 					} else {
 						SRDotDX.gui.doStatusOutput("Added " + SRDotDX.raids[SRDotDX.config.raidList[id].boss].shortname + " to joining list.");
-						SRDotDX.gui.AutoJoinRaids.push(SRDotDX.gui.GetRaid(id));
+						SRDotDX.gui.AutoJoinRaids.splice(SRDotDX.gui.AutoJoinCurrentIndex+1, 0, SRDotDX.gui.GetRaid(id));//.push(SRDotDX.gui.GetRaid(id));//todo splice SRDotDX.gui.AutoJoinCurrentIndex
 						SRDotDX.gui.AutoJoinCurrentTotal++;
 					}
 				}
@@ -2533,7 +2533,7 @@ function main() {
 						SRDotDX.loadRaid(link);
 					} else {
 						SRDotDX.gui.doStatusOutput("Added " + SRDotDX.raids[SRDotDX.config.raidList[id].boss].shortname + " to joining list.");
-						SRDotDX.gui.AutoJoinRaids.push(SRDotDX.gui.GetRaid(id));
+						SRDotDX.gui.AutoJoinRaids.splice(SRDotDX.gui.AutoJoinCurrentIndex+1, 0, SRDotDX.gui.GetRaid(id));//.push(SRDotDX.gui.GetRaid(id));//todo splice SRDotDX.gui.AutoJoinCurrentIndex
 						SRDotDX.gui.AutoJoinCurrentTotal++;
 					}
 				}
