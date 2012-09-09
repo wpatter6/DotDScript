@@ -161,6 +161,7 @@ function main() {
 			tmp.refreshGameToJoin = (typeof tmp.refreshGameToJoin == 'boolean'? tmp.refreshGameToJoin:true);
 			tmp.showStatusOverlay = (typeof tmp.showStatusOverlay == 'boolean'? tmp.showStatusOverlay:false);
 			tmp.confirmDeletes = (typeof tmp.confirmDeletes == 'boolean'?tmp.confirmDeletes:true);
+			tmp.autoPostPaste = (typeof tmp.autoPostPaste == 'boolean'?tmp.autoPostPaste:false);
 			tmp.whisperTo = (typeof tmp.whisperTo == 'string'?tmp.whisperTo:'');
 			tmp.showRaidLink = (typeof tmp.showRaidLink == 'boolean'?tmp.showRaidLink:(navigator.userAgent.toLowerCase().indexOf('chrome')>-1));
 			tmp.formatLinkOutput = (typeof tmp.formatLinkOutput == 'boolean'?tmp.formatLinkOutput:false);
@@ -903,6 +904,7 @@ function main() {
 					}
 					SRDotDX.gui.CurrentStatusOutputTimer = setTimeout(function(){ SRDotDX.gui.fadeChatOverlay();el.innerHTML=SRDotDX.gui.standardMessage(); }, msecs);
 				}
+				SRDotDX.gui.UpdateSelectedRaidCount();
 			},
 			raidsTabClicked: function (){
 				var els = document.getElementsByClassName("SRDotDX_NewRaidsCount");
@@ -978,7 +980,6 @@ function main() {
 					}
 					SRDotDX.gui.Importing=false;
 					if(save) SRDotDX.config.save(false);
-					SRDotDX.gui.UpdateSelectedRaidCount();
 					return {totalnew: diff, total:imct}
 				}
 			},
@@ -1531,25 +1532,29 @@ function main() {
 			},
 			RaidAction: function(f) {
 				console.log("[SRDotDX] Do action " + f);
+				var r = (f=='delete'?SRDotDX.gui.GetRaids():SRDotDX.gui.GetRaids(false));
+				if(r.length==0){
+					alert("You have selected 0 raids.  Deletion is the only action that can be performed on dead raids.");
+					return;
+				}
 				switch(f){
 					case 'share':
-						SRDotDX.gui.DumpRaidsToShare(SRDotDX.gui.GetRaids(false));
+						SRDotDX.gui.DumpRaidsToShare(r);
 						break;
 					case 'post':
-						SRDotDX.gui.DumpRaidsToShare(SRDotDX.gui.GetRaids(false));
+						SRDotDX.gui.DumpRaidsToShare(r);
 						SRDotDX.gui.FPXspamRaids();
 						break;
 					case 'paste':
-						SRDotDX.gui.DumpRaidsToPaste(SRDotDX.gui.GetRaids(false));
+						SRDotDX.gui.DumpRaidsToPaste(r);
 						break;
 					case 'delete':
-						SRDotDX.gui.DeleteRaids(SRDotDX.gui.GetRaids());
+						SRDotDX.gui.DeleteRaids(r);
 						break;
 					case 'join':
-						SRDotDX.gui.AutoJoinVisible(null, SRDotDX.gui.GetRaids(false));
+						SRDotDX.gui.AutoJoinVisible(null, r);
 						break;
 				}
-				SRDotDX.gui.UpdateSelectedRaidCount();
 				return false;
 			},
 			DumpRaidsToShare: function(v) {
@@ -1841,6 +1846,7 @@ function main() {
 										<div id="FPXChatOptions"> \
 											<hr> \
 											<input type="checkbox" id="SRDotDX_options_autoImportPaste"> Auto import pastebins <br> \
+											<input type="checkbox" id="SRDotDX_options_autoPostPaste"> Auto post paste after update <br> \
 											Your pastebin url: <input type="text" id="SRDotDX_options_pastebinUrl"> \
 											<hr> \
 										</div> \
@@ -2053,11 +2059,11 @@ function main() {
 					//Pastebin tab
 					var paste_list = document.getElementById('paste_list');
 					paste_list.style.height = (h - paste_list.offsetTop -50) + "px";
-					SRDotDX.gui.loadPasteList();//TODO
+					SRDotDX.gui.loadPasteList();
 					
 					//pastelist global click listener
 					paste_list.addEventListener("mouseup",function(event) {
-						SRDotDX.gui.FPXpasteListMouseDown(event);//TODO
+						SRDotDX.gui.FPXpasteListMouseDown(event);
 					},false);
 					paste_list.addEventListener("click",function(e) {
 						e.preventDefault();
@@ -2138,6 +2144,7 @@ function main() {
 					var optsFormatLinkOutput = SRDotDX.gui.cHTML('#SRDotDX_options_formatLinkOutput');
 					var optsPrettyPost = SRDotDX.gui.cHTML('#SRDotDX_options_prettyPost');
 					var optsAutoImportPaste = SRDotDX.gui.cHTML('#SRDotDX_options_autoImportPaste');
+					var optsAutoPostPaste = SRDotDX.gui.cHTML('#SRDotDX_options_autoPostPaste');
 					var optsPastebinUrl = SRDotDX.gui.cHTML('#SRDotDX_options_pastebinUrl');
 					var rbUnvisitedPruningAggressive = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningAggressive');
 					var rbUnvisitedPruningModerate = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningModerate');
@@ -2160,6 +2167,7 @@ function main() {
 					if (SRDotDX.config.refreshGameToJoin) { optsRefreshGameToJoin.ele().checked = 'checked' }
 					if (SRDotDX.config.showStatusOverlay) { optsStatusOverlay.ele().checked = 'checked' }
 					if (SRDotDX.config.confirmDeletes) { optsConfirmDeletes.ele().checked = 'checked' }
+					if (SRDotDX.config.autoPostPaste) { optsAutoPostPaste.ele().checked = 'checked' }
 		
 					if (SRDotDX.config.unvisitedRaidPruningMode == 0) {
 						rbUnvisitedPruningAggressive.ele().checked = true;
@@ -2184,6 +2192,10 @@ function main() {
 						optsHideSRaids.ele().disabled = true;
 					}
 					if (SRDotDX.config.newRaidsAtTopOfRaidList) { optsNewRaidsAtTopOfRaidList.ele().checked = 'checked'}
+					
+					optsAutoPostPaste.ele().addEventListener('click', function () {
+						SRDotDX.config.autoPostPaste = this.checked;
+					});
 					
 					optsConfirmDeletes.ele().addEventListener('click', function () {
 						SRDotDX.config.confirmDeletes = this.checked;
@@ -2582,7 +2594,6 @@ function main() {
 						var con = document.getElementById("paste_list").getElementsByClassName("active");
 						if (con.length == 1) con[0].className = con[0].className.replace(/ active/gi,"");
 						e.element().parentNode.className += " active";
-						//SRDotDX.gui.pasteListItemUpdateTimeSince(e.element().parentNode.getAttribute("pasteid"));paste todo
 						return false;
 					}else if(classtype == "FPXDeleteLink"){
 						SRDotDX.gui.deletePaste(e.element(),e.element().parentNode.parentNode.parentNode.parentNode.getAttribute("pasteid")); return false;
@@ -3149,15 +3160,18 @@ function main() {
 		lastJoinedRaidId: 0
 	}
 	window.addEventListener("message", function(event){
-		if(/pastebin\.com/i.test(event.origin)){//for pastebin import
-			if(event.data == "pbedit_ready"){
+		if(/pastebin\.com/i.test(event.origin)){//for pastebin import/export
+			if(/pbedit_ready/.test(event.data)){
 				console.log("[SRDotDX] Pastebin edit ready");
 				document.getElementById('SRDotDX_pastebinExport').contentWindow.postMessage(SRDotDX.gui.GetDumpText(SRDotDX.gui.RaidsForPaste), 'http://pastebin.com');
-			} else if(event.data == "pbedit_done"){
+			} else if(/pbedit_done/.test(event.data)){
 				SRDotDX.gui.ExportingPaste = false;
 				console.log("[SRDotDX] Pastebin edit done");
 				SRDotDX.gui.doStatusOutput(SRDotDX.gui.RaidsForPaste.length + " raids updated into your pastebin.");
-			} else if(event.data =="pbedit_fail"){
+				if(SRDotDX.config.autoPostPaste){//TODO
+					SRDotDX.gui.FPXdoWork('http://pastebin.com/'+(event.data+"").substring((event.data+"").length-8));
+				}
+			} else if(/pbedit_fail/.test(event.data)){
 				if(SRDotDX.gui.ExportingPaste){
 					console.log("[SRDotDX] Pastebin edit fail");
 					alert("An error occured when updating your pastebin.  Make sure you are logged in to pastebin and your pastebin url is correct, and try again.");
@@ -3297,7 +3311,7 @@ function main() {
 function PBmain(){
 	window.parent.postMessage("pbedit_fail", 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
 }
-function PBrawmain(){//pastebin script
+function PBrawmain(){//pastebin import script
 	var id = (window.location+"").substring((window.location+"").length-8);
 	window.parent.postMessage(id+"###"+document.getElementsByTagName("body")[0].innerHTML, 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
 }
@@ -3307,9 +3321,10 @@ function PBeditmain(){//pastebin edit script
 		if(/kongregate\.com/i.test(event.origin)){//TODO return if user not logged in
 			var el = document.getElementById("paste_code");
 			if(el){
+				var id = (window.location+"").substring((window.location+"").length-8);
 				el.value = event.data;
 				document.getElementById("myform").submit.click();
-				window.parent.postMessage("pbedit_done", 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
+				window.parent.postMessage("pbedit_done "+id, 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
 			} else {
 				window.parent.postMessage("pbedit_fail", 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
 			}
