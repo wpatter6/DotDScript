@@ -1030,8 +1030,17 @@ function main() {
 					param1 = "/w " + SRDotDX.config.whisperTo + " " + param1;
 				}
 				for (var i in elems){
-						if((" "+elems[i].className+" ").indexOf(" "+matchClass+" ") > -1)
-						{elems[i].value = param1;holodeck.activeDialogue().sendInput(); break;}
+						if((" "+elems[i].className+" ").indexOf(" "+matchClass+" ") > -1){
+							var ctxt = elems[i].value;
+							elems[i].value = param1;
+							holodeck.activeDialogue().sendInput(); 
+							if(ctxt != ""){
+								elems[i].value = ctxt;
+								elems[i].focus();
+							}
+							break;
+							
+						}
 				}
 			},
 			FPXformatRaidOutput: function(url) {
@@ -1227,7 +1236,7 @@ function main() {
 				{
 					SRDotDX.gui.FPXFilterRaidSingle(raidList[i], re, diffFilter, p_re, posterSwitch, roomFilter, roomSwitch);
 				}
-				
+				SRDotDX.gui.UpdateSelectedRaidCount();
 				console.log("[SRDotDX]::{FPX}:: RAID LIST FILTER COMPLETED...");
 				return false;
 			},
@@ -1259,7 +1268,7 @@ function main() {
 			FPXImportPasteBin: function(url){
 				url=url+"";
 				if(/pastebin\.com\//i.test(url)){
-					if(!SRDotDX.gui.importingPastebin){
+					if(!SRDotDX.gui.importingPastebin && !SRDotDX.gui.ExportingPaste){
 						url= 'http://pastebin.com/raw.php?i='+url.substring(url.length-8);
 						console.log("[SRDotDX] Importing pastebin " +url);
 						SRDotDX.gui.importingPastebin=true;
@@ -2596,11 +2605,13 @@ function main() {
 						e.element().parentNode.className += " active";
 						return false;
 					}else if(classtype == "FPXDeleteLink"){
-						SRDotDX.gui.deletePaste(e.element(),e.element().parentNode.parentNode.parentNode.parentNode.getAttribute("pasteid")); return false;
+						SRDotDX.gui.deletePaste(e.element(),SRDotDX.gui.GetAncestorAttribute(e.element(), "pasteid")); return false;
 						return false;
 					}else if(classtype == "FPXImportLink"){
 						SRDotDX.gui.FPXImportPasteBin(e.element().href);
 						return false;
+					}else if(classtype == 'link') {
+						window.open(e.element().href);
 					}
 				}else if(e.which == 3){//right click
 				
@@ -3171,10 +3182,15 @@ function main() {
 				if(SRDotDX.config.autoPostPaste){//TODO
 					SRDotDX.gui.FPXdoWork('http://pastebin.com/'+(event.data+"").substring((event.data+"").length-8));
 				}
-			} else if(/pbedit_fail/.test(event.data)){
+			} else if(/pb_fail/.test(event.data)){
 				if(SRDotDX.gui.ExportingPaste){
+					SRDotDX.gui.ExportingPaste = false;
 					console.log("[SRDotDX] Pastebin edit fail");
-					alert("An error occured when updating your pastebin.  Make sure you are logged in to pastebin and your pastebin url is correct, and try again.");
+					alert("An error occured pastebin.  Make sure you are logged in to pastebin and your pastebin url is correct, and try again.");
+				} else if (SRDotDX.gui.importingPastebin){
+					var els = document.getElementsByClassName("pb_"+pbid);
+					for(i=0;i<els.length;i++) els[i].innerHTML="(Invalid)";
+					SRDotDX.gui.importingPastebin=false;
 				}
 			} else {
 				var pbid = event.data.split("###")[0];
@@ -3309,7 +3325,7 @@ function main() {
 	SRDotDX.load(0);	
 }
 function PBmain(){
-	window.parent.postMessage("pbedit_fail", 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
+	window.parent.postMessage("pb_fail", 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
 }
 function PBrawmain(){//pastebin import script
 	var id = (window.location+"").substring((window.location+"").length-8);
