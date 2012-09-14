@@ -1426,6 +1426,7 @@ function main() {
 				console.log("[SRDotDX] Sorting finished");
 			},
 			UpdateSelectedRaidCount: function () {
+				console.log("[SRDotDX] Updating selected raid count");
 				document.getElementById("selected_raid_count").innerHTML = SRDotDX.gui.GetRaids().length + " selected";
 			},
 			GetAncestorAttribute: function(el, att){
@@ -1548,7 +1549,7 @@ function main() {
 				}
 				switch(f){
 					case 'share':
-						SRDotDX.gui.DumpRaidsToShare(r);
+						SRDotDX.gui.DumpRaidsToShare(r, true);
 						break;
 					case 'post':
 						SRDotDX.gui.DumpRaidsToShare(r);
@@ -1566,8 +1567,16 @@ function main() {
 				}
 				return false;
 			},
-			DumpRaidsToShare: function(v) {
-				document.getElementById('FPXRaidSpamTA').value = SRDotDX.gui.GetDumpText(v);
+			DumpRaidsToShare: function(v, b) {
+				var txt = SRDotDX.gui.GetDumpText(v);
+				document.getElementById('FPXRaidSpamTA').value = txt;
+				if(b){
+					var el = document.getElementById('QuickShareText');
+					el.value = txt;
+					el.style.display="block";
+					el.focus();
+					el.select();
+				}
 				SRDotDX.gui.doStatusOutput("Dumped " + v.length + " raids to share tab.");
 				console.log("[SRDotDX] Dumped " + v.length + " to share");
 			},
@@ -1705,7 +1714,7 @@ function main() {
 						<div class="room_name_container h6_alt mbs">DotD Extension - <span class="room_name" id="StatusOutput"></span></div> \
 						<ul id="SRDotDX_tabpane_tabs"> \
 							<li class="tab active"> \
-								<div class="tab_head">Raids</div> \
+								<div class="tab_head" id="raids_tab">Raids</div> \
 								<div class="tab_pane"> \
 									<div id="FPXRaidFilterDiv" class="collapsible_panel"> \
 										<p class="panel_handle spritegame mts closed_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXRaidFiltering\', this, \'raid_list\')"> <a> Raid Filtering </a> </p> \
@@ -1775,12 +1784,13 @@ function main() {
 											<input type="radio" class="raid_selection" name="radio_raid_alive_dead" value="alive_nuked_">Both<br/>\
 											</td></tr><table>\
 											</td><td align="center"> \
-											<input name="JoinRaids" id="AutoJoinVisibleButton" style="padding:5px" onclick="SRDotDX.gui.RaidAction(\'join\');return false;" tabIndex="-1" type="button" value="Join"> \
-											<input name="DumpRaids" style="padding:5px" onclick="SRDotDX.gui.RaidAction(\'share\');return false;" tabIndex="-1" type="button" value="Share"> \
-											<input name="PostRaids" style="padding:5px" onclick="SRDotDX.gui.RaidAction(\'post\');return false;" tabIndex="-1" type="button" value="Post"> \
-											<input name="PasteRaids" style="padding:5px" onclick="SRDotDX.gui.RaidAction(\'paste\');return false;" tabIndex="-1" type="button" value="Paste">\
-											<input name="DeleteRaids" style="padding:5px" onclick="SRDotDX.gui.RaidAction(\'delete\');return false;" tabIndex="-1" type="button" value="Delete"> \
+											<input name="JoinRaids" id="AutoJoinVisibleButton" style="padding:5px" onclick="SRDotDX.gui.RaidAction(\'join\');return false;" tabIndex="-1" type="button" value="Join" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Join all selected (not dead) raids.\');"> \
+											<input name="DumpRaids" style="padding:5px" onclick="SRDotDX.gui.RaidAction(\'share\');return false;" tabIndex="-1" type="button" value="Share" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Copy all selected (not dead) raids to the share tab.\');"> \
+											<input name="PostRaids" style="padding:5px" onclick="SRDotDX.gui.RaidAction(\'post\');return false;" tabIndex="-1" type="button" value="Post" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Post all selected (not dead) raids to chat.\');"> \
+											<input name="PasteRaids" style="padding:5px" onclick="SRDotDX.gui.RaidAction(\'paste\');return false;" tabIndex="-1" type="button" value="Paste" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Update your pastebin with the selected (not dead) raids.\');">\
+											<input name="DeleteRaids" style="padding:5px" onclick="SRDotDX.gui.RaidAction(\'delete\');return false;" tabIndex="-1" type="button" value="Delete" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Delete selected raids.\');"> \
 											</td></tr></table> \
+											<input type="text" id="QuickShareText" style="display:none" size="37"> \
 											</form>\
 											<iframe id="SRDotDX_pastebinExport" style="display:none"></iframe> \
 											<hr> \
@@ -2022,6 +2032,9 @@ function main() {
 							}
 						});
 					}
+					link.addEventListener("click", function(event){
+						SRDotDX.gui.UpdateSelectedRaidCount();
+					});
 					holodeck._tabs.addTab(link);
 
 					var e = pane.getElementsByClassName("tab_pane");
@@ -2050,6 +2063,11 @@ function main() {
 						if (this.value == FPXSpamText) {
 							this.value = "";
 						}
+					});
+					
+					var raids_tab=document.getElementById("raids_tab");
+					raids_tab.addEventListener("mouseup", function(event){
+						SRDotDX.gui.UpdateSelectedRaidCount();
 					});
 					
 					/*var FPXimpPB = SRDotDX.gui.cHTML('#SRDotDX_FPX_ImportPastebin');
@@ -2128,6 +2146,10 @@ function main() {
 							SRDotDX.gui.UpdateSelectedRaidCount();
 						});
 					}
+					var quickShareText = SRDotDX.gui.cHTML('#QuickShareText');
+					quickShareText.ele().addEventListener('keyup', function(){
+						if(this.value == '') this.style.display = 'none';
+					});
 					
 					//options tab
 					var FPXoptsMarkRightClick = SRDotDX.gui.cHTML('#FPX_options_markVisitedRightClick');
@@ -3106,6 +3128,7 @@ function main() {
 			kessovforts:{name: 'Kessov Forts', shortname: 'Forts',  id: 'kessovforts', stat: 'ESH', size:90000, duration:120, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited']},
 			kessovcastle:{name: 'Kessov Castle', shortname: 'Castle',  id: 'kessovcastle', stat: 'ESH', size:90000, duration:144, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited'],loottiers: [['1','1M','5M','10M','20M','50M','100M','150M','300M','450M','600M','750M','1B','2B','5B','50B'],[],[],[],[],[]]},
 			kalaxia:{name: 'Kalaxia The Far-Seer', shortname: 'Kalaxia',  id: 'kalaxia', stat: 'S', size:500, duration:96, health: [800000000,1000000000,1280000000,1600000000,,]},
+			krykagrius:{name: 'Krykagrius', shortname: 'Krykagrius', id: 'krykagrius', stat: 'ESH', size:90000, duration:72, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited'], loottiers: [['1M','5M','10M','20M','50M','100M','150M','300M','450M','600M','750M','1B','2B','3B','4B','5B','10B','15B','20B'],[],[],[],[],[]]},
 			tyranthius:{name: 'Lord Tyranthius', shortname: 'Tyr',  id: 'tyranthius', stat: 'S', size:500, duration:168, health: [600000000,750000000,960000000,1200000000,,]},
 			lunacy:{name: 'Lunatics', shortname: 'Lunatics',  id: 'lunacy', stat: 'H', size:50, duration:144, health: [180000000,225000000,288000000,360000000,,]},
 			lurker:{name: 'Lurking Horror', shortname: 'Lurking',  id: 'lurker', stat: 'S', size:100, duration:120, health: [35000000,43750000,56000000,70000000,,]},
@@ -3159,7 +3182,7 @@ function main() {
 			"lunacy","lurker","magma_horror","maraak","mardachus","scorp","mestr","mesyra","misako",
 			"nalagarst","nidhogg","nimrod","phaedra","fairy_prince","roc","rhalmarius_the_despoiler","rift","crabshark",
 			"squid","simulacrum_dahrizon","sircai","sisters","slaughterers","stein","tainted","tenebra","tisiphone",
-			"chimera","gorgon","ulfrik","valanazes","blobmonster","wexxa","zombiehorde" ],
+			"chimera","gorgon","ulfrik","valanazes","blobmonster","wexxa","zombiehorde","krykagrius" ],
 		reload: function () {
 			SRDotDX.echo("Reloading, please wait...");
 			var reg = new RegExp(/var iframe_options = ([^\x3B]+)/g);
