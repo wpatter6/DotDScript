@@ -21,6 +21,18 @@ Chat Commands: These are commands that can be used in chat<br />
 Contact Me: A list of ways to contact me for whatever reasons<br />
 &nbsp;</p>
 <h3><b>Changelog</b></h3><p>
+<b>1.1.0</b><br>
+1) Modified raid actions interface to allow for more advanced selection and action. Also gives a count of the number of "selected" raids.  Dead raids can now be selected, but the only action which can be performed on them is "Delete".<br/>
+2) Added pastebin auto export ("Paste" button in raid actions).  You must be logged into pastebin in your browser and enter the pastebin record you want it to auto update on the options tab. Option to auto post your pastebin to chat after updating added to options tab as well. <br/>
+3) If you click on a raid while auto joining, it now splices that raid into the joining array so nothing is skipped.<br/>
+4) Fixed but where "(0)" was being shown on the top level raids tab.<br/>
+5) Removed "Delete All Raids" button from the options tab.  This can now be performed using the updated raid actions interface.<br/>
+6) Added "Quick copy" box that appears when you "Share" raids from raid actions.<br/>
+
+<br/><br/>
+
+<b>1.0.1</b><br>
+1) Quick hotfix adding Krykagrius new world raid.<br/><br/>
 <b>1.0.0</b><br>
 1) Added pastebin tab with basic information.  Pastebins can be favorited by clicking the star next to them, this will prevent them from being purged.  Pastebin purging occurs after 24 hours.<br />
 2) Revamped raid searching significantly<br/>
@@ -29,7 +41,7 @@ Contact Me: A list of ways to contact me for whatever reasons<br />
 3) A chat overlay has been added so the user can monitor the script's status while chatting.  An option is available to enable or disable this feature.<br/>
 4) Raids can now be loaded into the game without refreshing the game window.  Uncheck the "Refresh game to join raids" option to enable this feature.<br/>
 5) Manually deleting raids will now give a confirmation to help prevent accidental deletion.  An option is available to enable or disable this feature<br/>
-6) Raid autojoin no longer accepts a time interval, it now loads the next raid whenever the previous is done, ensuring optimal loading speed, while preventing any from being missed due to lag.  
+6) Raid autojoin no longer accepts a time interval, it now loads the next raid whenever the previous is done, ensuring optimal loading speed, while preventing any from being missed due to lag.  <br />
 7) Raid status is now parsed from the response page when joining a raid through the script.  Raids that are found to be dead are permanently hidden and marked as unsharable by the script until they are purged.<br/>
 8) Countess Serpina's raid information has been updated<br/>
 9) A button has been added to the options page that the user can use to support us via PayPal, if one is so inclined.<br/>
