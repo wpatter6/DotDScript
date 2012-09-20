@@ -4,7 +4,7 @@
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
 // @version        1.1.0
-// @date           09.08.2012
+// @date           09.19.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -342,6 +342,7 @@ function main() {
 							SRDotDX.gui.deleteRaid(draids[i].ele.getElementsByClassName("FPXDeleteLink")[0], draids[i].id);
 							i++; diff--;
 						}
+						delete draids;
 						total+=i; i=0;
 						var uraids = SRDotDX.gui.GetRaids('new');
 						uraids.sort(function(a,b){
@@ -356,6 +357,7 @@ function main() {
 								i++; diff--;
 							} else break;
 						}
+						delete uraids;
 						total+=i; i=0;
 						if(diff > 0){
 							var raids = SRDotDX.gui.GetRaids('all');
@@ -371,6 +373,7 @@ function main() {
 									i++; diff--;
 								} else break;
 							}
+							delete raids;
 						}
 						total += i;
 						SRDotDX.gui.doStatusOutput('Maximum raid count exceeded. ' + total + ' old raids purged.');
@@ -1427,7 +1430,9 @@ function main() {
 			},
 			UpdateSelectedRaidCount: function () {
 				console.log("[SRDotDX] Updating selected raid count");
-				document.getElementById("selected_raid_count").innerHTML = SRDotDX.gui.GetRaids().length + " selected";
+				var raids = SRDotDX.gui.GetRaids();
+				document.getElementById("selected_raid_count").innerHTML = raids.length + " selected";
+				delete raids;
 			},
 			GetAncestorAttribute: function(el, att){
 				if(el.getAttribute && el.getAttribute(att) != null) return el.getAttribute(att);
@@ -1565,6 +1570,7 @@ function main() {
 						SRDotDX.gui.AutoJoinVisible(null, r);
 						break;
 				}
+				delete r;
 				return false;
 			},
 			DumpRaidsToShare: function(v, b) {
@@ -2907,6 +2913,10 @@ function main() {
 					SRDotDX.echo("Donation window opened.");
 					return false;
 				});
+				holodeck.addChatCommand("ad", function(deck,text) {
+					SRDotDX.gui.FPXdoWork('http://userscripts.org/scripts/show/140080');
+					return false;
+				});
 				holodeck.addChatCommand("help", function(deck,text) {
 					window.open("https://docs.google.com/spreadsheet/viewform?formkey=dGM4Vy1jbUZXOUpzM3ZjNUY0V21fLWc6MQ");
 					SRDotDX.echo("Help window opened.");
@@ -3200,10 +3210,7 @@ function main() {
 				SRDotDX.gui.ExportingPaste = false;
 				console.log("[SRDotDX] Pastebin edit done");
 				SRDotDX.gui.doStatusOutput(SRDotDX.gui.RaidsForPaste.length + " raids updated into your pastebin.");
-				if(SRDotDX.config.autoPostPaste){//TODO
-					SRDotDX.gui.FPXdoWork('http://pastebin.com/'+(event.data+"").substring((event.data+"").length-8));
-				}
-			} else if(/pb_fail/.test(event.data)){
+			} else if(/pb_main/.test(event.data)){
 				if(SRDotDX.gui.ExportingPaste){
 					SRDotDX.gui.ExportingPaste = false;
 					console.log("[SRDotDX] Pastebin edit fail");
@@ -3212,6 +3219,9 @@ function main() {
 					var els = document.getElementsByClassName("pb_"+pbid);
 					for(i=0;i<els.length;i++) els[i].innerHTML="(Invalid)";
 					SRDotDX.gui.importingPastebin=false;
+				} else {
+					if(SRDotDX.config.autoPostPaste)
+						SRDotDX.gui.FPXdoWork('http://pastebin.com/'+(event.data+"").substring((event.data+"").length-8))
 				}
 			} else {
 				var pbid = event.data.split("###")[0];
@@ -3346,11 +3356,10 @@ function main() {
 	SRDotDX.load(0);	
 }
 function PBmain(){
-	window.parent.postMessage("pb_fail", 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
+	window.parent.postMessage("pb_main "+(window.location+"").substring((window.location+"").length-8), 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
 }
 function PBrawmain(){//pastebin import script
-	var id = (window.location+"").substring((window.location+"").length-8);
-	window.parent.postMessage(id+"###"+document.getElementsByTagName("body")[0].innerHTML, 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
+	window.parent.postMessage((window.location+"").substring((window.location+"").length-8)+"###"+document.getElementsByTagName("body")[0].innerHTML, 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
 }
 function PBeditmain(){//pastebin edit script
 	window.parent.postMessage("pbedit_ready", 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
@@ -3358,10 +3367,9 @@ function PBeditmain(){//pastebin edit script
 		if(/kongregate\.com/i.test(event.origin)){//TODO return if user not logged in
 			var el = document.getElementById("paste_code");
 			if(el){
-				var id = (window.location+"").substring((window.location+"").length-8);
 				el.value = event.data;
 				document.getElementById("myform").submit.click();
-				window.parent.postMessage("pbedit_done "+id, 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
+				window.parent.postMessage("pbedit_done "+(window.location+"").substring((window.location+"").length-8), 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
 			} else {
 				window.parent.postMessage("pbedit_fail", 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
 			}
