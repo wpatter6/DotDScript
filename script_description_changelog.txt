@@ -28,8 +28,8 @@ Contact Me: A list of ways to contact me for whatever reasons<br />
 4) Fixed but where "(0)" was being shown on the top level raids tab.<br/>
 5) Removed "Delete All Raids" button from the options tab.  This can now be performed using the updated raid actions interface.<br/>
 6) Added "Quick copy" box that appears when you "Share" raids from raid actions.<br/>
-7) Fixed bug that was causing the raid list to be occasionally unscrollable.<br/>
-8) Fixed bug that was causing some raids not to import on the first try.<br/>
+7) Fixed bug that was occasionally causing the raid list to be unscrollable.<br/>
+8) Fixed bug that was occasionally causing some raids not to import on the first try.<br/>
 
 <br/><br/>
 
