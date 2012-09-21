@@ -919,19 +919,19 @@ function main() {
 				if(typeof el == "string") el = document.getElementById(el);
 				if(typeof el2 == "string") el2 = document.getElementById(el2);
 				if(el.style.display == "none"){
-					el.style.display = "";
+					el.style.display = "block";
 					if(typeof sender == "object") sender.className = sender.className.replace("closed_link", "opened_link");
 					if(!(typeof el2 === "undefined")){
-						var oht = parseInt(String(el2.style.height).replace("px",""));
-						el2.style.height = (oht - el.offsetHeight - parseInt(el.offsetHeight/13)) + "px";
+						//var oht = parseInt(String(el2.style.height).replace("px",""));
+						el2.style.height = (el2.offsetHeight - el.offsetHeight - parseInt(el.offsetHeight/13)) + "px";
 					}
 				}else{
 					h = el.offsetHeight;
 					el.style.display = "none";
 					if(typeof sender == "object") sender.className = sender.className.replace("opened_link", "closed_link");
 					if(!(typeof el2 === "undefined")){
-						var oht = parseInt(String(el2.style.height).replace("px",""));
-						el2.style.height = (oht+h+parseInt(h/13)) + "px";
+						//var oht = parseInt(String(el2.style.height).replace("px",""));
+						el2.style.height = (el2.offsetHeight+h+parseInt(h/13)) + "px";
 					}
 				}
 			},
@@ -957,7 +957,7 @@ function main() {
 						tagged=true;
 						while(imct<objs.length){
 							var obj = objs[imct].split(",");
-							if(obj.length == 4 && patt.test(obj[0])){
+							if(obj.length == 4){
 								console.log("[SRDotDX] Object importing " + imct + ": " + obj[2] + " : " + obj[1] + " : " + obj[3]);
 								SRDotDX.getRaidDetails(obj[0], obj[2], SRDotDX.config.markImportedVisited, SRDotDX.config.markImportedVisited, obj[1],obj[3]);
 							}
@@ -1126,6 +1126,7 @@ function main() {
 					clearTimeout(SRDotDX.gui.FPXTimerArray[i]);
 				}
 				SRDotDX.gui.isPosting = false;
+				document.getElementById('PostRaidsButton').Value='Post';
 				document.FPXRaidSpamForm.Submit.disabled=false;
 				document.FPXRaidSpamForm.Submit1.disabled=true;
 				document.FPXRaidSpamForm.Submit2.disabled=false;
@@ -1137,6 +1138,7 @@ function main() {
 			},
 			FPXStartPosting: function() {
 				SRDotDX.gui.isPosting = true;
+				document.getElementById('PostRaidsButton').Value='Cancel';
 				document.FPXRaidSpamForm.Submit.disabled=true;
 				document.FPXRaidSpamForm.Submit1.disabled=false;
 				document.FPXRaidSpamForm.Submit2.disabled=true;
@@ -1557,8 +1559,12 @@ function main() {
 						SRDotDX.gui.DumpRaidsToShare(r, true);
 						break;
 					case 'post':
-						SRDotDX.gui.DumpRaidsToShare(r);
-						SRDotDX.gui.FPXspamRaids();
+						if(SRDotDX.gui.isPosting){
+							SRDotDX.gui.FPXStopPosting();
+						}else{
+							SRDotDX.gui.DumpRaidsToShare(r);
+							SRDotDX.gui.FPXspamRaids();
+						}
 						break;
 					case 'paste':
 						SRDotDX.gui.DumpRaidsToPaste(r);
@@ -1791,7 +1797,7 @@ function main() {
 											</td><td align="center"> \
 											<input name="JoinRaids" id="AutoJoinVisibleButton" style="padding:5px" onclick="SRDotDX.gui.RaidAction(\'join\');return false;" tabIndex="-1" type="button" value="Join" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Join all selected (not dead) raids.\');"> \
 											<input name="DumpRaids" style="padding:5px" onclick="SRDotDX.gui.RaidAction(\'share\');return false;" tabIndex="-1" type="button" value="Share" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Copy all selected (not dead) raids to the share tab.\');"> \
-											<input name="PostRaids" style="padding:5px" onclick="SRDotDX.gui.RaidAction(\'post\');return false;" tabIndex="-1" type="button" value="Post" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Post all selected (not dead) raids to chat.\');"> \
+											<input name="PostRaids" id="PostRaidsButton" style="padding:5px" onclick="SRDotDX.gui.RaidAction(\'post\');return false;" tabIndex="-1" type="button" value="Post" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Post all selected (not dead) raids to chat.\');"> \
 											<input name="PasteRaids" style="padding:5px" onclick="SRDotDX.gui.RaidAction(\'paste\');return false;" tabIndex="-1" type="button" value="Paste" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Update your pastebin with the selected (not dead) raids.\');">\
 											<input name="DeleteRaids" style="padding:5px" onclick="SRDotDX.gui.RaidAction(\'delete\');return false;" tabIndex="-1" type="button" value="Delete" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Delete selected raids.\');"> \
 											</td></tr></table> \
@@ -2152,7 +2158,10 @@ function main() {
 					}
 					var quickShareText = SRDotDX.gui.cHTML('#QuickShareText');
 					quickShareText.ele().addEventListener('keyup', function(){
-						if(this.value == '') this.style.display = 'none';
+						if(this.value == ''){
+							this.style.display = 'none';
+							document.getElementById('FPXRaidSpamTA').value = '';
+						}
 					});
 					
 					//options tab
