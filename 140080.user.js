@@ -4,7 +4,7 @@
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
 // @version        1.1.0
-// @date           09.19.2012
+// @date           09.21.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -158,6 +158,8 @@ function main() {
 			tmp.useMaxRaidCount = (typeof tmp.useMaxRaidCount =='boolean'?tmp.useMaxRaidCount:false);
 			tmp.maxRaidCount = (!(typeof tmp.maxRaidCount === 'undefined')?tmp.maxRaidCount:3000);
 			tmp.autoImportPaste = (typeof tmp.autoImportPaste =='boolean'?tmp.autoImportPaste:false);
+			tmp.confirmForLargePaste = (typeof tmp.confirmForLargePaste =='boolean' && tmp.confirmPasteSize?tmp.confirmForLargePaste:false);
+			tmp.confirmPasteSize = (typeof tmp.confirmPasteSize =='number'?tmp.confirmPasteSize:1000);
 			tmp.refreshGameToJoin = (typeof tmp.refreshGameToJoin == 'boolean'? tmp.refreshGameToJoin:true);
 			tmp.showStatusOverlay = (typeof tmp.showStatusOverlay == 'boolean'? tmp.showStatusOverlay:false);
 			tmp.confirmDeletes = (typeof tmp.confirmDeletes == 'boolean'?tmp.confirmDeletes:true);
@@ -172,6 +174,8 @@ function main() {
 			tmp.unvisitedRaidPruningMode = (typeof tmp.unvisitedRaidPruningMode == 'number'? tmp.unvisitedRaidPruningMode : 1);
 			tmp.selectedRaids = (typeof tmp.selectedRaids == 'string'?tmp.selectedRaids:"");
 			tmp.pastebinUrl = (typeof tmp.pastebinUrl == 'string'?tmp.pastebinUrl:"");
+
+			if (typeof tmp.mutedUsers != 'object')tmp.mutedUsers = {};
 			if (typeof tmp.raidList != 'object')tmp.raidList = {};
 			if (typeof tmp.pasteList != 'object')tmp.pasteList = {};
 
@@ -567,7 +571,7 @@ function main() {
 			var m = /^((?:(?!<a[ >]).)*)?http:\/\/pastebin\.com\/\w{8}((?:(?!<\/?a[ >]).)*(?:<a.*? class="reply_link"[> ].*)?)$/i.exec(msg);
 			if (m) {
 				console.log("[SRDotDX] Getting paste details");
-				var pb = SRDotDX.getPasteDetails(/http:\/\/pastebin\.com\/\w{8}/i.exec(m[0])+"",pub?user:active_user.username());
+				var pb = SRDotDX.getPasteDetails(/http:\/\/pastebin\.com\/\w{8}/i.exec(m[0])+"",user);
 				if(!(typeof pb === 'undefined' || typeof pb === 'null')){	
 					pb.ptext = m[1]||"";
 					pb.ntext = m[2]||"";
@@ -953,6 +957,8 @@ function main() {
 					
 					if(linklist.indexOf("!!OBJECT_IMPORT!!")>-1){
 						var objs = linklist.split(";"), i=0;
+						if(SRDotDX.config.confirmForLargePaste && SRDotDX.gui.importingPastebin && objs.length > SRDotDX.config.confirmPasteSize 
+							&& !confirm("This pastebin import exceeds "+SRDotDX.config.confirmPasteSize+" raids.  Continue with import?")) return false;
 						console.log("[SRDotDX] Objects importing "+objs.length);
 						tagged=true;
 						while(imct<objs.length){
@@ -1278,7 +1284,7 @@ function main() {
 						console.log("[SRDotDX] Importing pastebin " +url);
 						SRDotDX.gui.importingPastebin=true;
 						document.getElementById("SRDotDX_pastebin").src = url;
-						setTimeout("if(SRDotDX.gui.importingPastebin){console.log('[SRDotDX] Unknown error importing pastebin.  See console');SRDotDX.gui.importingPastebin=false;}", 30000);//not found in 30 secs error occured
+						setTimeout("if(SRDotDX.gui.importingPastebin){SRDotDX.gui.doStatusOutput('The pastebin request timed out. Please try again.');SRDotDX.gui.importingPastebin=false; for(i=0;i<document.getElementsByClassName('pb_"+url.substring(url.length-8)+"').length;i++){document.getElementsByClassName('pb_"+url.substring(url.length-8)+"')[i].innerHTML='<a href=\"#\" onClick=\"return false;\" onMouseDown=\"SRDotDX.gui.FPXImportPasteBin(\'"+url+"\')\">Import</a>';}}", 20000);//not found in 20 secs error occured
 					} else {
 						console.log("[SRDotDX] Pastebin collision, trying again in 1 second");
 						setTimeout("SRDotDX.gui.FPXImportPasteBin('"+url+"');", 1000);
@@ -1875,6 +1881,7 @@ function main() {
 										<div id="FPXChatOptions"> \
 											<hr> \
 											<input type="checkbox" id="SRDotDX_options_autoImportPaste"> Auto import pastebins <br> \
+											<input type="checkbox" id="SRDotDX_options_confirmForLargePaste"> Confirm if paste exceeds <input type="text" id="SRDotDX_options_confirmPasteSize" size="4"><br/> \
 											<input type="checkbox" id="SRDotDX_options_autoPostPaste"> Auto post paste after update <br> \
 											Your pastebin url: <input type="text" id="SRDotDX_options_pastebinUrl"> \
 											<hr> \
@@ -2188,6 +2195,8 @@ function main() {
 					var optsFormatLinkOutput = SRDotDX.gui.cHTML('#SRDotDX_options_formatLinkOutput');
 					var optsPrettyPost = SRDotDX.gui.cHTML('#SRDotDX_options_prettyPost');
 					var optsAutoImportPaste = SRDotDX.gui.cHTML('#SRDotDX_options_autoImportPaste');
+					var optsConfirmForLargePaste = SRDotDX.gui.cHTML('#SRDotDX_options_confirmForLargePaste');
+					var optsConfirmPasteSize = SRDotDX.gui.cHTML('#SRDotDX_options_confirmPasteSize');
 					var optsAutoPostPaste = SRDotDX.gui.cHTML('#SRDotDX_options_autoPostPaste');
 					var optsPastebinUrl = SRDotDX.gui.cHTML('#SRDotDX_options_pastebinUrl');
 					var rbUnvisitedPruningAggressive = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningAggressive');
@@ -2198,7 +2207,7 @@ function main() {
 					if (SRDotDX.config.formatRaidLinks) {	optsFormatRaids.ele().checked = 'checked'}
 					if (SRDotDX.config.markMyRaidsVisted) { optsMarkMyRaidsVisited.ele().checked = 'checked' }
 					if (SRDotDX.config.showRaidLink) { optsShowRaidLink.ele().checked = 'checked';}
-					if (SRDotDX.config.formatLinkOutput) { optsFormatLinkOutput.ele().checked = 'checked'; optsPrettyPost.ele().disabled=true;} else { optsRaidFormat.ele().disabled = 'disabled' }
+					if (SRDotDX.config.formatLinkOutput) { optsFormatLinkOutput.ele().checked = 'checked'; optsPrettyPost.ele().disabled=true;} else { optsRaidFormat.ele().disabled = true }
 					if (SRDotDX.config.prettyPost) { optsPrettyPost.ele().checked='checked'; optsFormatLinkOutput.ele().disabled=true;}
 					if (SRDotDX.config.markImportedVisited) { optsMarkImportedVisited.ele().checked = 'checked'; }
 					if (SRDotDX.config.whisperSpam) { optsWhisperToCheck.ele().checked = 'checked'; }
@@ -2206,7 +2215,9 @@ function main() {
 					if ((SRDotDX.config.pastebinUrl||'')!='') { optsPastebinUrl.ele().value = SRDotDX.config.pastebinUrl; }
 					if (SRDotDX.config.useMaxRaidCount) { optsUseMaxRaidCount.ele().checked = 'checked'; }
 					if (SRDotDX.config.maxRaidCount>0) { optsMaxRaidCount.ele().value = SRDotDX.config.maxRaidCount; }
-					if (SRDotDX.config.autoImportPaste) { optsAutoImportPaste.ele().checked = 'checked'; }
+					if (SRDotDX.config.autoImportPaste) { optsAutoImportPaste.ele().checked = 'checked'; } else { optsConfirmForLargePaste.ele().disabled=true; optsConfirmPasteSize.ele().disabled=true}
+					if (SRDotDX.config.confirmForLargePaste) { optsConfirmForLargePaste.ele().checked = 'checked'; } else { optsConfirmPasteSize.ele().disabled=true }
+					if (SRDotDX.config.confirmPasteSize>0) { optsConfirmPasteSize.ele().value = SRDotDX.config.confirmPasteSize }
 					if (SRDotDX.config.newPasteAtTopOfPasteList) { optsNewPasteAtTopOfPasteList.ele().checked = 'checked'}
 					if (SRDotDX.config.refreshGameToJoin) { optsRefreshGameToJoin.ele().checked = 'checked' }
 					if (SRDotDX.config.showStatusOverlay) { optsStatusOverlay.ele().checked = 'checked' }
@@ -2255,6 +2266,20 @@ function main() {
 					
 					optsAutoImportPaste.ele().addEventListener('click', function (){
 						SRDotDX.config.autoImportPaste = this.checked;
+						if(!this.checked){
+							optsConfirmForLargePaste.ele().checked = false;
+							SRDotDX.config.confirmForLargePaste = false;
+						}
+						optsConfirmForLargePaste.ele().disabled = !this.checked;
+						optsConfirmPasteSize.ele().disabled = !this.checked;
+					});
+					optsConfirmForLargePaste.ele().addEventListener('click', function () {
+						optsConfirmPasteSize.ele().disabled = !this.checked;
+						SRDotDX.config.confirmForLargePaste = this.checked;
+					});
+					optsConfirmPasteSize.ele().addEventListener('change', function () {
+						if(isNumber(this.value)) SRDotDX.config.confirmPasteSize = parseInt(this.value);
+						else SRDotDX.gui.errorMessage('Paste size must be a number');
 					});
 					
 					optsMaxRaidCount.ele().addEventListener('change', function (){
@@ -2558,7 +2583,7 @@ function main() {
 						SRDotDX.loadRaid(ele.href);
 					} else {
 						SRDotDX.gui.doStatusOutput("Added " + SRDotDX.raids[SRDotDX.config.raidList[id].boss].shortname + " to joining list.");
-						SRDotDX.gui.AutoJoinRaids.splice(SRDotDX.gui.AutoJoinCurrentIndex+1, 0, SRDotDX.gui.GetRaid(id));//.push(SRDotDX.gui.GetRaid(id));//todo splice SRDotDX.gui.AutoJoinCurrentIndex
+						SRDotDX.gui.AutoJoinRaids.splice(SRDotDX.gui.AutoJoinCurrentIndex+1, 0, SRDotDX.gui.GetRaid(id));
 						SRDotDX.gui.AutoJoinCurrentTotal++;
 					}
 				}
@@ -2577,7 +2602,7 @@ function main() {
 						SRDotDX.loadRaid(link);
 					} else {
 						SRDotDX.gui.doStatusOutput("Added " + SRDotDX.raids[SRDotDX.config.raidList[id].boss].shortname + " to joining list.");
-						SRDotDX.gui.AutoJoinRaids.splice(SRDotDX.gui.AutoJoinCurrentIndex+1, 0, SRDotDX.gui.GetRaid(id));//.push(SRDotDX.gui.GetRaid(id));//todo splice SRDotDX.gui.AutoJoinCurrentIndex
+						SRDotDX.gui.AutoJoinRaids.splice(SRDotDX.gui.AutoJoinCurrentIndex+1, 0, SRDotDX.gui.GetRaid(id));
 						SRDotDX.gui.AutoJoinCurrentTotal++;
 					}
 				}
@@ -2780,7 +2805,7 @@ function main() {
 						}
 						catch(err){}
 
-						
+						var isgood = false;
 						var raid = SRDotDX.getRaidLink(d,b,isPublic)
 						if (typeof raid == 'object') {
 							e.class+= " SRDotDX_raid";
@@ -2796,6 +2821,7 @@ function main() {
 							SRDotDX.gui.raidListItemUpdate(raid.id);
 							if(raid.isNew && !SRDotDX.gui.AutoJoin)
 								SRDotDX.gui.updateMessage();
+							isgood = true;
 						}
 						var pb = SRDotDX.getPastebinLink(d,b,isPublic)
 						if (typeof pb == 'object') {
@@ -2804,8 +2830,12 @@ function main() {
 							if(doImport){
 								setTimeout("SRDotDX.gui.FPXImportPasteBin('"+pb.url+"');", 1000);
 							}
+							isgood = true;
 						}
-						
+						if(SRDotDX.config.mutedUsers[b] && !isgood){
+							e.class+=" SRDotDX_nukedRaidList";
+							console.log("[SRDotDX] Muted message recieved from " + b + " : " + d);
+						}
 						this.SRDotDX_DUM(b,d,e,f);
 					}
 				}
@@ -2875,6 +2905,48 @@ function main() {
 						SRDotDX.echo('<b>/reload</b>: Invalid parameters specified. (<a href="#" onclick="SRDotDX.gui.help(\'reload\'); return false">help</a>)');
 					}
 					return false
+				});
+				holodeck.addChatCommand("mute",function (deck, text){
+					var s = String(text).split(" ");
+					if(s.length == 2){
+						SRDotDX.config.mutedUsers[s[1]]=true;
+						SRDotDX.echo('User "' + s[1] + '" muted.  Use the /unmute command to undo, and the /mutelist to see all muted users.');
+						SRDotDX.config.save(false);
+					}else {
+						SRDotDX.echo('<b>/mute</b>: Invalid parameters specified. (<a href="#" onclick="SRDotDX.gui.help(\'mute\'); return false">help</a>)');//todo help gui
+					}
+					return false;
+				});
+				holodeck.addChatCommand("unmute",function (deck, text){
+					var s = String(text).split(" ");
+					if(s.length == 2){
+						if(s[1] == 'all'){
+							for(var u in SRDotDX.config.mutedUsers){
+								delete SRDotDX.config.mutedUsers[u];
+							}
+							SRDotDX.echo('All users unmuted.');
+						}else if(SRDotDX.config.mutedUsers[s[1]]){
+							delete SRDotDX.config.mutedUsers[s[1]];
+							SRDotDX.echo('User "' + s[1] + '" unmuted.');
+							SRDotDX.config.save(false);
+						} else SRDotDX.echo('No muted user "' + s[1] + '" found.');
+						
+					}else {
+						SRDotDX.echo('<b>/unmute</b>: Invalid parameters specified. (<a href="#" onclick="SRDotDX.gui.help(\'unmute\'); return false">help</a>)');//todo help gui
+					}
+					return false;
+				});
+				holodeck.addChatCommand("mutelist", function (deck, text){
+					var s = "<b>List of users currently muted:</b><br/>";
+					var i = 0;
+					for(var u in SRDotDX.config.mutedUsers){
+						s += u + "<br/>";
+						i++;
+					}
+					if(i==0)s="No users currently muted.<br/>";
+					s += "<br/>Use the /mute and /unmute commands to add or remove users on this list.";
+					SRDotDX.echo(s);
+					return false;
 				});
 				holodeck.addChatCommand("toggle",function (deck,text){
 					var i;
@@ -3032,7 +3104,6 @@ function main() {
 					}
 				}
 				window.onbeforeunload = function(){
-					//SRDotDX.config.pasteList = {};//for now just purge pastys when page is left
 					SRDotDX.config.save(false);
 				}
 
@@ -3246,6 +3317,15 @@ function main() {
 				else if (u != 'User Import') SRDotDX.config.pasteList[pbid].user = u;
 				
 				var els = document.getElementsByClassName("pb_"+pbid);
+				if(typeof ct == 'boolean' && !ct){
+					for(i=0;i<els.length;i++){
+						els[i].innerHTML="(<a href=\"#\" onClick=\"return false;\" onMouseDown=\"SRDotDX.gui.FPXImportPasteBin('http://pastebin.com/"+pbid+"')\">Import</a>)";
+					}
+					document.FPXRaidSpamForm.FPXRaidSpamInput.value = "";
+					SRDotDX.config.save(false);
+					SRDotDX.gui.importingPastebin=false;
+					return;
+				}
 				for(i=0;i<els.length;i++){
 					els[i].innerHTML="(Imported, "+ct.totalnew+" new)";
 				}
@@ -3373,7 +3453,7 @@ function PBrawmain(){//pastebin import script
 function PBeditmain(){//pastebin edit script
 	window.parent.postMessage("pbedit_ready", 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
 	window.addEventListener("message", function(event){
-		if(/kongregate\.com/i.test(event.origin)){//TODO return if user not logged in
+		if(/kongregate\.com/i.test(event.origin)){
 			var el = document.getElementById("paste_code");
 			if(el){
 				el.value = event.data;

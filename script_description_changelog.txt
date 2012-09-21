@@ -24,12 +24,15 @@ Contact Me: A list of ways to contact me for whatever reasons<br />
 <b>1.1.0</b><br>
 1) Modified raid actions interface to allow for more advanced selection and action. Also gives a count of the number of "selected" raids.  Dead raids can now be selected, but the only action which can be performed on them is "Delete".<br/>
 2) Added pastebin auto export ("Paste" button in raid actions).  You must be logged into pastebin in your browser and enter the pastebin record you want it to auto update on the options tab. Option to auto post your pastebin to chat after updating added to options tab as well. <br/>
-3) If you click on a raid while auto joining, it now splices that raid into the joining array so nothing is skipped.<br/>
-4) Fixed but where "(0)" was being shown on the top level raids tab.<br/>
-5) Removed "Delete All Raids" button from the options tab.  This can now be performed using the updated raid actions interface.<br/>
-6) Added "Quick copy" box that appears when you "Share" raids from raid actions.<br/>
-7) Fixed bug that was occasionally causing the raid list to be unscrollable.<br/>
-8) Fixed bug that was occasionally causing some raids not to import on the first try.<br/>
+3) Added /mute, /unmute, and /mutelist commands for muting users.  Muting users through the script will not prevent any raids or pastebins posted by them to be added to the script.  The proper syntax is "/mute [username]" or "/unmute username".  The command "/unmute all" can be used to unmute all muted users.</br>
+4) Added option to give a confirmation if a pastebin exceeding a user specified number of raids is being auto imported. </br>
+5) If you click on a raid while auto joining, it now splices that raid into the joining array so nothing is skipped.<br/>
+6) Fixed but where "(0)" was being shown on the top level raids tab.<br/>
+7) Removed "Delete All Raids" button from the options tab.  This can now be performed using the updated raid actions interface.<br/>
+8) Added "Quick copy" box that appears when you "Share" raids from raid actions.<br/>
+9) Fixed bug that was occasionally causing the raid list to be unscrollable.<br/>
+10) Fixed bug that was occasionally causing some raids not to import on the first try.<br/>
+11) Added handling when pastebin imports time out.<br/>
 
 <br/><br/>
 
@@ -167,13 +170,19 @@ Toggles raid link formatting on or off<br /><i>Example: <code>/raidformat on</co
 <b>Command</b>: <code>/spit [raid id]</code><br />
 Generates a message showing your disdain for the cruddy raid someone has posted.<br /><i>Example:<code>/spit 608926</code></i><br/><br/>
 <b>Command</b>: <code>/raidformat [format]</code><br />
-Changes your current raid format to the one you specify<br /><i>Example: <code>/raidformat &lt;visited:(v) &gt;&lt;name&gt; - &lt;diff&gt; &lt;fs&gt;/&lt;os&gt;</code></i><br />
+Changes your current raid format to the one you specify<br /><i>Example: <code>/raidformat &lt;visited:(v) &gt;&lt;name&gt; - &lt;diff&gt; &lt;fs&gt;/&lt;os&gt;</code></i><br /><br />
 <b>Command</b>: <code>/stop</code><br />
-Cancels raid posting. <br /><i>Example: <code>/stop</code></i><br />
+Cancels raid posting. <br /><i>Example: <code>/stop</code></i><br /><br />
 <b>Command</b>: <code>/help</code><br />
-Opens a support submission window. <br /><i>Example: <code>/help</code></i><br />
+Opens a support submission window. <br /><i>Example: <code>/help</code></i><br /><br />
 <b>Command</b>: <code>/ad</code><br />
-Posts the url for the is userscript in chat. <br /><i>Example: <code>/ad</code></i><br />
+Posts the url for the is userscript in chat. <br /><i>Example: <code>/ad</code></i><br /><br />
+<b>Command</b>: <code>/mute [user]</code><br />
+Mutes the specified user, but allows raids or pastebins posted by the user to be added to the script. <br /><i>Example: <code>/mute fakeuser1</code></i><br /><br />
+<b>Command</b>: <code>/unmute [user]</code><br />
+Unmutes the specified user. <br /><i>Example: <code>/unmute fakeuser1</code></i><br /><br />
+<b>Command</b>: <code>/mutelist</code><br />
+Displays a list of the script's currently muted users. <br /><i>Example: <code>/mutelist</code></i><br /><br />
 &nbsp;</p><table><tr><th>
 Tag name</th><th>
 Description</th></tr><tr><td><center><code>&lt;seen:text&gt;</code></center></td><td>
