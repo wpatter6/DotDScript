@@ -1801,7 +1801,7 @@ function main() {
 											<input name="PasteRaids" style="padding:5px" onclick="SRDotDX.gui.RaidAction(\'paste\');return false;" tabIndex="-1" type="button" value="Paste" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Update your pastebin with the selected (not dead) raids.\');">\
 											<input name="DeleteRaids" style="padding:5px" onclick="SRDotDX.gui.RaidAction(\'delete\');return false;" tabIndex="-1" type="button" value="Delete" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Delete selected raids.\');"> \
 											</td></tr></table> \
-											<input type="text" id="QuickShareText" style="display:none" size="37"> \
+											<textarea id="QuickShareText" style="display:none;height:16px;width:90%;"></textarea> \
 											</form>\
 											<iframe id="SRDotDX_pastebinExport" style="display:none"></iframe> \
 											<hr> \
@@ -2061,7 +2061,7 @@ function main() {
 					//spam tab
 					var FPXimpSpam= SRDotDX.gui.cHTML('#FPXRaidSpamTA');
 					FPXimpSpam.ele().style.width = e[0].offsetWidth - 12 + "px";
-					FPXimpSpam.ele().style.height = (h - 300) + "px";
+					FPXimpSpam.ele().style.height = "300px";
 					var FPXSpamText="Paste raid and/or pastebin links here to share or import\n\nLinks must be comma (,) separated.";
 					FPXimpSpam.ele().value=FPXSpamText;
 					FPXimpSpam.ele().addEventListener("blur",function() {
