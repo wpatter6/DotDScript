@@ -278,9 +278,7 @@ function main() {
 						total:total,
 						favorite:false
 					}
-					console.log("[SRDotDX] New pastebin added " + id + " : " + user)
-					//onNewPastie
-					//TODO ADD TO GUI/PURGE
+					console.log("[SRDotDX] New pastebin added " + id + " : " + user);
 					SRDotDX.gui.addPaste(id);
 				}
 				SRDotDX.config.pasteList[id].lastuser = user;
@@ -488,12 +486,6 @@ function main() {
 			} else pb.isNew = false;
 			pb.user = info.user;
 			pb.lastUser = info.lastUser;
-			//pb.seen = info.seen;
-			//pb.linkText = function () { //TODO
-			//	if (SRDotDX.config.formatPasteLinks){
-			//		var txt = SRDotDX.config.pasteLinkFormat;
-			//	}
-			//}
 			return pb;
 		},
 		getRaidDetails: function(url,user,visited,seen,ts,room) {
@@ -927,6 +919,7 @@ function main() {
 					if(typeof sender == "object") sender.className = sender.className.replace("closed_link", "opened_link");
 					if(!(typeof el2 === "undefined")){
 						//var oht = parseInt(String(el2.style.height).replace("px",""));
+						console.log("[SRDotDX] Resizing "+el2.id+" : " + el2.offsetHeight + " : " + el.offsetHeight + " : " + parseInt(el.offsetHeight/13) + " : " + (el2.offsetHeight - el.offsetHeight - parseInt(el.offsetHeight/13)));
 						el2.style.height = (el2.offsetHeight - el.offsetHeight - parseInt(el.offsetHeight/13)) + "px";
 					}
 				}else{
@@ -935,6 +928,7 @@ function main() {
 					if(typeof sender == "object") sender.className = sender.className.replace("opened_link", "closed_link");
 					if(!(typeof el2 === "undefined")){
 						//var oht = parseInt(String(el2.style.height).replace("px",""));
+						console.log("[SRDotDX] Resizing "+el2.id+" : " + el2.offsetHeight + " : " + h + " : " + parseInt(h/13) + " : " + (el2.offsetHeight+h+parseInt(h/13)));
 						el2.style.height = (el2.offsetHeight+h+parseInt(h/13)) + "px";
 					}
 				}
@@ -971,6 +965,8 @@ function main() {
 						}
 					}
 					if(!tagged){
+						if(SRDotDX.config.confirmForLargePaste && SRDotDX.gui.importingPastebin && linklist.split(",").length > SRDotDX.config.confirmPasteSize 
+							&& !confirm("This pastebin import exceeds "+SRDotDX.config.confirmPasteSize+" raids.  Continue with import?")) return false;
 						while(link = patt.exec(linklist))
 						{
 							imct++;
@@ -1710,7 +1706,7 @@ function main() {
 						#kong_game_ui div#lots_tab_pane ul li.tab div.tab_pane  { padding: 2px 5px; background-color: #ffffff; display: none;} \
 						#kong_game_ui div#lots_tab_pane ul li.tab.active div.tab_head { background-color: #ffffff; cursor: default; text-decoration: none; }\
 						#kong_game_ui div#lots_tab_pane ul li.tab.active div.tab_pane { position: absolute; display: block; left: 0px}\
-						#kong_game_ui div#lots_tab_pane ul li.tab.active div.tab_pane #raid_list {overflow-y: scroll; font-family: Verdana, Arial, sans-serif; font-size: 11px;} \
+						#kong_game_ui div#lots_tab_pane ul li.tab.active div.tab_pane #raid_list {overflow-y: scroll; font-family: Verdana, Arial, sans-serif; font-size: 11px;height:550px;} \
 						#kong_game_ui div#lots_tab_pane ul li.tab.active div.tab_pane #raid_list .raid_list_item {cursor: pointer; position: relative; padding: 2px; border-bottom: 1px solid #b0b0b0;} \
 						#kong_game_ui div#lots_tab_pane ul li.tab.active div.tab_pane #raid_list .raid_list_item .raid_list_item_head .link {display:none;} \
 						#kong_game_ui div#lots_tab_pane ul li.tab.active div.tab_pane #raid_list .raid_list_item .raid_list_item_head .FPXlink {display:block;width:10px;height:10px; padding-right: 5px;float: left;Background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAVklEQVR4Xn3PgQkAMQhDUXfqTu7kTtkpd5RA8AInfArtQ2iRXFWT2QedAfttj2FsPIOE1eCOlEuoWWjgzYaB/IkeGOrxXhqB+uA9Bfcm0lAZuh+YIeAD+cAqSz4kCMUAAAAASUVORK5CYII=') no-repeat scroll left center transparent;} \
@@ -2805,7 +2801,6 @@ function main() {
 						}
 						catch(err){}
 
-						var isgood = false;
 						var raid = SRDotDX.getRaidLink(d,b,isPublic)
 						if (typeof raid == 'object') {
 							e.class+= " SRDotDX_raid";
@@ -2821,7 +2816,6 @@ function main() {
 							SRDotDX.gui.raidListItemUpdate(raid.id);
 							if(raid.isNew && !SRDotDX.gui.AutoJoin)
 								SRDotDX.gui.updateMessage();
-							isgood = true;
 						}
 						var pb = SRDotDX.getPastebinLink(d,b,isPublic)
 						if (typeof pb == 'object') {
@@ -2830,9 +2824,8 @@ function main() {
 							if(doImport){
 								setTimeout("SRDotDX.gui.FPXImportPasteBin('"+pb.url+"');", 1000);
 							}
-							isgood = true;
 						}
-						if(SRDotDX.config.mutedUsers[b] && !isgood){
+						if(SRDotDX.config.mutedUsers[b]){
 							e.class+=" SRDotDX_nukedRaidList";
 							console.log("[SRDotDX] Muted message recieved from " + b + " : " + d);
 						}
@@ -2908,18 +2901,18 @@ function main() {
 				});
 				holodeck.addChatCommand("mute",function (deck, text){
 					var s = String(text).split(" ");
-					if(s.length == 2){
+					if(s.length == 2 && s[1] != ""){
 						SRDotDX.config.mutedUsers[s[1]]=true;
 						SRDotDX.echo('User "' + s[1] + '" muted.  Use the /unmute command to undo, and the /mutelist to see all muted users.');
 						SRDotDX.config.save(false);
 					}else {
-						SRDotDX.echo('<b>/mute</b>: Invalid parameters specified. (<a href="#" onclick="SRDotDX.gui.help(\'mute\'); return false">help</a>)');//todo help gui
+						SRDotDX.echo('<b>/mute</b>: Invalid parameters specified. The proper syntax is "/mute [username]". <!--(<a href="#" onclick="SRDotDX.gui.help(\'mute\'); return false">help</a>)-->');
 					}
 					return false;
 				});
 				holodeck.addChatCommand("unmute",function (deck, text){
 					var s = String(text).split(" ");
-					if(s.length == 2){
+					if(s.length == 2 && s[1] != ""){
 						if(s[1] == 'all'){
 							for(var u in SRDotDX.config.mutedUsers){
 								delete SRDotDX.config.mutedUsers[u];
@@ -2932,7 +2925,7 @@ function main() {
 						} else SRDotDX.echo('No muted user "' + s[1] + '" found.');
 						
 					}else {
-						SRDotDX.echo('<b>/unmute</b>: Invalid parameters specified. (<a href="#" onclick="SRDotDX.gui.help(\'unmute\'); return false">help</a>)');//todo help gui
+						SRDotDX.echo('<b>/unmute</b>: Invalid parameters specified. The proper syntax is "/unmute [username]". "/unmute all" can be used to unmute all muted users.<!--(<a href="#" onclick="SRDotDX.gui.help(\'unmute\'); return false">help</a>)-->');
 					}
 					return false;
 				});
@@ -3289,7 +3282,7 @@ function main() {
 			} else if(/pbedit_done/.test(event.data)){
 				SRDotDX.gui.ExportingPaste = false;
 				console.log("[SRDotDX] Pastebin edit done");
-				SRDotDX.gui.doStatusOutput(SRDotDX.gui.RaidsForPaste.length + " raids updated into your pastebin.");
+				SRDotDX.gui.doStatusOutput(SRDotDX.gui.RaidsForPaste.length + " raids exporting into your pastebin...");
 			} else if(/pb_main/.test(event.data)){
 				if(SRDotDX.gui.ExportingPaste){
 					SRDotDX.gui.ExportingPaste = false;
@@ -3300,8 +3293,10 @@ function main() {
 					for(i=0;i<els.length;i++) els[i].innerHTML="(Invalid)";
 					SRDotDX.gui.importingPastebin=false;
 				} else {
-					if(SRDotDX.config.autoPostPaste)
+					SRDotDX.gui.doStatusOutput(SRDotDX.gui.RaidsForPaste.length + " raids updated into your pastebin.");
+					if(SRDotDX.config.autoPostPaste){
 						SRDotDX.gui.FPXdoWork('http://pastebin.com/'+(event.data+"").substring((event.data+"").length-8))
+					}
 				}
 			} else {
 				var pbid = event.data.split("###")[0];
