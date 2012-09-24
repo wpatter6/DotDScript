@@ -27,12 +27,13 @@ Contact Me: A list of ways to contact me for whatever reasons<br />
 3) Added /mute, /unmute, and /mutelist commands for muting users.  Muting users through the script will not prevent any raids or pastebins posted by them to be added to the script.  The proper syntax is "/mute [username]" or "/unmute username".  The command "/unmute all" can be used to unmute all muted users.</br>
 4) Added option to give a confirmation if a pastebin exceeding a user specified number of raids is being auto imported. </br>
 5) If you click on a raid while auto joining, it now splices that raid into the joining array so nothing is skipped.<br/>
-6) Fixed but where "(0)" was being shown on the top level raids tab.<br/>
+6) Fixed bug where "(0)" was being shown on the top level raids tab.<br/>
 7) Removed "Delete All Raids" button from the options tab.  This can now be performed using the updated raid actions interface.<br/>
 8) Added "Quick copy" box that appears when you "Share" raids from raid actions.<br/>
 9) Fixed bug that was occasionally causing the raid list to be unscrollable.<br/>
 10) Fixed bug that was occasionally causing some raids not to import on the first try.<br/>
 11) Added handling when pastebin imports time out.<br/>
+12) Added automatic script update checking and notification.<br/>
 
 <br/><br/>
 

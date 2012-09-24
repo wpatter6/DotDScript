@@ -9,6 +9,7 @@
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
 // @include        *web*.dawnofthedragons.com/kong*
+// @include        http://userscripts.org/scripts/review/140080
 // ==/UserScript==
 
 function main() {
@@ -174,6 +175,7 @@ function main() {
 			tmp.unvisitedRaidPruningMode = (typeof tmp.unvisitedRaidPruningMode == 'number'? tmp.unvisitedRaidPruningMode : 1);
 			tmp.selectedRaids = (typeof tmp.selectedRaids == 'string'?tmp.selectedRaids:"");
 			tmp.pastebinUrl = (typeof tmp.pastebinUrl == 'string'?tmp.pastebinUrl:"");
+			tmp.lastUpdateCheck = (typeof tmp.lastUpdateCheck == 'number'?tmp.lastUpdateCheck:0);
 
 			if (typeof tmp.mutedUsers != 'object')tmp.mutedUsers = {};
 			if (typeof tmp.raidList != 'object')tmp.raidList = {};
@@ -1725,6 +1727,7 @@ function main() {
 
 					var pane = SRDotDX.gui.cHTML('div').set({id: 'lots_tab_pane'}).html(' \
 						<div class="room_name_container h6_alt mbs">DotD Extension - <span class="room_name" id="StatusOutput"></span></div> \
+						<div class="room_name_container h6_alt mbs" id="UpdateNotification" style="display:none">Your script version is out of date.  <a href="http://userscripts.org/scripts/show/140080" target="_blank">Update</a> <a href="#" onclick="document.getElementById(\'UpdateNotification\').style.display=\'none\'; return false;">Dismiss</a></div> \
 						<ul id="SRDotDX_tabpane_tabs"> \
 							<li class="tab active"> \
 								<div class="tab_head" id="raids_tab">Raids</div> \
@@ -2022,6 +2025,7 @@ function main() {
 										</div> \
 										<iframe id="SRDotDX_joiner" style="display:none"></iframe> \
 										<iframe id="SRDotDX_pastebin" style="display:none"></iframe> \
+										<iframe id="SRDotDX_update" style="display:none"></iframe> \
 									</div> \
 								</div> \
 							</li> \
@@ -2542,6 +2546,9 @@ function main() {
 
 					// Start raid pruning 10 seconds after loading completion
 					setTimeout('SRDotDX.gui.BeginDeletingExpiredUnvisitedRaids(); SRDotDX.purge();',10000);
+
+					// Start update checking 10 seconds after loading completion
+					setTimeout('SRDotDX.BeginUpdateChecking();',10000);
 
 					console.log("[SRDotDX] Loading is complete.");
 				}
@@ -3147,6 +3154,48 @@ function main() {
 			} 
 		},
 
+		BeginUpdateChecking: function() {
+			SRDotDX.UpdateCheck();
+			setInterval('SRDotDX.UpdateCheck();',600000);
+		},
+
+		UpdateCheck: function() {
+			var curTime = new Date().getTime();
+			if (SRDotDX.config.lastUpdateCheck < (curTime - 86400000)) {
+				console.log("[SRDotDX] Checking for update");
+
+				// Load the update check iframe
+				document.getElementById('SRDotDX_update').src = 'http://userscripts.org/scripts/review/140080';
+
+				SRDotDX.config.lastUpdateCheck = curTime;
+
+			}
+
+		},
+
+		IsPublicVersionNewer: function(publicVersion) {
+			var re = /(\d+)\.(\d+)\.(\d+)/;
+
+			var matches = publicVersion.match(re);
+			var publicMajor = parseInt(matches[1],10);
+			var publicMinor = parseInt(matches[2],10);
+			var publicBuild = parseInt(matches[3],10);
+
+			
+			matches = SRDotDX.version.major.match(re);
+			var thisMajor = parseInt(matches[1],10);
+			var thisMinor = parseInt(matches[2],10);
+			var thisBuild = parseInt(matches[3],10);
+
+			if (publicMajor > thisMajor || (publicMajor == thisMajor && publicMinor > thisMinor) || (publicMajor == thisMajor && publicMinor == thisMinor && publicBuild > thisBuild)) {
+				// public version greater
+				return true;
+			} else {
+				// current version greater
+				return false;
+			}
+		},
+
 		searchKeywords: {
 			z1: { reg: /^(z1)|(kobold\sbelts?)|(hilted\sspears?)$/i, sub: 'horgrak|mazalu|grune' },
 			z2: { reg: /^(z2)|(bandit\sinsignias?)$/i, sub: 'ataxes|alice|lurking' },
@@ -3340,9 +3389,7 @@ function main() {
 				SRDotDX.gui.importingPastebin=false;
 				console.log("[SRDotDX] Pastebin import complete");
 			}
-		}
-
-		if(/web[\w]+\.dawnofthedragons\.com/i.test(event.origin)) { // for Kong game iframe 
+		} else if(/web[\w]+\.dawnofthedragons\.com/i.test(event.origin)) { // for Kong game iframe 
 			
 			// message to reload the frame
 			if (/reload/i.test(event.data)) { 
@@ -3433,7 +3480,18 @@ function main() {
 					}
 				}
 			}
-		} 
+		} else if (/userscripts.org/i.test(event.origin)) { // For auto-update check
+			if (SRDotDX.IsPublicVersionNewer(event.data)) {
+				var el = document.getElementById('UpdateNotification');
+				if (el) { 
+					el.style.display = "block"; 
+				}
+				
+			} 
+
+		} else { // Events from other sources
+			console.log("[SRDotDX] Event from unknown source ignored, source: " + event.origin);
+		}
 
 	}, false);
 	console.log("[SRDotDX] Initialized. Checking for needed Kongregate resources...");
@@ -3500,6 +3558,19 @@ function DDmain(){//game frame script
 		window.parent.postMessage(message,'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
 	} 
 }
+function UpdateMain() { // Update check page script
+	// Parse out the version number and send it over
+	var re = /\/\/\s+@version\s+(\d+\.\d+\.\d+)/i;
+
+	if (re.test(document.body.textContent)) {
+		// version tag found
+		var versionString = document.body.textContent.match(re)[1];
+
+		// Pass the version string back to the main window so it can compare versions
+		window.parent.postMessage(versionString,'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
+	}
+
+}
 if (/^http:\/\/www\.kongregate\.com\/games\/5thplanetgames\/dawn-of-the-dragons(?:\/?$|\?|#)/i.test(document.location.href)) {
 	console.log("[SRDotDX] Initializing....");
 	/*var jq = document.createElement("script");
@@ -3531,5 +3602,11 @@ if (/web[\w]+\.dawnofthedragons\.com\/kong/i.test(document.location.href)) {
 	console.log("[SRDotDX] Gamescript Initializing....");
 	var script = document.createElement("script");
 	script.appendChild(document.createTextNode('('+DDmain+')()'));
+	(document.head || document.body || document.documentElement).appendChild(script);
+}
+if (/userscripts.org\/scripts\/review\/140080/i.test(document.location.href)) {
+	console.log("[SRDotDX] Update script initializing....");
+	var script = document.createElement("script");
+	script.appendChild(document.createTextNode('('+UpdateMain+')()'));
 	(document.head || document.body || document.documentElement).appendChild(script);
 }
