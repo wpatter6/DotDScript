@@ -763,7 +763,7 @@ function main() {
 			addPaste: function (id) {
 				var p = id;
 				if(typeof id == "string") p = SRDotDX.config.pasteList[id];
-				if(p.url) {
+				if(p && p.url) {
 					var a = document.getElementById("paste_list");
 					if (typeof a != 'undefined' && a) {
 						var b = 1
@@ -804,9 +804,11 @@ function main() {
 			},
 			FavoritePaste: function (id, el){
 				var p = SRDotDX.config.pasteList[id];
-				p.favorite = (typeof p.favorite=='boolean'?!p.favorite:true);
-				if(p.favorite) el.setAttribute("src","http://cdn1.iconfinder.com/data/icons/icojoy/noshadow/standart/png/24x24/001_15.png");
-				else el.setAttribute("src","http://cdn1.iconfinder.com/data/icons/icojoy/shadow/standart/gif/24x24/001_17.gif");
+				if (p) {
+					p.favorite = (typeof p.favorite=='boolean'?!p.favorite:true);
+					if(p.favorite) el.setAttribute("src","http://cdn1.iconfinder.com/data/icons/icojoy/noshadow/standart/png/24x24/001_15.png");
+					else el.setAttribute("src","http://cdn1.iconfinder.com/data/icons/icojoy/shadow/standart/gif/24x24/001_17.gif");
+				}
 			},
 			cHTML: function (ele) {
 				function cEle(ele) {
@@ -1282,7 +1284,7 @@ function main() {
 						console.log("[SRDotDX] Importing pastebin " +url);
 						SRDotDX.gui.importingPastebin=true;
 						document.getElementById("SRDotDX_pastebin").src = url;
-						setTimeout("if(SRDotDX.gui.importingPastebin){SRDotDX.gui.doStatusOutput('The pastebin request timed out. Please try again.');SRDotDX.gui.importingPastebin=false; for(i=0;i<document.getElementsByClassName('pb_"+url.substring(url.length-8)+"').length;i++){document.getElementsByClassName('pb_"+url.substring(url.length-8)+"')[i].innerHTML='<a href=\"#\" onClick=\"return false;\" onMouseDown=\"SRDotDX.gui.FPXImportPasteBin(\'"+url+"\')\">Import</a>';}}", 20000);//not found in 20 secs error occured
+						setTimeout("if(SRDotDX.gui.importingPastebin){SRDotDX.gui.doStatusOutput('The pastebin request timed out. Please try again.');SRDotDX.gui.importingPastebin=false; for(i=0;i<document.getElementsByClassName('pb_"+url.substring(url.length-8)+"').length;i++){document.getElementsByClassName('pb_"+url.substring(url.length-8)+"')[i].innerHTML='<a href=\"#\" onClick=\"return false;\" onMouseDown=\"SRDotDX.gui.FPXImportPasteBin(\'"+url+"\');\">Import</a>';}}", 20000);//not found in 20 secs error occured
 					} else {
 						console.log("[SRDotDX] Pastebin collision, trying again in 1 second");
 						setTimeout("SRDotDX.gui.FPXImportPasteBin('"+url+"');", 1000);
@@ -1642,8 +1644,8 @@ function main() {
 				console.log("[SRDotDX] Pruning pastebins");
 				for(i=0;i<pasteList.length;i++){
 					var item = pasteList[i];
-					var p = SRDotDX.config.pasteList[item.getAttribute("pasteid")];
-					if(p.timeStamp < (new Date().getTime() - (3600000*24)) && (typeof p.favorite != 'boolean' || !p.favorite)){
+					var p = SRDotDX.config.pasteList[item.getAttribute("pasteid")];					
+					if(p && (p.timeStamp < (new Date().getTime() - (3600000*24)) && (typeof p.favorite != 'boolean' || !p.favorite))){
 						SRDotDX.gui.deletePaste(item.getElementsByClassName('FPXDeleteLink')[0], p.id);
 						ct++;
 					}
@@ -2756,8 +2758,10 @@ function main() {
 				}
 			},
 			toggleCSS: function (p) {
-				document.head.removeChild(document.getElementById(p.id));
-				SRDotDX.gui.cHTML("style").set({type: "text/css", id: p.id}).text(p.cls).attach("to",document.head);
+				if (p) {
+					document.head.removeChild(document.getElementById(p.id));
+					SRDotDX.gui.cHTML("style").set({type: "text/css", id: p.id}).text(p.cls).attach("to",document.head);
+				}
 			},
 			toggleRaid: function(type,id,tog) {
 				var d = document.getElementsByClassName("SRDotDX_raidid_" + id);
