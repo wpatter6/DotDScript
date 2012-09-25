@@ -3,8 +3,8 @@
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        1.1.0
-// @date           09.21.2012
+// @version        1.1.1
+// @date           09.25.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -137,7 +137,7 @@ function main() {
 	window.elfade=function(elem,time){if(typeof time!='number')time=500;if(typeof elem=='string')elem=document.getElementById(elem);if(elem==null)return;var startOpacity=elem.style.opacity||1;elem.style.opacity=startOpacity;var tick=1/(time/100);(function go(){elem.style.opacity=Math.round((elem.style.opacity-tick)*100)/100;if(elem.style.opacity>0)setTimeout(go,100);else elem.style.display='none'})()}
 	
 	window.SRDotDX = {
-		version: {major: "1.1.0", minor: "wpatter6/JHunz"},
+		version: {major: "1.1.1", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -1437,10 +1437,13 @@ function main() {
 				console.log("[SRDotDX] Sorting finished");
 			},
 			UpdateSelectedRaidCount: function () {
-				console.log("[SRDotDX] Updating selected raid count");
-				var raids = SRDotDX.gui.GetRaids();
-				document.getElementById("selected_raid_count").innerHTML = raids.length + " selected";
-				delete raids;
+				var el = document.getElementById("selected_raid_count");
+				if(el.offsetHeight + el.offsetWidth > 0){
+					console.log("[SRDotDX] Updating selected raid count");
+					var raids = SRDotDX.gui.GetRaids();
+					el.innerHTML = raids.length + " selected";
+					delete raids;
+				}
 			},
 			GetAncestorAttribute: function(el, att){
 				if(el.getAttribute && el.getAttribute(att) != null) return el.getAttribute(att);
@@ -1726,7 +1729,7 @@ function main() {
 						#kong_game_ui div#lots_tab_pane ul li.tab.active div.tab_pane #raid_list .raid_list_item.active .raid_list_item_info {display:block;} \
 					").attach("to",document.head);
 					var link = SRDotDX.gui.cHTML('a').set({href: '#lots_tab_pane',class: ''}).html("<span class='SRDotDX_new'>&nbsp;</span>").attach("to",SRDotDX.gui.cHTML('li').set({class: 'tab', id: 'lots_tab', onclick:'SRDotDX.gui.raidsTabClicked()'}).attach("after","game_tab").ele()).ele();
-
+					
 					var pane = SRDotDX.gui.cHTML('div').set({id: 'lots_tab_pane'}).html(' \
 						<div class="room_name_container h6_alt mbs">DotD Extension - <span class="room_name" id="StatusOutput"></span></div> \
 						<div class="room_name_container h6_alt mbs" id="UpdateNotification" style="display:none">Your script version is out of date.  <a href="http://userscripts.org/scripts/show/140080" target="_blank">Update</a> <a href="#" onclick="document.getElementById(\'UpdateNotification\').style.display=\'none\'; return false;">Dismiss</a></div> \
@@ -1782,11 +1785,11 @@ function main() {
 										</div> \
 									</div> \
 									<div id="FPXRaidActionsDiv" class="collapsible_panel"> \
-										<p class="panel_handle spritegame mts closed_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXRaidActions\', this, \'raid_list\')"> <a> Raid Actions </a> </p> \
+										<p class="panel_handle spritegame mts closed_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXRaidActions\', this, \'raid_list\');SRDotDX.gui.UpdateSelectedRaidCount();"> <a> Raid Actions </a> </p> \
 										<div id="FPXRaidActions" style="display:none"> \
 											<hr> \
 											<form name="RaidActionsForm" onsubmit="return false">\
-											<input type="checkbox" id="selection_all_checkbox"> All Raids <span style="float:right" id="selected_raid_count"></span>\
+											<input type="checkbox" id="selection_all_checkbox"> All Raids <span style="float:right" id="selected_raid_count">&nbsp;</span>\
 											<table style="width;100%">\
 											<tr><td style="padding-right:5px">\
 											<input type="radio" class="raid_selection" name="radio_raid_visibility" value="visible_">Visible<br/>\
@@ -1810,7 +1813,7 @@ function main() {
 											</td></tr></table> \
 											<textarea id="QuickShareText" style="display:none;height:16px;width:90%;"></textarea> \
 											</form>\
-											<iframe id="SRDotDX_pastebinExport" style="display:none"></iframe> \
+											<iframe id="SRDotDX_pastebinExport" style="height:0px;"></iframe> \
 											<hr> \
 										</div> \
 									</div> \
@@ -1837,7 +1840,7 @@ function main() {
 											<input type="checkbox" id="SRDotDX_options_newPasteAtTopOfRaidList"> New pastebins at top of raid list <br> \
 										</div> \
 									</div><br> \
-									<div id="paste_list" tabIndex="-1" style="overflow:auto"> No pastys :( \
+									<div id="paste_list" tabIndex="-1" style="overflow:auto; height:557px"> No pastys :( \
 									</div> \
 								</div> \
 							</li> \
@@ -2051,9 +2054,6 @@ function main() {
 							}
 						});
 					}
-					link.addEventListener("click", function(event){
-						SRDotDX.gui.UpdateSelectedRaidCount();
-					});
 					holodeck._tabs.addTab(link);
 
 					var e = pane.getElementsByClassName("tab_pane");
