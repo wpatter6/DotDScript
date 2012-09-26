@@ -23,11 +23,13 @@ Contact Me: A list of ways to contact me for whatever reasons<br />
 <h3><b>Changelog</b></h3><p>
 <b>1.1.2</b><br>
 1) Bug with extra space left over when deleting pastebins fixed.
+2) Better handling for attempting to import pastebins that have expired added.
+3) Raid filters are reapplied when new raids are added or imported.
+4) Posting is now correctly handled when in private as well as regular chat.
+5) Fixed bug for older firefox versions in raid selection.
 <br><br>
 <b>1.1.1</b><br>
 1) Hot fix for pastebin exporting in FireFox.
-2) Better handling for attempting to import pastebins that have expired added.
-3) Raid filters are reapplied when new raids are added or imported.
 <br><br>
 <b>1.1.0</b><br>
 1) Modified raid actions interface to allow for more advanced selection and action. Also gives a count of the number of "selected" raids.  Dead raids can now be selected, but the only action which can be performed on them is "Delete".<br/>
