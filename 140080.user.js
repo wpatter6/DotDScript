@@ -3,8 +3,8 @@
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        1.1.1
-// @date           09.25.2012
+// @version        1.1.2
+// @date           09.26.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -137,7 +137,7 @@ function main() {
 	window.elfade=function(elem,time){if(typeof time!='number')time=500;if(typeof elem=='string')elem=document.getElementById(elem);if(elem==null)return;var startOpacity=elem.style.opacity||1;elem.style.opacity=startOpacity;var tick=1/(time/100);(function go(){elem.style.opacity=Math.round((elem.style.opacity-tick)*100)/100;if(elem.style.opacity>0)setTimeout(go,100);else elem.style.display='none'})()}
 	
 	window.SRDotDX = {
-		version: {major: "1.1.1", minor: "wpatter6/JHunz"},
+		version: {major: "1.1.2", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -988,28 +988,25 @@ function main() {
 						SRDotDX.gui.doStatusOutput('Import complete, ' + diff + ' of ' + imct + ' new raids');
 					}
 					SRDotDX.gui.Importing=false;
+					SRDotDX.gui.FPXFilterRaidListByName();
 					if(save) SRDotDX.config.save(false);
 					return {totalnew: diff, total:imct}
 				}
 			},
 			deletePaste: function (ele,id){
 				console.log("[SRDotDX] delete paste " + id);
-				if (SRDotDX.config.pasteList[id]) {
-					delete SRDotDX.config.pasteList[id];
-				}
-				setTimeout(function(ele) {
-					ele.parentNode.removeChild(ele);
-				},1,ele.parentNode.parentNode.parentNode.parentNode)
+				if (SRDotDX.config.pasteList[id]) delete SRDotDX.config.pasteList[id];
+				while(ele.className != 'paste_list_item_head' && ele.parentNode) ele = ele.parentNode;
+				setTimeout(function(ele) { ele.parentNode.removeChild(ele); },1,ele);
 			},
 			deleteRaid: function (ele,id,upd) {
 				upd=(typeof upd === 'undefined'?true:upd);
 				if (SRDotDX.config.raidList[id]) {
 					delete SRDotDX.config.raidList[id];
 				}
-				setTimeout(function(ele) {
+				setTimeout(function(ele,upd) {
 					ele.parentNode.removeChild(ele);
-					if(upd)SRDotDX.gui.updateMessage();
-				},1,ele.parentNode.parentNode.parentNode)
+				},1,ele.parentNode.parentNode.parentNode);
 			},
 			FPXdeleteAllRaids: function () {
 				if(!SRDotDX.config.confirmDeletes || confirm("This will delete all " + SRDotDX.config.raidList.length + " raids stored. Continue? \n (This message can be disabled on the options tab.)")){
@@ -1877,8 +1874,8 @@ function main() {
 										</div> \
 									</div> \
 									<div id="FPXPasteOptionsDiv" class="open_link"> \
-										<p class="panel_handle spritegame mts opened_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXChatOptions\', this)"> <a> Pastebin Options </a> </p> \
-										<div id="FPXChatOptions"> \
+										<p class="panel_handle spritegame mts opened_link" onclick="SRDotDX.gui.toggleDisplay(\'FPXPasteOptions\', this)"> <a> Pastebin Options </a> </p> \
+										<div id="FPXPasteOptions"> \
 											<hr> \
 											<input type="checkbox" id="SRDotDX_options_autoImportPaste"> Auto import pastebins <br> \
 											<input type="checkbox" id="SRDotDX_options_confirmForLargePaste"> Confirm if paste exceeds <input type="text" id="SRDotDX_options_confirmPasteSize" size="4"><br/> \
@@ -2655,8 +2652,8 @@ function main() {
 				}
 			},
 			FPXpasteListMouseDown: function (e) {
-				var classtype=e.element().className;
 				e = e || window.event;
+				var classtype=e.element().className;
 				e.stopPropagation();
 				console.log("[SRDotDX]::{FPX}:: Clicked on::"+classtype+"::"+e.which);
 				if(e.which == 1){
@@ -2821,8 +2818,11 @@ function main() {
 							SRDotDX.gui.toggleRaid('visited',raid.id,raid.visited);
 							SRDotDX.config.raidList[raid.id].seen = true;
 							SRDotDX.gui.raidListItemUpdate(raid.id);
-							if(raid.isNew && !SRDotDX.gui.AutoJoin)
-								SRDotDX.gui.updateMessage();
+							if(raid.isNew){
+								if(!SRDotDX.gui.AutoJoin)
+									SRDotDX.gui.updateMessage();
+								SRDotDX.gui.FPXFilterRaidListByName();
+							}
 						}
 						var pb = SRDotDX.getPastebinLink(d,b,isPublic)
 						if (typeof pb == 'object') {
@@ -3338,8 +3338,9 @@ function main() {
 					console.log("[SRDotDX] Pastebin edit fail");
 					alert("An error occured pastebin.  Make sure you are logged in to pastebin and your pastebin url is correct, and try again.");
 				} else if (SRDotDX.gui.importingPastebin){
-					var els = document.getElementsByClassName("pb_"+pbid);
+					var els = document.getElementsByClassName("pb_"+(event.data+"").substring((event.data+"").length-8));
 					for(i=0;i<els.length;i++) els[i].innerHTML="(Invalid)";
+					SRDotDX.gui.deletePaste(document.getElementById('lastImport_'+pbid), pbid);
 					SRDotDX.gui.importingPastebin=false;
 				} else {
 					SRDotDX.gui.doStatusOutput(SRDotDX.gui.RaidsForPaste.length + " raids updated into your pastebin.");
@@ -3347,6 +3348,13 @@ function main() {
 						SRDotDX.gui.FPXdoWork('http://pastebin.com/'+(event.data+"").substring((event.data+"").length-8))
 					}
 				}
+			}else if(/pb_unknown/.test(event.data)){
+				var pbid=(event.data+"").substring((event.data+"").length-8);
+				var els = document.getElementsByClassName("pb_"+pbid);
+				for(i=0;i<els.length;i++) els[i].innerHTML="(Invalid Pastebin)";
+				SRDotDX.gui.deletePaste(document.getElementById('lastImport_'+pbid), pbid);
+				SRDotDX.gui.importingPastebin=false;
+				console.log("[SRDotDX] Pastebin unknown link");
 			} else {
 				var pbid = event.data.split("###")[0];
 				var u='User Import', t=0;
@@ -3498,7 +3506,9 @@ function main() {
 	SRDotDX.load(0);	
 }
 function PBmain(){
-	window.parent.postMessage("pb_main "+(window.location+"").substring((window.location+"").length-8), 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
+	var ct = document.getElementsByClassName('content_title')[0];
+	if(ct && /Unknown/.test(ct.innerHTML)) window.parent.postMessage("pb_unknown "+(window.location+"").substring((window.location+"").length-8), 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
+	else window.parent.postMessage("pb_main "+(window.location+"").substring((window.location+"").length-8), 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
 }
 function PBrawmain(){//pastebin import script
 	window.parent.postMessage((window.location+"").substring((window.location+"").length-8)+"###"+document.getElementsByTagName("body")[0].innerHTML, 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
