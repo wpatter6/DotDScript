@@ -1033,23 +1033,19 @@ function main() {
 			FPXdoWork: function (param1, whisper, whisperTo) {
 				console.log("[SRDotDX]::{FPX}::"+param1+"\n");
 				var matchClass="chat_input";						
-				var elems= document.getElementById("chat_rooms_container").firstChild.getElementsByTagName('textarea');
+				var elems= document.getElementsByClassName('chat_input');//document.getElementById("chat_rooms_container").firstChild.getElementsByTagName('textarea');
 				if(whisper && ((whisperTo||"") != "")){
 					console.log("[SRDotDX] Whispering spam to " + SRDotDX.config.whisperTo);
 					param1 = "/w " + SRDotDX.config.whisperTo + " " + param1;
 				}
-				for (var i in elems){
-						if((" "+elems[i].className+" ").indexOf(" "+matchClass+" ") > -1){
-							var ctxt = elems[i].value;
-							elems[i].value = param1;
-							holodeck.activeDialogue().sendInput(); 
-							if(ctxt != ""){
-								elems[i].value = ctxt;
-								elems[i].focus();
-							}
-							break;
-							
-						}
+				var txt = [];
+				for(i=0;i<elems.length;i++){
+					txt[i] = elems[i].value;
+					elems[i].value = param1;
+				}
+				holodeck.activeDialogue().sendInput();
+				for(i=0;i<txt.length;i++){
+					elems[i].value = txt[i];
 				}
 			},
 			FPXformatRaidOutput: function(url) {
@@ -2157,7 +2153,7 @@ function main() {
 						var regex = new RegExp(el.value, "ig");
 						if(regex.test(SRDotDX.config.selectedRaids)) el.checked = 'checked';
 						el.addEventListener('click', function(){
-							var rs = RaidActionsForm[this.name];
+							var rs = document.RaidActionsForm[this.name];
 							for(j=0;j<rs.length;j++) 
 								SRDotDX.config.selectedRaids = SRDotDX.config.selectedRaids.replace(new RegExp(rs[j].value, "ig"), "");
 							if(this.checked) 
