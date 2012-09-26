@@ -3,7 +3,7 @@
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        1.1.2
+// @version        1.1.3
 // @date           09.26.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
@@ -137,7 +137,7 @@ function main() {
 	window.elfade=function(elem,time){if(typeof time!='number')time=500;if(typeof elem=='string')elem=document.getElementById(elem);if(elem==null)return;var startOpacity=elem.style.opacity||1;elem.style.opacity=startOpacity;var tick=1/(time/100);(function go(){elem.style.opacity=Math.round((elem.style.opacity-tick)*100)/100;if(elem.style.opacity>0)setTimeout(go,100);else elem.style.display='none'})()}
 	
 	window.SRDotDX = {
-		version: {major: "1.1.2", minor: "wpatter6/JHunz"},
+		version: {major: "1.1.3", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -3081,9 +3081,13 @@ function main() {
 					return false;
 				});
 				holodeck.addChatCommand("version", function(deck,text) {
+					var timeDiff = new Date().getTime() - SRDotDX.config.lastUpdateCheck;
+					var diffHours = Math.round(timeDiff / 360000) / 10; 
+
 					var d = "<b>Version</b>: "+SRDotDX.version.major+"("+SRDotDX.version.minor+")<br>";
 					d += "<b>Major Version</b>: "+SRDotDX.version.major+"<br>"
 					d += "<b>Minor Version</b>: "+SRDotDX.version.minor+"<br>"
+					d += "<b>Last Update Check</b>: "+diffHours+" hours ago<br>"
 					d += '<a href="http://userscripts.org/scripts/show/140080" target="_blank">Go to script page</a>';
 					SRDotDX.echo(d);
 					return false;
