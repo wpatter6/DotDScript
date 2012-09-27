@@ -3553,6 +3553,7 @@ function DDmain(){//game frame script
 			// Bad hash: invalid raid hash
 			// Bad ID: invalid raid id
 			// Guild raid from other guild: not a member of the guild
+			// Fake link : Failed to find raid hash
 			if (/successfully (re-)?joined/i.test(text)) {
 				message += " success";
 			} else if (/already completed/i.test(text)) {
@@ -3560,7 +3561,7 @@ function DDmain(){//game frame script
 			} else if (/not a member of the guild/i.test(text)) {
 				// If the raid is dead or it's a raid from another guild, add to the message to nuke it so it's invisible and unshareable
 				message += " wrongguild";
-			} else if (/invalid raid (hash|ID)/i.test(text)) {
+			} else if (/(invalid|find) raid (hash|ID)/i.test(text)) {
 				// If the hash or ID is invalid, add to the message to delete it so that hopefully a version with the right hash/ID can be added later
 				message += " invalid";
 			} else if (/already a member/i.test(text)) {
