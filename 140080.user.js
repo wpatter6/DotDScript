@@ -3,7 +3,7 @@
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        1.1.3
+// @version        1.1.4
 // @date           09.26.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
@@ -137,7 +137,7 @@ function main() {
 	window.elfade=function(elem,time){if(typeof time!='number')time=500;if(typeof elem=='string')elem=document.getElementById(elem);if(elem==null)return;var startOpacity=elem.style.opacity||1;elem.style.opacity=startOpacity;var tick=1/(time/100);(function go(){elem.style.opacity=Math.round((elem.style.opacity-tick)*100)/100;if(elem.style.opacity>0)setTimeout(go,100);else elem.style.display='none'})()}
 	
 	window.SRDotDX = {
-		version: {major: "1.1.3", minor: "wpatter6/JHunz"},
+		version: {major: "1.1.4", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -335,12 +335,13 @@ function main() {
 						console.log("[SRDotDX] Purging started " + diff);
 						
 						var i=0, total=0;
-						var draids = SRDotDX.gui.GetRaids('nuked');
+						var draids = SRDotDX.gui.GetRaids('nuked_');
 						draids.sort(function(a,b){
-							if(!(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
+							if(a && !(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
 								if(a.timeStamp < b.timeStamp) return -1;
 							return 1;
 						});
+						console.log("[SRDotDX] Purging dead raids (" + draids.length + " found)");
 						while(i<draids.length && diff > 0){
 							console.log('[SRDotDX] Purging ' + draids[i].id);
 							SRDotDX.gui.deleteRaid(draids[i].ele.getElementsByClassName("FPXDeleteLink")[0], draids[i].id);
@@ -348,12 +349,13 @@ function main() {
 						}
 						delete draids;
 						total+=i; i=0;
-						var uraids = SRDotDX.gui.GetRaids('new');
+						var uraids = SRDotDX.gui.GetRaids('new_');
 						uraids.sort(function(a,b){
-							if(!(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
+							if(a && !(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
 								if(a.timeStamp < b.timeStamp) return -1;
 							return 1;
 						});
+						console.log("[SRDotDX] Purging new raids (" + uraids.length + " found)");
 						while(i<uraids.length && diff > 0){
 							if((new Date).getTime() - uraids[i].timeStamp > 3600000){//only if it's older than 1 hour
 								console.log('[SRDotDX] Purging ' + uraids[i].id);
@@ -364,14 +366,15 @@ function main() {
 						delete uraids;
 						total+=i; i=0;
 						if(diff > 0){
-							var raids = SRDotDX.gui.GetRaids('all');
+							var raids = SRDotDX.gui.GetRaids('all_');
 							raids.sort(function(a,b){
-								if(!(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
+								if(a && !(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
 									if(a.timeStamp < b.timeStamp) return -1;
 								return 1;
 							});
+							console.log("[SRDotDX] Purging raids (" + raids.length + " found)");
 							while(i<raids.length && diff > 0){
-								if((new Date).getTime() - uraids[i].timeStamp > 3600000){//only if it's older than 1 hour
+								if((new Date).getTime() - raids[i].timeStamp > 3600000){//only if it's older than 1 hour
 									console.log('[SRDotDX] Purging ' + raids[i].id);
 									SRDotDX.gui.deleteRaid(raids[i].ele.getElementsByClassName("FPXDeleteLink")[0], raids[i].id);
 									i++; diff--;
@@ -380,7 +383,7 @@ function main() {
 							delete raids;
 						}
 						total += i;
-						SRDotDX.gui.doStatusOutput('Maximum raid count exceeded. ' + total + ' old raids purged.');
+						SRDotDX.gui.doStatusOutput('Exceeded max raids. ' + total + ' old raids purged.');
 						console.log("[SRDotDX] Purging ended");
 					}else setTimeout("SRDotDX.purge();", 1000);
 				}
