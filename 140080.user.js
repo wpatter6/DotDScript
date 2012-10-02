@@ -3,8 +3,8 @@
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        1.1.4
-// @date           09.26.2012
+// @version        1.1.3
+// @date           10.1.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -137,7 +137,7 @@ function main() {
 	window.elfade=function(elem,time){if(typeof time!='number')time=500;if(typeof elem=='string')elem=document.getElementById(elem);if(elem==null)return;var startOpacity=elem.style.opacity||1;elem.style.opacity=startOpacity;var tick=1/(time/100);(function go(){elem.style.opacity=Math.round((elem.style.opacity-tick)*100)/100;if(elem.style.opacity>0)setTimeout(go,100);else elem.style.display='none'})()}
 	
 	window.SRDotDX = {
-		version: {major: "1.1.4", minor: "wpatter6/JHunz"},
+		version: {major: "1.1.3", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -341,45 +341,47 @@ function main() {
 								if(a.timeStamp < b.timeStamp) return -1;
 							return 1;
 						});
-						console.log("[SRDotDX] Purging dead raids (" + draids.length + " found)");
+						console.log("[SRDotDX] Purging dead raids (" + diff + "/" + draids.length + ")");//dead raids first
 						while(i<draids.length && diff > 0){
-							console.log('[SRDotDX] Purging ' + draids[i].id);
 							SRDotDX.gui.deleteRaid(draids[i].ele.getElementsByClassName("FPXDeleteLink")[0], draids[i].id);
 							i++; diff--;
 						}
+						console.log("[SRDotDX] Purged dead raids (" + i + "/" + draids.length + ")");
 						delete draids;
 						total+=i; i=0;
-						var uraids = SRDotDX.gui.GetRaids('new_');
-						uraids.sort(function(a,b){
-							if(a && !(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
-								if(a.timeStamp < b.timeStamp) return -1;
-							return 1;
-						});
-						console.log("[SRDotDX] Purging new raids (" + uraids.length + " found)");
-						while(i<uraids.length && diff > 0){
-							if((new Date).getTime() - uraids[i].timeStamp > 3600000){//only if it's older than 1 hour
-								console.log('[SRDotDX] Purging ' + uraids[i].id);
-								SRDotDX.gui.deleteRaid(uraids[i].ele.getElementsByClassName("FPXDeleteLink")[0], uraids[i].id);
-								i++; diff--;
-							} else break;
-						}
-						delete uraids;
-						total+=i; i=0;
 						if(diff > 0){
-							var raids = SRDotDX.gui.GetRaids('all_');
+							var uraids = SRDotDX.gui.GetRaids('new_hidden_');
+							uraids.sort(function(a,b){
+								if(a && !(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
+									if(a.timeStamp < b.timeStamp) return -1;
+								return 1;
+							});
+							console.log("[SRDotDX] Purging hidden new raids (" + diff + "/" + uraids.length + ")");
+							while(i<uraids.length && diff > 0){
+								if((new Date).getTime() - uraids[i].timeStamp > 3600000){//only if it's older than 1 hour
+									SRDotDX.gui.deleteRaid(uraids[i].ele.getElementsByClassName("FPXDeleteLink")[0], uraids[i].id);
+									i++; diff--;
+								}
+							}
+							console.log("[SRDotDX] Purged hidden new raids (" + i + "/" + uraids.length + ")");
+							delete uraids;
+							total+=i; i=0;
+						}
+						if(diff > 0){
+							var raids = SRDotDX.gui.GetRaids('hidden_');
 							raids.sort(function(a,b){
 								if(a && !(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
 									if(a.timeStamp < b.timeStamp) return -1;
 								return 1;
 							});
-							console.log("[SRDotDX] Purging raids (" + raids.length + " found)");
+							console.log("[SRDotDX] Purging raids (" + diff + "/" + raids.length + ")");
 							while(i<raids.length && diff > 0){
 								if((new Date).getTime() - raids[i].timeStamp > 3600000){//only if it's older than 1 hour
-									console.log('[SRDotDX] Purging ' + raids[i].id);
 									SRDotDX.gui.deleteRaid(raids[i].ele.getElementsByClassName("FPXDeleteLink")[0], raids[i].id);
 									i++; diff--;
-								} else break;
+								}
 							}
+							console.log("[SRDotDX] Purged raids (" + i + "/" + raids.length + ")");
 							delete raids;
 						}
 						total += i;
@@ -1189,7 +1191,7 @@ function main() {
 				}
 			},
 			FPXFilterRaidListByName: function () {
-				console.log("[SRDotDX]::{FPX}:: FILTERING RAID LIST...");
+				//console.log("[SRDotDX]::{FPX}:: FILTERING RAID LIST...");
 				
 				var roomNameFilter = document.FPXRaidFilterForm.FPXRoomNameFilter.value;
 				if(!isNumber(roomNameFilter) && roomNameFilter != ""){
@@ -1244,7 +1246,7 @@ function main() {
 					SRDotDX.gui.FPXFilterRaidSingle(raidList[i], re, diffFilter, p_re, posterSwitch, roomFilter, roomSwitch);
 				}
 				SRDotDX.gui.UpdateSelectedRaidCount();
-				console.log("[SRDotDX]::{FPX}:: RAID LIST FILTER COMPLETED...");
+				//console.log("[SRDotDX]::{FPX}:: RAID LIST FILTER COMPLETED...");
 				return false;
 			},
 			FPXFilterRaidSingle: function(el, re, diffFilter, p_re, posterSwitch, roomFilter, roomSwitch){
@@ -1435,7 +1437,7 @@ function main() {
 			UpdateSelectedRaidCount: function () {
 				var el = document.getElementById("selected_raid_count");
 				if(el.offsetHeight + el.offsetWidth > 0){
-					console.log("[SRDotDX] Updating selected raid count");
+					//console.log("[SRDotDX] Updating selected raid count");
 					var raids = SRDotDX.gui.GetRaids();
 					el.innerHTML = raids.length + " selected";
 					delete raids;
@@ -1463,7 +1465,10 @@ function main() {
 			GetRaids: function (s) {//pass string to get raids you want, false to get selected non-dead raids, anything else to get selected raids, 
 				var r = [];
 				s = (typeof s=='boolean'?(s?SRDotDX.config.selectedRaids:SRDotDX.config.selectedRaids.replace('nuked_', '')):(typeof s == 'string'?s:SRDotDX.config.selectedRaids));
-				console.log("[SRDotDX] Getting " + s);
+				if(!/visible/.test(s) && !/hidden/.test(s)) s += 'visible_hidden_';
+				if(!/visited/.test(s) && !/new/.test(s)) s += 'visited_new_';
+				if(!/nuked/.test(s) && !/alive/.test(s)) s += 'nuked_alive_';
+				//console.log("[SRDotDX] Getting " + s);
 				if(s != ""){
 					var raidList = document.getElementById('raid_list').childNodes;
 					for(i=0; i<raidList.length; i++) {
@@ -1482,7 +1487,7 @@ function main() {
 						}
 					}
 				}
-				console.log("[SRDotDX] Got selected " + r.length);
+				//console.log("[SRDotDX] Got selected " + r.length);
 				return r;
 			},
 			AutoJoin: false,
@@ -1620,14 +1625,12 @@ function main() {
 											var pruneTimer = SRDotDX.raidSizes[raidInfo.size].pruneTimers[SRDotDX.config.unvisitedRaidPruningMode];
 											if(raid.nuked) pruneTimer = pruneTimer / 2;//double time nuked pruning
 											if ((pruneTime - raid.timeStamp) >= pruneTimer) {
-												console.log("[SRDotDX] Deleting raid " + raidid);
 												SRDotDX.gui.deleteRaid(item.getElementsByClassName("FPXDeleteLink")[0], raidid);
 												ct++;
 											}
 										}
 									}
 								} else {
-									console.log("[SRDotDX] Deleting raid " + raidid);
 									SRDotDX.gui.deleteRaid(item.getElementsByClassName("FPXDeleteLink")[0], raidid);
 									ct++;
 								}
@@ -1859,7 +1862,7 @@ function main() {
 												<input type="radio" id="FPX_options_unvisitedPruningModerate" name="unvisitedPruning" value="Moderate"/>Moderate&nbsp;&nbsp; \
 												<input type="radio" id="FPX_options_unvisitedPruningSlow" name="unvisitedPruning" value="Slow"/>Slow&nbsp;&nbsp; \
 												<input type="radio" id="FPX_options_unvisitedPruningNone" name="unvisitedPruning" value="None"/>None&nbsp;&nbsp;<br> \
-												<input type="checkbox" id="FPX_options_useMaxRaidCount"> enable max raid count <input type="text" id="FPX_options_maxRaidCount" size="5">(<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will specify the maximum number of raids to store in the script. Once this number is reached, it will automatically purge the oldest raid as a new one is added.  Lowering this number could improve issues like shockwave crashes, etc.\');">?</a>)<br> \
+												<input type="checkbox" id="FPX_options_useMaxRaidCount"> Enable max raid count <input type="text" id="FPX_options_maxRaidCount" size="5">(<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'This will specify the maximum number of raids to store in the script. Once this number is reached, it will automatically purge the oldest raid as a new one is added.  Lowering this number could improve issues like shockwave crashes, etc.\');">?</a>)<br> \
 											<hr> \
 										</div> \
 									</div> \
@@ -2287,6 +2290,9 @@ function main() {
 					
 					optsUseMaxRaidCount.ele().addEventListener('click', function (){
 						SRDotDX.config.useMaxRaidCount = this.checked;
+						if(this.checked){
+							SRDotDX.purge();
+						}
 					});
 					
 					optsPrettyPost.ele().addEventListener('click', function(){
