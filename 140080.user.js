@@ -3,7 +3,7 @@
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        1.1.3
+// @version        1.1.4
 // @date           10.1.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
@@ -137,7 +137,7 @@ function main() {
 	window.elfade=function(elem,time){if(typeof time!='number')time=500;if(typeof elem=='string')elem=document.getElementById(elem);if(elem==null)return;var startOpacity=elem.style.opacity||1;elem.style.opacity=startOpacity;var tick=1/(time/100);(function go(){elem.style.opacity=Math.round((elem.style.opacity-tick)*100)/100;if(elem.style.opacity>0)setTimeout(go,100);else elem.style.display='none'})()}
 	
 	window.SRDotDX = {
-		version: {major: "1.1.3", minor: "wpatter6/JHunz"},
+		version: {major: "1.1.4", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -3268,6 +3268,7 @@ function main() {
 			kang:{name: 'Kang-Gsod', shortname: 'Kang',  id: 'kang', stat: 'S', size:100, duration:72, health: [95000000,118750000,152000000,190000000,,]},
 			'3dawg':{name: 'Kerberos', shortname: 'Kerb',  id: '3dawg', stat: 'S', size:50, duration:72, health: [35000000,43750000,56000000,70000000,,]},
 			kessovtowers:{name: 'Kessov Towers', shortname: 'Towers',  id: 'kessovtowers', stat: 'ESH', size:90000, duration:120, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited']},
+			kessovtower:{name: 'Treachery and the Tower', shortname: 'Treachery',  id: 'kessovtowers', stat: 'ESH', size:90000, duration:24, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited']},
 			kessovforts:{name: 'Kessov Forts', shortname: 'Forts',  id: 'kessovforts', stat: 'ESH', size:90000, duration:120, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited']},
 			kessovcastle:{name: 'Kessov Castle', shortname: 'Castle',  id: 'kessovcastle', stat: 'ESH', size:90000, duration:144, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited'],loottiers: [['1','1M','5M','10M','20M','50M','100M','150M','300M','450M','600M','750M','1B','2B','5B','50B'],[],[],[],[],[]]},
 			kalaxia:{name: 'Kalaxia The Far-Seer', shortname: 'Kalaxia',  id: 'kalaxia', stat: 'S', size:500, duration:96, health: [800000000,1000000000,1280000000,1600000000,,]},
@@ -3321,7 +3322,7 @@ function main() {
 			"alice","bogstench","4ogre","bmane","harpy","kobold","corrupterebus","serpina","dahrizons_general",
 			"basilisk","dirthax","dragons_lair","erakka_sak","giantgolem","echthros","drag","felendis","ogre",
 			"dreadbloom","batman","evilgnome","guardian_golem","guilbert","gunnar","war_boar","hargamesh","grimsly",
-			"hydra","ironclad","kang","3dawg","kessovtowers","kessovforts","kessovcastle","kalaxia","tyranthius",
+			"hydra","ironclad","kang","3dawg","kessovtower","kessovtowers","kessovforts","kessovcastle","kalaxia","tyranthius",
 			"lunacy","lurker","magma_horror","maraak","mardachus","scorp","mestr","mesyra","misako",
 			"nalagarst","nidhogg","nimrod","phaedra","fairy_prince","roc","rhalmarius_the_despoiler","rift","crabshark",
 			"squid","simulacrum_dahrizon","sircai","sisters","slaughterers","stein","tainted","tenebra","tisiphone",
