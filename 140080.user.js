@@ -3509,6 +3509,7 @@ function PBeditmain(){//pastebin edit script
 			var el = document.getElementById("paste_code");
 			if(el){
 				el.value = event.data;
+				document.getElementById('myform').paste_name.value = event.data.split("|")[1] + " - " + new Date();
 				document.getElementById("myform").submit.click();
 				window.parent.postMessage("pbedit_done "+(window.location+"").substring((window.location+"").length-8), 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
 			} else {
