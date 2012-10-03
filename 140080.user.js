@@ -3,7 +3,7 @@
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        1.1.4
+// @version        1.1.5
 // @date           10.1.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
@@ -137,7 +137,7 @@ function main() {
 	window.elfade=function(elem,time){if(typeof time!='number')time=500;if(typeof elem=='string')elem=document.getElementById(elem);if(elem==null)return;var startOpacity=elem.style.opacity||1;elem.style.opacity=startOpacity;var tick=1/(time/100);(function go(){elem.style.opacity=Math.round((elem.style.opacity-tick)*100)/100;if(elem.style.opacity>0)setTimeout(go,100);else elem.style.display='none'})()}
 	
 	window.SRDotDX = {
-		version: {major: "1.1.4", minor: "wpatter6/JHunz"},
+		version: {major: "1.1.5", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -1492,6 +1492,7 @@ function main() {
 			},
 			AutoJoin: false,
 			AutoJoinRaids: [],
+			AutoJoinVisibleClicked: false,
 			AutoJoinCurrentIndex: 0,
 			AutoJoinCurrentSuccesses: 0,
 			AutoJoinCurrentDeads: 0,
@@ -1501,16 +1502,16 @@ function main() {
 				console.log("[SRDotDX] Join started " + (typeof r == 'object'?r.length:""));
 				if(typeof b === 'undefined' || b == null){
 					b=!SRDotDX.gui.AutoJoin;
-					document.getElementById('AutoJoinVisibleButton').value=b?"Cancel":"Join";
 				}
+				document.getElementById('AutoJoinVisibleButton').value=b?"Cancel":"Join";
 				SRDotDX.gui.AutoJoin = b;
+				SRDotDX.gui.AutoJoinVisibleClicked = true;
 				SRDotDX.gui.AutoJoinCurrentIndex=0;
 				SRDotDX.gui.AutoJoinCurrentSuccesses = 0;
 				SRDotDX.gui.AutoJoinCurrentDeads = 0;				
 				SRDotDX.gui.AutoJoinCurrentInvalids = 0;
 				if(b && typeof r == 'object'){
 					SRDotDX.gui.AutoJoinRaids = r;
-					console.log(typeof SRDotDX.gui.AutoJoinRaids);
 					console.log("[SRDotDX] Joining " + SRDotDX.gui.AutoJoinRaids.length + " raids");
 					if(SRDotDX.gui.AutoJoinRaids.length > 0){
 						SRDotDX.gui.AutoJoinCurrentTotal = SRDotDX.gui.AutoJoinRaids.length;
@@ -2088,19 +2089,6 @@ function main() {
 						SRDotDX.gui.UpdateSelectedRaidCount();
 					});
 					
-					/*var FPXimpPB = SRDotDX.gui.cHTML('#SRDotDX_FPX_ImportPastebin');
-					var FPXimpText = "Enter pastebin url";
-					FPXimpPB.ele().value=FPXimpText;
-					FPXimpPB.ele().addEventListener("blur",function() {
-						if (this.value == "") {
-							this.value = FPXimpText;
-						}
-					});
-					FPXimpPB.ele().addEventListener("focus",function() {
-						if (this.value == FPXimpText) {
-							this.value = "";
-						}
-					});*/
 					//Pastebin tab
 					var paste_list = document.getElementById('paste_list');
 					paste_list.style.height = (h - paste_list.offsetTop -50) + "px";
@@ -2383,7 +2371,6 @@ function main() {
 					},true);
 					optsHideVRaids.ele().addEventListener("click",function() {
 						SRDotDX.config.hideVisitedRaids = this.checked;
-						//FPX::FPX_options_markVisitedRightClickDelay disable
 						SRDotDX.gui.toggleCSS({id: "SRDotDX_visitedRaidClass", cls:".SRDotDX_visitedRaid{display: "+(this.checked == true?'none !important':'block')+"}"})
 					},true);
 					optsHideVRaidsList.ele().addEventListener("click",function() {
@@ -2582,38 +2569,24 @@ function main() {
 					}
 				}
 			},
-			FPXraidLinkClickRaidList: function (id, ele,isRightClick, isCopy) {
+			FPXraidLinkClick: function (id, link,isRightClick) {
+				link = (typeof link=='string'?link:link.href);
 				if(!isRightClick){
-					console.log("[SRDotDX] FPXraidLinkClickRaidList " + id);
 					if(!SRDotDX.gui.AutoJoin){
-						SRDotDX.gui.doStatusOutput("Joining " + SRDotDX.raids[SRDotDX.config.raidList[id].boss].shortname + "...");
-						SRDotDX.loadRaid(ele.href);
-					} else {
-						SRDotDX.gui.doStatusOutput("Added " + SRDotDX.raids[SRDotDX.config.raidList[id].boss].shortname + " to joining list.");
-						SRDotDX.gui.AutoJoinRaids.splice(SRDotDX.gui.AutoJoinCurrentIndex+1, 0, SRDotDX.gui.GetRaid(id));
-						SRDotDX.gui.AutoJoinCurrentTotal++;
-					}
-				}
-				else if(document.getElementById('FPX_options_markVisitedRightClick').checked){
-					var id= ele.parentNode.parentNode.getAttribute("raidid");	
-					SRDotDX.config.raidList[id].visited = true;
-					SRDotDX.gui.toggleRaid('visited',id,true);				
-					SRDotDX.gui.raidListItemUpdate(id);
-				}
-			},
-			FPXraidLinkClickChat: function (id,link,isRightClick) {
-				if(!isRightClick){
-					console.log("[SRDotDX] FPXraidLinkClickChat " + id);
-					if(!SRDotDX.gui.AutoJoin){
+						SRDotDX.gui.AutoJoinCurrentTotal = 1;
+						SRDotDX.gui.AutoJoinRaids = [SRDotDX.gui.GetRaid(id)];
+						SRDotDX.gui.AutoJoin = true;
 						SRDotDX.gui.doStatusOutput("Joining " + SRDotDX.raids[SRDotDX.config.raidList[id].boss].shortname + "...");
 						SRDotDX.loadRaid(link);
 					} else {
-						SRDotDX.gui.doStatusOutput("Added " + SRDotDX.raids[SRDotDX.config.raidList[id].boss].shortname + " to joining list.");
-						SRDotDX.gui.AutoJoinRaids.splice(SRDotDX.gui.AutoJoinCurrentIndex+1, 0, SRDotDX.gui.GetRaid(id));
 						SRDotDX.gui.AutoJoinCurrentTotal++;
+						SRDotDX.gui.doStatusOutput("Adding " + SRDotDX.raids[SRDotDX.config.raidList[id].boss].shortname + "...");
+						if(SRDotDX.gui.AutoJoinVisibleClicked) 
+							SRDotDX.gui.AutoJoinRaids.splice(SRDotDX.gui.AutoJoinCurrentIndex+1, 0, SRDotDX.gui.GetRaid(id));
+						else SRDotDX.gui.AutoJoinRaids.push(SRDotDX.gui.GetRaid(id));
 					}
 				}
-				else if(SRDotDX.config.FPXmarkRightClick){
+				else if(document.getElementById('FPX_options_markVisitedRightClick').checked){
 					SRDotDX.config.raidList[id].visited = true;
 					SRDotDX.gui.toggleRaid('visited',id,true);				
 					SRDotDX.gui.raidListItemUpdate(id);
@@ -2651,11 +2624,11 @@ function main() {
 						e.element().checked=(e.element().checked == true?false:true);
 						SRDotDX.gui.raidListCBClicked(e.element(),'seen',e.element().parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.getAttribute("raidid"));
 					}else if(classtype == "RaidQuickLink" || classtype == "link" || classtype == "FPXlink"){
-						SRDotDX.gui.FPXraidLinkClickRaidList(e.element().parentNode.parentNode.getAttribute("raidid"), e.element(), false); return false;
+						SRDotDX.gui.FPXraidLinkClick(e.element().parentNode.parentNode.getAttribute("raidid"), e.element(), false); return false;
 					}
 				}else if(e.which == 3){
 					if(classtype == "RaidQuickLink" || classtype == "link" || classtype == "FPXlink"){
-						(function() { return setTimeout(function() {SRDotDX.gui.FPXraidLinkClickRaidList(e.element().parentNode.parentNode.getAttribute("raidid"), e.element(),true);}, SRDotDX.config.FPXoptsMarkRightClickDelay)})();
+						(function() { return setTimeout(function() {SRDotDX.gui.FPXraidLinkClick(e.element().parentNode.parentNode.getAttribute("raidid"), e.element(),true);}, SRDotDX.config.FPXoptsMarkRightClickDelay)})();
 						return false;
 					}
 				}
@@ -2688,20 +2661,14 @@ function main() {
 				e = e || window.event;
 				if(isChat){
 					switch (e.which) {
-						case 1: SRDotDX.gui.FPXraidLinkClickChat(param1,param2,false); break;
+						case 1: SRDotDX.gui.FPXraidLinkClick(param1,param2,false); break;
 						case 3: 
 								if(SRDotDX.config.FPXmarkRightClick){
-									(function(p1,p2) {return setTimeout(function() {SRDotDX.gui.FPXraidLinkClickChat(p1,p2,true);}, SRDotDX.config.FPXoptsMarkRightClickDelay)})(param1,param2);
+									(function(p1,p2) {return setTimeout(function() {SRDotDX.gui.FPXraidLinkClick(p1,p2,true);}, SRDotDX.config.FPXoptsMarkRightClickDelay)})(param1,param2);
 								}else{
-									SRDotDX.gui.FPXraidLinkClickChat(param1,param2,true); 
+									SRDotDX.gui.FPXraidLinkClick(param1,param2,true); 
 								}
 								break;
-					}
-				}else
-				{
-					switch (e.which) {
-						case 1: SRDotDX.gui.FPXraidLinkClickRaidList(param1,false); break;
-						case 3: (function(p1) { return setTimeout(function() {SRDotDX.gui.FPXraidLinkClickRaidList(p1,true);}, SRDotDX.config.FPXoptsMarkRightClickDelay)})(param1); break; 
 					}
 				}
 			},
@@ -3268,7 +3235,7 @@ function main() {
 			kang:{name: 'Kang-Gsod', shortname: 'Kang',  id: 'kang', stat: 'S', size:100, duration:72, health: [95000000,118750000,152000000,190000000,,]},
 			'3dawg':{name: 'Kerberos', shortname: 'Kerb',  id: '3dawg', stat: 'S', size:50, duration:72, health: [35000000,43750000,56000000,70000000,,]},
 			kessovtowers:{name: 'Kessov Towers', shortname: 'Towers',  id: 'kessovtowers', stat: 'ESH', size:90000, duration:120, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited']},
-			kessovtower:{name: 'Treachery and the Tower', shortname: 'Treachery',  id: 'kessovtowers', stat: 'ESH', size:90000, duration:24, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited']},
+			kessovtower:{name: 'Treachery and the Tower', shortname: 'Treachery',  id: 'kessovtowers', stat: 'ESH', size:90000, duration:24, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited'], loottiers: [['1M','5M','10M','20M','50M','100M','150M','300M','450M','600M','750M','1B','1.25B','1.5B','1.75B','2B'],[],[],[],[],[]]},
 			kessovforts:{name: 'Kessov Forts', shortname: 'Forts',  id: 'kessovforts', stat: 'ESH', size:90000, duration:120, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited']},
 			kessovcastle:{name: 'Kessov Castle', shortname: 'Castle',  id: 'kessovcastle', stat: 'ESH', size:90000, duration:144, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited'],loottiers: [['1','1M','5M','10M','20M','50M','100M','150M','300M','450M','600M','750M','1B','2B','5B','50B'],[],[],[],[],[]]},
 			kalaxia:{name: 'Kalaxia The Far-Seer', shortname: 'Kalaxia',  id: 'kalaxia', stat: 'S', size:500, duration:96, health: [800000000,1000000000,1280000000,1600000000,,]},
@@ -3411,8 +3378,12 @@ function main() {
 				SRDotDX.gui.importingPastebin=false;
 				console.log("[SRDotDX] Pastebin import complete");
 			}
-		} else if(/web[\w]+\.dawnofthedragons\.com/i.test(event.origin)) { // for Kong game iframe 
-			
+		} else if(/web[\w]+\.dawnofthedragons\.com/i.test(event.origin)) { // for Kong game iframe
+			var isJoining = true;
+			if(SRDotDX.gui.AutoJoinCurrentTotal==1){
+				SRDotDX.gui.AutoJoinCurrentTotal=0;
+				isJoining = false
+			}
 			// message to reload the frame
 			if (/reload/i.test(event.data)) { 
 				if(SRDotDX.config.refreshGameToJoin){
@@ -3426,7 +3397,7 @@ function main() {
 				console.log("[SRDotDX] Nuking raid " + SRDotDX.lastJoinedRaidId);
 				SRDotDX.nukeRaid(SRDotDX.lastJoinedRaidId);
 				
-				if (SRDotDX.gui.AutoJoin) {
+				if (SRDotDX.gui.AutoJoin&&isJoining) {
 					SRDotDX.gui.AutoJoinCurrentDeads++;
 				} else {
 					SRDotDX.gui.doStatusOutput("Join Failed. Raid is dead.");
@@ -3437,12 +3408,12 @@ function main() {
 			if (/wrongguild/i.test(event.data)) {
 				console.log("[SRDotDX] Nuking raid " + SRDotDX.lastJoinedRaidId);
 				SRDotDX.nukeRaid(SRDotDX.lastJoinedRaidId);	
-				if (!SRDotDX.gui.AutoJoin){
+				if (!SRDotDX.gui.AutoJoin||!isJoining){
 					SRDotDX.gui.doStatusOutput("Join Failed. Wrong guild.");
 				}
 			}
 			if(/member/i.test(event.data)){
-				if (!SRDotDX.gui.AutoJoin){
+				if (!SRDotDX.gui.AutoJoin||!isJoining){
 					SRDotDX.gui.doStatusOutput("Join Failed. You are already a member.");
 				}
 			}
@@ -3462,7 +3433,7 @@ function main() {
 					}
 				}
 
-				if (SRDotDX.gui.AutoJoin) {
+				if (SRDotDX.gui.AutoJoin&&isJoining) {
 					SRDotDX.gui.AutoJoinCurrentInvalids++;
 				} else {
 					SRDotDX.gui.doStatusOutput("Join failed. Invalid hash.");
@@ -3471,7 +3442,7 @@ function main() {
 
 			// message indicating the join was successful
 			if (/success/i.test(event.data)) {
-				if (SRDotDX.gui.AutoJoin) {
+				if (SRDotDX.gui.AutoJoin&&isJoining) {
 					SRDotDX.gui.AutoJoinCurrentSuccesses++;
 				} else {
 					SRDotDX.gui.doStatusOutput(SRDotDX.raids[SRDotDX.config.raidList[SRDotDX.lastJoinedRaidId].boss].shortname +" joined successfully.");
@@ -3481,27 +3452,31 @@ function main() {
 
 			// message indicating the landing page is loaded
 			if (/landed/i.test(event.data)) {
+				console.log("[SRDotDX] Raid " + event.data + " " + SRDotDX.lastJoinedRaidId + " : " + SRDotDX.gui.AutoJoin + " : " +((SRDotDX.gui.AutoJoinCurrentIndex+1) < SRDotDX.gui.AutoJoinRaids.length));
 				if (SRDotDX.gui.AutoJoin) {
 					SRDotDX.gui.AutoJoinCurrentIndex++;
 					if (SRDotDX.gui.AutoJoinCurrentIndex < SRDotDX.gui.AutoJoinRaids.length) {
 						// auto-join next raid
 						SRDotDX.gui.doStatusOutput('Joining '+(SRDotDX.gui.AutoJoinCurrentIndex+1)+' of '+SRDotDX.gui.AutoJoinCurrentTotal+'. New: '+SRDotDX.gui.AutoJoinCurrentSuccesses+', Dead: '+SRDotDX.gui.AutoJoinCurrentDeads);
 						SRDotDX.loadRaid(SRDotDX.gui.AutoJoinRaids[SRDotDX.gui.AutoJoinCurrentIndex].ele.firstChild.getElementsByTagName('a')[0].href);
-
 					} else {
 						// finished auto-joining
+						SRDotDX.gui.AutoJoin=false;
+						SRDotDX.gui.AutoJoinVisibleClicked=false;
 						if(SRDotDX.config.refreshGameToJoin)
 							SRDotDX.reload();
-						SRDotDX.gui.doStatusOutput('Join finished. New: '+SRDotDX.gui.AutoJoinCurrentSuccesses+', Dead: '+SRDotDX.gui.AutoJoinCurrentDeads+', Invalid:'+SRDotDX.gui.AutoJoinCurrentInvalids, 10000);
-						SRDotDX.gui.AutoJoin=false;
+						if(isJoining)
+							SRDotDX.gui.doStatusOutput('Join finished. New: '+SRDotDX.gui.AutoJoinCurrentSuccesses+', Dead: '+SRDotDX.gui.AutoJoinCurrentDeads+', Invalid:'+SRDotDX.gui.AutoJoinCurrentInvalids, 10000);
 						SRDotDX.gui.AutoJoinCurrentIndex=0;
 						SRDotDX.gui.AutoJoinCurrentSuccesses=0;
 						SRDotDX.gui.AutoJoinCurrentDeads=0;
 						SRDotDX.gui.AutoJoinCurrentInvalids=0;
+						SRDotDX.gui.AutoJoinCurrentTotal=0;
 						document.getElementById('AutoJoinVisibleButton').value='Join';
 					}
 				}
 			}
+			
 		} else if (/userscripts.org/i.test(event.origin)) { // For auto-update check
 			if (SRDotDX.IsPublicVersionNewer(event.data)) {
 				var el = document.getElementById('UpdateNotification');
@@ -3596,41 +3571,33 @@ function UpdateMain() { // Update check page script
 	}
 
 }
-if (/^http:\/\/www\.kongregate\.com\/games\/5thplanetgames\/dawn-of-the-dragons(?:\/?$|\?|#)/i.test(document.location.href)) {
+if (/^http:\/\/www\.kongregate\.com\/games\/5thplanetgames\/dawn-of-the-dragons(?:\/?$|\?|#)/i.test(document.location.href)) {//main
 	console.log("[SRDotDX] Initializing....");
-	/*var jq = document.createElement("script");
-	jq.src = "http://code.jquery.com/jquery-latest.min.js";
-	(document.head || document.body || document.documentElement).appendChild(jq);*/
 	var script = document.createElement("script");
 	script.appendChild(document.createTextNode('('+main+')()'));
 	(document.head || document.body || document.documentElement).appendChild(script);
 }
 if(/pastebin\.com/.test(document.location.href)){
-	if (/raw\.php\?i\=/i.test(document.location.href)) {
-		console.log("[SRDotDX] PasteBin Import Initializing....");
+	if (/raw\.php\?i\=/i.test(document.location.href)) {//pastebin raw (import)
 		var script = document.createElement("script");
 		script.appendChild(document.createTextNode('('+PBrawmain+')()'));
 		(document.head || document.body || document.documentElement).appendChild(script);
-	} else if (/edit\.php\?i\=/i.test(document.location.href)) {
-		console.log("[SRDotDX] PasteBin Edit Initializing....");
+	} else if (/edit\.php\?i\=/i.test(document.location.href)) {//pastebin edit page (export)
 		var script = document.createElement("script");
 		script.appendChild(document.createTextNode('('+PBeditmain+')()'));
 		(document.head || document.body || document.documentElement).appendChild(script);
-	} else {
-		console.log("[SRDotDX] PasteBin Initializing....");
+	} else {//general pastebin
 		var script = document.createElement("script");
 		script.appendChild(document.createTextNode('('+PBmain+')()'));
 		(document.head || document.body || document.documentElement).appendChild(script);
 	}
 }
-if (/web[\w]+\.dawnofthedragons\.com\/kong/i.test(document.location.href)) {
-	console.log("[SRDotDX] Gamescript Initializing....");
+if (/web[\w]+\.dawnofthedragons\.com\/kong/i.test(document.location.href)) { //game script
 	var script = document.createElement("script");
 	script.appendChild(document.createTextNode('('+DDmain+')()'));
 	(document.head || document.body || document.documentElement).appendChild(script);
 }
-if (/userscripts.org\/scripts\/review\/140080/i.test(document.location.href)) {
-	console.log("[SRDotDX] Update script initializing....");
+if (/userscripts.org\/scripts\/review\/140080/i.test(document.location.href)) { //update script
 	var script = document.createElement("script");
 	script.appendChild(document.createTextNode('('+UpdateMain+')()'));
 	(document.head || document.body || document.documentElement).appendChild(script);
