@@ -3463,10 +3463,11 @@ function main() {
 						// finished auto-joining
 						SRDotDX.gui.AutoJoin=false;
 						SRDotDX.gui.AutoJoinVisibleClicked=false;
-						if(SRDotDX.config.refreshGameToJoin)
-							SRDotDX.reload();
-						if(isJoining)
+						if(isJoining){
+							if(SRDotDX.config.refreshGameToJoin)
+								SRDotDX.reload();
 							SRDotDX.gui.doStatusOutput('Join finished. New: '+SRDotDX.gui.AutoJoinCurrentSuccesses+', Dead: '+SRDotDX.gui.AutoJoinCurrentDeads+', Invalid:'+SRDotDX.gui.AutoJoinCurrentInvalids, 10000);
+						}
 						SRDotDX.gui.AutoJoinCurrentIndex=0;
 						SRDotDX.gui.AutoJoinCurrentSuccesses=0;
 						SRDotDX.gui.AutoJoinCurrentDeads=0;
