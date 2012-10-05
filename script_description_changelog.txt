@@ -18,6 +18,7 @@ This script makes interactions between Kong and Dawn of the Dragons easier in a 
 Changelog: Information about script updates.<br/>
 Installation: Information on how to install the script.<br />
 Chat Commands: These are commands that can be used in chat<br />
+Known Incompatibilities: If you're using one userscript, you're probably using several.  Some don't play nice.<br />
 Contact Us: A list of ways to contact us for whatever reasons<br />
 &nbsp;</p>
 <h3><b>Changelog</b></h3><p>
@@ -230,6 +231,10 @@ Displays the bossId taken from kv_raid_boss=... in the raid link</td></tr><tr><t
 Displays the raid link&#39;s unique Id.</td></tr><tr><td><center><code>&lt;hash&gt;</code></center></td><td>
 Displays the raid link&#39;s hash code.</td></tr></tbody></table><br /><br />
 </p>
+<h3><b>Known Incompatibilities</b></h3>
+<ul>
+<li>Kongrelink (Standalone and part of Better Kongregate): Causes whispered raid links to be unformatted, and causes problems with pastebin imports.</li>
+</ul>
 <h3><b>Contact Me</b></h3><p>
 If you wish to contact us for any reason about this script, please do so on Kongregate.<br/>
 Feel free to send me a PM to wpatter6 or JHunz on Kongregate.  Or, if we're online and playing DotD, you can find us in chat room 1.</p>
