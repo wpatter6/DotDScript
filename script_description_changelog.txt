@@ -23,7 +23,8 @@ Contact Us: A list of ways to contact us for whatever reasons<br />
 &nbsp;</p>
 <h3><b>Changelog</b></h3><p>
 <b>1.1.5</b><br>
-1) Clicked raids now queue properly if a another is clicked while the first is still loading.
+1) Clicked raids now queue properly if a another is clicked while the first is still loading.<br>
+2) Pastebin export now updates the name of the pastebin with the username and timestamp
 <br><br>
 <b>1.1.4</b><br>
 1) Hotfix for Treachery and the Tower 24 hour world raid.
