@@ -22,9 +22,17 @@ Known Incompatibilities: If you're using one userscript, you're probably using s
 Contact Us: A list of ways to contact us for whatever reasons<br />
 &nbsp;</p>
 <h3><b>Changelog</b></h3><p>
+<b>1.2.0</b><br>
+1) Asynchronous raid loading added, with option to enable and set asynchronous load count on the options tab.
+2) Fix for weirness in Chrome where switching tabs causes chat to scroll up.
+<br><br>
+<b>1.1.6</b><br>
+1) Hotfix for Firefox bug.
+<br><br>
 <b>1.1.5</b><br>
 1) Clicked raids now queue properly if a another is clicked while the first is still loading.<br>
-2) Pastebin export now updates the name of the pastebin with the username and timestamp
+2) Pastebin export now updates the name of the pastebin with the username and timestamp<br>
+3) Fix for max raid count where freezing happens when large import push over the max.
 <br><br>
 <b>1.1.4</b><br>
 1) Hotfix for Treachery and the Tower 24 hour world raid.
