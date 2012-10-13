@@ -1548,9 +1548,9 @@ function main() {
 					console.log("[SRDotDX] Joining " + SRDotDX.gui.AutoJoinRaids.length + " raids");
 					if(SRDotDX.gui.AutoJoinRaids.length > 0){
 						SRDotDX.gui.AutoJoinCurrentTotal = SRDotDX.gui.AutoJoinRaids.length;
-						
 						if(SRDotDX.config.asyncJoin){
-							for(i=0;i<SRDotDX.config.asyncJoinCount;i++){
+							var ct = Math.min(SRDotDX.config.asyncJoinCount, r.length);
+							for(i=0;i<ct;i++){
 								setTimeout("SRDotDX.gui.AutoJoinNext();SRDotDX.gui.doStatusOutput('Joining "+(i+1)+" of '+ SRDotDX.gui.AutoJoinCurrentTotal);", 50);
 							}
 						} else {	
@@ -3479,6 +3479,7 @@ function main() {
 				SRDotDX.gui.AutoJoinCurrentDeads=0;
 				SRDotDX.gui.AutoJoinCurrentInvalids=0;
 				SRDotDX.gui.AutoJoinCurrentTotal=0;
+				document.getElementById('AutoJoinVisibleButton').value='Join';
 			}
 			console.log("[SRDotDX] Game message " + event.data + " : " + isJoining);
 			// message to reload the frame
