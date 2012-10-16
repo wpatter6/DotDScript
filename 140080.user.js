@@ -3,7 +3,7 @@
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        1.2.0
+// @version        1.2.1
 // @date           10.9.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
@@ -137,7 +137,7 @@ function main() {
 	window.elfade=function(elem,time){if(typeof time!='number')time=500;if(typeof elem=='string')elem=document.getElementById(elem);if(elem==null)return;var startOpacity=elem.style.opacity||1;elem.style.opacity=startOpacity;var tick=1/(time/100);(function go(){elem.style.opacity=Math.round((elem.style.opacity-tick)*100)/100;if(elem.style.opacity>0)setTimeout(go,100);else elem.style.display='none'})()}
 	
 	window.SRDotDX = {
-		version: {major: "1.2.0", minor: "wpatter6/JHunz"},
+		version: {major: "1.2.1", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -2071,10 +2071,10 @@ function main() {
 												</table> \
 											</div> \
 										</div> \
-										<iframe id="SRDotDX_joiner" style="display:none"></iframe> \
-										<iframe id="SRDotDX_pastebin" style="display:none"></iframe> \
-										<iframe id="SRDotDX_update" style="display:none"></iframe> \
-										<iframe id="SRDotDX_pastebinExport" style="display:none"></iframe> \
+										<iframe id="SRDotDX_joiner" style="height:0px;width:0px"></iframe> \
+										<iframe id="SRDotDX_pastebin" style="height:0px;width:0px"></iframe> \
+										<iframe id="SRDotDX_update" style="height:0px;width:0px"></iframe> \
+										<iframe id="SRDotDX_pastebinExport" style="height:0px;width:0px"></iframe> \
 										<div id="SRDotDX_hidden_iframes" style="display:none"> \
 										</div> \
 									</div> \

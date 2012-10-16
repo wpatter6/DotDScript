@@ -22,9 +22,13 @@ Known Incompatibilities: If you're using one userscript, you're probably using s
 Contact Us: A list of ways to contact us for whatever reasons<br />
 &nbsp;</p>
 <h3><b>Changelog</b></h3><p>
+<b>1.2.1</b><br>
+1) Small bug for firefox pastebin export fixed.
+<br><br>
 <b>1.2.0</b><br>
-1) Asynchronous raid loading added, with option to enable and set asynchronous load count on the options tab.
-2) Fix for weirness in Chrome where switching tabs causes chat to scroll up.
+1) Asynchronous raid loading added, with option to enable and set asynchronous load count on the options tab.<br>
+2) Fix for weirness where switching tabs causes chat to scroll up.<br>
+3) Fixed bug where dragon's lair was causing strangeness when posting in a train.
 <br><br>
 <b>1.1.6</b><br>
 1) Hotfix for Firefox bug.
