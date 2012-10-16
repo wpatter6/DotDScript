@@ -4,7 +4,7 @@
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
 // @version        1.2.1
-// @date           10.9.2012
+// @date           10.16.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -1861,6 +1861,7 @@ function main() {
 									</div> \
 									<div id="raid_list" tabIndex="-1"> \
 									</div> \
+									<iframe id="SRDotDX_pastebinExport" style="height:0px;width:0px"></iframe> \
 								</div> \
 							</li> \
 							<li class="tab"> \
@@ -2074,7 +2075,6 @@ function main() {
 										<iframe id="SRDotDX_joiner" style="height:0px;width:0px"></iframe> \
 										<iframe id="SRDotDX_pastebin" style="height:0px;width:0px"></iframe> \
 										<iframe id="SRDotDX_update" style="height:0px;width:0px"></iframe> \
-										<iframe id="SRDotDX_pastebinExport" style="height:0px;width:0px"></iframe> \
 										<div id="SRDotDX_hidden_iframes" style="display:none"> \
 										</div> \
 									</div> \
