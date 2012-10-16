@@ -1077,7 +1077,7 @@ function main() {
 						{
 							var curBoss = SRDotDX.raidArray[i]
 							var filtList = fullList.filter(function (e){
-								return new RegExp('kv_raid_boss=' + curBoss,'i').test(e);
+								return SRDotDX.getRaidDetailsBase(String(e)).boss==curBoss;//new RegExp('kv_raid_boss=' + curBoss,'i').test(e);
 							});
 							if(filtList.length > 0){
 								var raid = SRDotDX.raids[curBoss];
