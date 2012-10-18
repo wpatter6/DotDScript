@@ -3,8 +3,8 @@
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        1.2.1
-// @date           10.16.2012
+// @version        1.2.2
+// @date           10.18.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -137,7 +137,7 @@ function main() {
 	window.elfade=function(elem,time){if(typeof time!='number')time=500;if(typeof elem=='string')elem=document.getElementById(elem);if(elem==null)return;var startOpacity=elem.style.opacity||1;elem.style.opacity=startOpacity;var tick=1/(time/100);(function go(){elem.style.opacity=Math.round((elem.style.opacity-tick)*100)/100;if(elem.style.opacity>0)setTimeout(go,100);else elem.style.display='none'})()}
 	
 	window.SRDotDX = {
-		version: {major: "1.2.1", minor: "wpatter6/JHunz"},
+		version: {major: "1.2.2", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -3390,8 +3390,7 @@ function main() {
 			var iframe_options = eval('('+match[1]+')');
 			$('gameiframe').replace(new Element('iframe', {"id":"gameiframe","name":"gameiframe","style":"border:none;position:relative;z-index:1;","scrolling":"auto","border":0,"frameborder":0,"width":760,"height":700,"class":"dont_hide"}));
 			$('gameiframe').contentWindow.location.replace("http://web1.dawnofthedragons.com/kong?" + Object.toQueryString(iframe_options));
-		},
-		lastJoinedRaidId: 0
+		}
 	}
 	window.addEventListener("message", function(event){
 		if(/pastebin\.com/i.test(event.origin)){//for pastebin import/export
@@ -3469,7 +3468,9 @@ function main() {
 			}
 		} else if(/web[\w]+\.dawnofthedragons\.com/i.test(event.origin)) { // for Kong game iframe
 			var isJoining = true;
-			SRDotDX.lastJoinedRaidId = SRDotDX.gui.AutoJoinRaids[SRDotDX.gui.AutoJoinCurrentLanded].id;
+			
+			var lastJoinedRaidId = /^([\d]+)\slanded/i.exec(event.data)[1];
+			
 			if(SRDotDX.gui.AutoJoinCurrentTotal<=1 || !SRDotDX.gui.AutoJoin){
 				isJoining = false;
 				SRDotDX.gui.AutoJoin = false;
@@ -3492,8 +3493,8 @@ function main() {
 
 			// message to nuke a raid because it's dead
 			if (/dead/i.test(event.data)) {
-				console.log("[SRDotDX] Nuking raid " + SRDotDX.lastJoinedRaidId);
-				SRDotDX.nukeRaid(SRDotDX.lastJoinedRaidId);
+				console.log("[SRDotDX] Nuking raid " + lastJoinedRaidId);
+				SRDotDX.nukeRaid(lastJoinedRaidId);
 				
 				if (SRDotDX.gui.AutoJoin&&isJoining) {
 					SRDotDX.gui.AutoJoinCurrentDeads++;
@@ -3504,8 +3505,8 @@ function main() {
 
 			// message to nuke a raid because it's from the wrong guild
 			if (/wrongguild/i.test(event.data)) {
-				console.log("[SRDotDX] Nuking raid " + SRDotDX.lastJoinedRaidId);
-				SRDotDX.nukeRaid(SRDotDX.lastJoinedRaidId);	
+				console.log("[SRDotDX] Nuking raid " + lastJoinedRaidId);
+				SRDotDX.nukeRaid(lastJoinedRaidId);	
 				if (!SRDotDX.gui.AutoJoin||!isJoining){
 					SRDotDX.gui.doStatusOutput("Join Failed. Wrong guild.");
 				}
@@ -3518,15 +3519,15 @@ function main() {
 
 			// message to delete a raid (invalid raid id or hash)
 			if (/invalid/i.test(event.data)) {
-				console.log("[SRDotDX] Deleting raid " + SRDotDX.lastJoinedRaidId);
+				console.log("[SRDotDX] Deleting raid " + lastJoinedRaidId);
 				
 				var raidListEle = document.getElementById('raid_list');
 				if (raidListEle) {
-					var raidEle = raidListEle.getElementsByClassName("raid_list_item_"+SRDotDX.lastJoinedRaidId)[0];
+					var raidEle = raidListEle.getElementsByClassName("raid_list_item_"+lastJoinedRaidId)[0];
 					if (raidEle) {
 						var deleteEle = raidEle.getElementsByClassName("FPXDeleteLink")[0];
 						if (deleteEle) {
-							SRDotDX.gui.deleteRaid(deleteEle,SRDotDX.lastJoinedRaidId,false);
+							SRDotDX.gui.deleteRaid(deleteEle,lastJoinedRaidId,false);
 						}
 					}
 				}
@@ -3540,18 +3541,18 @@ function main() {
 
 			// message indicating the join was successful
 			if (/success/i.test(event.data)) {
-				console.log("[SRDotDX] Successful raid join " + SRDotDX.lastJoinedRaidId);
+				console.log("[SRDotDX] Successful raid join " + lastJoinedRaidId);
 				if (SRDotDX.gui.AutoJoin&&isJoining) {
 					SRDotDX.gui.AutoJoinCurrentSuccesses++;
 				} else {
-					SRDotDX.gui.doStatusOutput(SRDotDX.raids[SRDotDX.config.raidList[SRDotDX.lastJoinedRaidId].boss].shortname +" joined successfully.");
+					SRDotDX.gui.doStatusOutput(SRDotDX.raids[SRDotDX.config.raidList[lastJoinedRaidId].boss].shortname +" joined successfully.");
 				}
 
 			}
 
 			// message indicating the landing page is loaded
 			if (/landed/i.test(event.data)) {
-				console.log("[SRDotDX] Raid id " + SRDotDX.lastJoinedRaidId + " " + event.data +  " : " + SRDotDX.gui.AutoJoin + " : " +SRDotDX.gui.AutoJoinCurrentLanded + " : " + SRDotDX.gui.AutoJoinCurrentIndex + " : " + SRDotDX.gui.AutoJoinRaids.length);
+				console.log("[SRDotDX] Raid id " + lastJoinedRaidId + " " + event.data +  " : " + SRDotDX.gui.AutoJoin + " : " +SRDotDX.gui.AutoJoinCurrentLanded + " : " + SRDotDX.gui.AutoJoinCurrentIndex + " : " + SRDotDX.gui.AutoJoinRaids.length);
 				if (isJoining) {
 					SRDotDX.gui.AutoJoinCurrentLanded++;
 					if (SRDotDX.config.asyncJoin) SRDotDX.gui.currentJoinFrame = parseInt(String(event.data).split("|")[1]);//recieved from iframe is available
@@ -3623,11 +3624,16 @@ function PBeditmain(){//pastebin edit script
 function DDmain(){//game frame script
 	var linkElements = document.getElementsByTagName('a');
 	if (linkElements[0]) {
-		window.getQuerystring = function (key,default_){if(default_==null)default_="";key=key.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");var regex=new RegExp("[\\?&]"+key+"=([^&#]*)");var qs=regex.exec(window.location.href);if(qs==null)return default_;else return qs[1]}
+		/// Define a couple functions to pull data
+		window.getFrameIDString = function (key,default_){if(default_==null)default_="";key=key.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");var regex=new RegExp("[\\?&]"+key+"=([^&#]*)");var qs=regex.exec(window.location.href);if(qs==null)return default_;else return qs[1]}
+
+		window.getRaidIDString = function (){ var matches=/kv_raid_id=([\d]+)/i.exec(window.location.href); if(matches==null || matches[1] == null) return "0"; else return matches[1]; }
+
+
 		// We're on the landing page
 		linkElements[0].onclick = function() { window.parent.postMessage('reload','http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons'); return false; };
 		
-		var message = "landed";
+		var message = getRaidIDString() + " landed";
 		var pageDivs = linkElements[0].parentNode.getElementsByTagName("div");
 
 		if (pageDivs[1]) {
@@ -3657,7 +3663,7 @@ function DDmain(){//game frame script
 				// If the person is rejoining a raid
 				message += " member";
 			}
-			message += "|" + getQuerystring('SRDotDX_frame','0');
+			message += "|" + getFrameIDString('SRDotDX_frame','0');
 		}
 		window.parent.postMessage(message,'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons');
 	} 
