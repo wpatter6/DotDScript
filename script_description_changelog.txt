@@ -23,7 +23,7 @@ Contact Us: A list of ways to contact us for whatever reasons<br />
 &nbsp;</p>
 <h3><b>Changelog</b></h3><p>
 <b>1.2.2</b><br>
-1) Fixed a bug that was causing the script to sometimes mark the wrong raids as dead.
+1) Fixed a bug that was causing the script to sometimes mark the wrong raids as dead.<br><br>
 <b>1.2.1</b><br>
 1) Small bug for firefox pastebin export fixed.
 <br><br>
