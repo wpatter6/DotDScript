@@ -22,6 +22,9 @@ Known Incompatibilities: If you're using one userscript, you're probably using s
 Contact Us: A list of ways to contact us for whatever reasons<br />
 &nbsp;</p>
 <h3><b>Changelog</b></h3><p>
+<b>1.2.4</b><br>
+1) Hotfix to add the Jack's Revenge raid.<br>
+2) Added some missing data for Jack that was causing a couple weird bugs.<br><br>
 <b>1.2.3</b><br>
 1) Hotfix to add the Jack raid.<br><br>
 <b>1.2.2</b><br>
