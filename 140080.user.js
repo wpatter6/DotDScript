@@ -4,7 +4,7 @@
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
 // @version        1.2.5
-// @date           10.18.2012
+// @date           10.29.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -3470,6 +3470,15 @@ function main() {
 		} else if(/web[\w]+\.dawnofthedragons\.com/i.test(event.origin)) { // for Kong game iframe
 			var isJoining = true;
 			
+			// message to reload the frame
+			if (/reload/i.test(event.data)) { 
+				if(SRDotDX.config.refreshGameToJoin){
+					console.log("[SRDotDX] Reloading");
+					SRDotDX.reload();
+					return;
+				}
+			}
+
 			var lastJoinedRaidId = /^([\d]+)\slanded/i.exec(event.data)[1];
 			
 			if(SRDotDX.gui.AutoJoinCurrentTotal<=1 || !SRDotDX.gui.AutoJoin){
@@ -3484,13 +3493,6 @@ function main() {
 				document.getElementById('AutoJoinVisibleButton').value='Join';
 			}
 			console.log("[SRDotDX] Game message " + event.data + " : " + isJoining);
-			// message to reload the frame
-			if (/reload/i.test(event.data)) { 
-				if(SRDotDX.config.refreshGameToJoin){
-					console.log("[SRDotDX] Reloading");
-					SRDotDX.reload();
-				}
-			}
 
 			// message to nuke a raid because it's dead
 			if (/dead/i.test(event.data)) {

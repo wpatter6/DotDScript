@@ -23,7 +23,8 @@ Contact Us: A list of ways to contact us for whatever reasons<br />
 &nbsp;</p>
 <h3><b>Changelog</b></h3><p>
 <b>1.2.5</b><br>
-1) Fixed pretty posting with Jack and Jack's Revenge raids.<br><br>
+1) Fixed pretty posting with Jack and Jack's Revenge raids.<br>
+2) Fixed the Play Now button not reloading the frame, for those of you who haven't turned off "Refresh game to join raids", seriously that option is awesome and you should try it.<br><br>
 <b>1.2.4</b><br>
 1) Hotfix to add the Jack's Revenge raid.<br>
 2) Added some missing data for Jack that was causing a couple weird bugs.<br><br>
