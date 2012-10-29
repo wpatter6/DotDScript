@@ -3,7 +3,7 @@
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        1.2.4
+// @version        1.2.5
 // @date           10.18.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
@@ -137,7 +137,7 @@ function main() {
 	window.elfade=function(elem,time){if(typeof time!='number')time=500;if(typeof elem=='string')elem=document.getElementById(elem);if(elem==null)return;var startOpacity=elem.style.opacity||1;elem.style.opacity=startOpacity;var tick=1/(time/100);(function go(){elem.style.opacity=Math.round((elem.style.opacity-tick)*100)/100;if(elem.style.opacity>0)setTimeout(go,100);else elem.style.display='none'})()}
 	
 	window.SRDotDX = {
-		version: {major: "1.2.4", minor: "wpatter6/JHunz"},
+		version: {major: "1.2.5", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -1072,7 +1072,6 @@ function main() {
 						var fullCount = fullList.length;
 						var bossArray = [];
 						var finalOutput = ["Train starting. " + fullCount + " total raids including "];
-						
 						for(var i=0; i< SRDotDX.raidArray.length; i++)
 						{
 							var curBoss = SRDotDX.raidArray[i]
@@ -3380,7 +3379,7 @@ function main() {
 			"alice","bogstench","4ogre","bmane","harpy","kobold","corrupterebus","serpina","dahrizons_general",
 			"basilisk","dirthax","dragons_lair","erakka_sak","giantgolem","echthros","drag","felendis","ogre",
 			"dreadbloom","batman","evilgnome","guardian_golem","guilbert","gunnar","war_boar","hargamesh","grimsly",
-			"hydra","ironclad","kang","3dawg","kessovtower","kessovtowers","kessovforts","kessovcastle","kalaxia","tyranthius",
+			"hydra","ironclad","pumpkin","jacksrevenge1","kang","3dawg","kessovtower","kessovtowers","kessovforts","kessovcastle","kalaxia","tyranthius",
 			"lunacy","lurker","magma_horror","maraak","mardachus","scorp","mestr","mesyra","misako",
 			"nalagarst","nidhogg","nimrod","phaedra","fairy_prince","roc","rhalmarius_the_despoiler","rift","crabshark",
 			"squid","simulacrum_dahrizon","sircai","sisters","slaughterers","stein","tainted","tenebra","tisiphone",
