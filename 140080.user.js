@@ -1072,9 +1072,9 @@ function main() {
 						var fullCount = fullList.length;
 						var bossArray = [];
 						var finalOutput = ["Train starting. " + fullCount + " total raids including "];
-						for(var i=0; i< SRDotDX.raidArray.length; i++)
+						for(var i in SRDotDX.raids)
 						{
-							var curBoss = SRDotDX.raidArray[i]
+							var curBoss = i
 							var filtList = fullList.filter(function (e){
 								return SRDotDX.getRaidDetailsBase(String(e)).boss==curBoss;//new RegExp('kv_raid_boss=' + curBoss,'i').test(e);
 							});
@@ -3375,15 +3375,6 @@ function main() {
 			250:{ name: 'Epic', visible: 'Yes', pruneTimers: [86400000,172800000,259200000]}, // 24h, 48h, 72h
 			500:{ name: 'Colossal', visible: 'Yes', pruneTimers: [86400000,172800000,259200000]} // 24h, 48h, 72h
 		},
-		raidArray: [ "agony","djinn","animated_armor","spider","rhino","gladiators","bellarius","werewolfpack",
-			"alice","bogstench","4ogre","bmane","harpy","kobold","corrupterebus","serpina","dahrizons_general",
-			"basilisk","dirthax","dragons_lair","erakka_sak","giantgolem","echthros","drag","felendis","ogre",
-			"dreadbloom","batman","evilgnome","guardian_golem","guilbert","gunnar","war_boar","hargamesh","grimsly",
-			"hydra","ironclad","pumpkin","jacksrevenge1","kang","3dawg","kessovtower","kessovtowers","kessovforts","kessovcastle","kalaxia","tyranthius",
-			"lunacy","lurker","magma_horror","maraak","mardachus","scorp","mestr","mesyra","misako",
-			"nalagarst","nidhogg","nimrod","phaedra","fairy_prince","roc","rhalmarius_the_despoiler","rift","crabshark",
-			"squid","simulacrum_dahrizon","sircai","sisters","slaughterers","stein","tainted","tenebra","tisiphone",
-			"chimera","gorgon","ulfrik","valanazes","blobmonster","wexxa","zombiehorde","krykagrius" ],
 		reload: function () {
 			SRDotDX.echo("Reloading, please wait...");
 			var reg = new RegExp(/var iframe_options = ([^\x3B]+)/g);
