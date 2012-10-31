@@ -4,7 +4,7 @@
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
 // @version        1.2.5
-// @date           10.29.2012
+// @date           10.30.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -1072,6 +1072,7 @@ function main() {
 						var fullCount = fullList.length;
 						var bossArray = [];
 						var finalOutput = ["Train starting. " + fullCount + " total raids including "];
+						
 						for(var i in SRDotDX.raids)
 						{
 							var curBoss = i
@@ -1275,16 +1276,19 @@ function main() {
 					}
 				}
 			},
+			PastebinCollisions:0,
 			FPXImportPasteBin: function(url){
 				url=url+"";
 				if(/pastebin\.com\//i.test(url)){
-					if(!SRDotDX.gui.importingPastebin && !SRDotDX.gui.ExportingPaste){
+					if((!SRDotDX.gui.importingPastebin && !SRDotDX.gui.ExportingPaste) || SRDotDX.gui.PastebinCollisions>10){
+						SRDotDX.gui.PastebinCollisions=0;
 						url= 'http://pastebin.com/raw.php?i='+url.substring(url.length-8);
 						console.log("[SRDotDX] Importing pastebin " +url);
 						SRDotDX.gui.importingPastebin=true;
 						document.getElementById("SRDotDX_pastebin").src = url;
 						setTimeout("if(SRDotDX.gui.importingPastebin){SRDotDX.gui.doStatusOutput('The pastebin request timed out. Please try again.');SRDotDX.gui.importingPastebin=false; for(i=0;i<document.getElementsByClassName('pb_"+url.substring(url.length-8)+"').length;i++){document.getElementsByClassName('pb_"+url.substring(url.length-8)+"')[i].innerHTML='<a href=\"#\" onClick=\"return false;\" onMouseDown=\"SRDotDX.gui.FPXImportPasteBin(\'"+url+"\');\">Import</a>';}}", 20000);//not found in 20 secs error occured
 					} else {
+						SRDotDX.gui.PastebinCollisions++;
 						console.log("[SRDotDX] Pastebin collision, trying again in 1 second");
 						setTimeout("SRDotDX.gui.FPXImportPasteBin('"+url+"');", 1000);
 					}
@@ -1512,6 +1516,18 @@ function main() {
 						el.appendChild(iframe);
 					}
 				}
+			},
+			ResetJoiner: function(){
+				if(SRDotDX.gui.AutoJoinVisibleClicked)
+					SRDotDX.gui.doStatusOutput('Join finished. New: '+SRDotDX.gui.AutoJoinCurrentSuccesses+', Dead: '+SRDotDX.gui.AutoJoinCurrentDeads+(SRDotDX.gui.AutoJoinCurrentInvalids>0?', Invalid:'+SRDotDX.gui.AutoJoinCurrentInvalids:''), 10000);
+				
+				SRDotDX.gui.AutoJoin=false;
+				SRDotDX.gui.AutoJoinVisibleClicked=false;
+				SRDotDX.gui.AutoJoinCurrentSuccesses=0;
+				SRDotDX.gui.AutoJoinCurrentDeads=0;
+				SRDotDX.gui.AutoJoinCurrentInvalids=0;
+				SRDotDX.gui.AutoJoinCurrentTotal=0;
+				document.getElementById('AutoJoinVisibleButton').value='Join';
 			},
 			AutoJoin: false,
 			AutoJoinRaids: [],
@@ -3553,23 +3569,25 @@ function main() {
 					if (SRDotDX.gui.AutoJoinCurrentIndex < SRDotDX.gui.AutoJoinRaids.length) {// join the next
 						SRDotDX.gui.doStatusOutput('Joining '+(SRDotDX.gui.AutoJoinCurrentIndex+1)+' of '+SRDotDX.gui.AutoJoinCurrentTotal+'. New: '+SRDotDX.gui.AutoJoinCurrentSuccesses+', Dead: '+SRDotDX.gui.AutoJoinCurrentDeads);
 						SRDotDX.gui.AutoJoinNext();
+						if(SRDotDX.config.asyncJoin && SRDotDX.gui.AutoJoinCurrentIndex+1 == SRDotDX.gui.AutoJoinCurrentTotal)
+							setTimeout("SRDotDX.gui.ResetJoiner();", SRDotDX.config.asyncJoinCount * 1000);
 					}  
 					if(SRDotDX.gui.AutoJoinCurrentLanded == SRDotDX.gui.AutoJoinRaids.length){// finished auto-joining
 						console.log("[SRDotDX] Finished auto joining");
-						SRDotDX.gui.AutoJoin=false;
-						SRDotDX.gui.AutoJoinVisibleClicked=false;
-						if(isJoining){
-							if(SRDotDX.config.refreshGameToJoin)
-								SRDotDX.reload();
-							SRDotDX.gui.doStatusOutput('Join finished. New: '+SRDotDX.gui.AutoJoinCurrentSuccesses+', Dead: '+SRDotDX.gui.AutoJoinCurrentDeads+', Invalid:'+SRDotDX.gui.AutoJoinCurrentInvalids, 10000);
-						}
-						SRDotDX.gui.AutoJoinCurrentLanded=0;
-						SRDotDX.gui.AutoJoinCurrentIndex=0;
-						SRDotDX.gui.AutoJoinCurrentSuccesses=0;
-						SRDotDX.gui.AutoJoinCurrentDeads=0;
-						SRDotDX.gui.AutoJoinCurrentInvalids=0;
-						SRDotDX.gui.AutoJoinCurrentTotal=0;
-						document.getElementById('AutoJoinVisibleButton').value='Join';
+
+
+
+						if(isJoining && SRDotDX.config.refreshGameToJoin)
+							SRDotDX.reload();
+
+
+						SRDotDX.gui.ResetJoiner();
+
+
+
+
+
+
 					}
 				}
 			}
