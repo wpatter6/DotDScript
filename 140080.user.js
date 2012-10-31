@@ -4,7 +4,7 @@
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
 // @version        1.2.5
-// @date           10.30.2012
+// @date           10.31.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -3211,9 +3211,17 @@ function main() {
 				var match = reg.exec(activateGame); 
 				var iframe_options = eval('('+match[1]+')');
 				iframe_options['kv_action_type'] = 'raidhelp';
-				iframe_options['kv_difficulty'] = r.diff;
+				if (r.diff != null && r.diff != "") {
+					iframe_options['kv_difficulty'] = r.diff;
+				} else {
+					iframe_options['kv_difficulty'] = 4; // Set a default difficulty URL param for the url to load to work around an issue when it's unspecified.  Doesn't affect what is actually loaded at all.
+				}
 				iframe_options['kv_hash'] = r.hash;
-				iframe_options['kv_raid_boss'] = r.boss;
+				if (r.boss != null && r.boss != "") {
+					iframe_options['kv_raid_boss'] = r.boss;
+				} else {
+					iframe_options['kv_raid_boss'] = 'agony'; // Set a default boss URL param for the url to load to work around an issue when it's unspecified.  Doesn't affect what is actually loaded at all.
+				}
 				iframe_options['kv_raid_id'] = r.id;
 				if(SRDotDX.config.refreshGameToJoin){
 					$('gameiframe').replace(new Element('iframe', {"id":"gameiframe","name":"gameiframe","style":"border:none;position:relative;z-index:1;","scrolling":"auto","border":0,"frameborder":0,"width":760,"height":700,"class":"dont_hide"}));
