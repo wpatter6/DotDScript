@@ -248,7 +248,7 @@ function main() {
 				if (typeof SRDotDX.config.getRaid(id) != 'object') {
 					SRDotDX.config.raidList[id] = {
 						hash: hash,
-						id: id,
+						id: (!isNumber(id)&&isNumber(id.substring(0,7))?id.substring(0,7):id),//TODO REGEX
 						boss: boss,
 						diff: diff,
 						seen: seen,
@@ -1594,13 +1594,18 @@ function main() {
 					}
 				}
 			},
+			GetRaidLink: function (raid) {
+				console.log(raid.id)
+				if(raid.id && raid.hash && raid.diff && raid.boss)
+				return 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons?kv_action_type=raidhelp&kv_difficulty='+raid.diff+'&kv_hash='+raid.hash+'&kv_raid_boss='+raid.boss+'&kv_raid_id='+(!isNumber(raid.id)&&isNumber(String(raid.id).substring(0,7))?String(raid.id).substring(0,7):raid.id);//TODO REGEX
+			},
 			GetDumpText: function (raids) {
 				if(typeof raids == 'object'){
 					var dumptext = "!!OBJECT_IMPORT!!|"+active_user.username()+"|"+new Date().getTime()+"|";
 					for(i=0; i<raids.length; i++){
 						var raid = raids[i];
 						if (raid.nuked == true) { continue; }
-						var txt = raid.ele.firstChild.getElementsByTagName('a')[0].href+","+raid.timeStamp+","+raid.user+","+raid.room+";"
+						var txt = SRDotDX.gui.GetRaidLink(raid)+","+raid.timeStamp+","+raid.user+","+raid.room+";"
 						dumptext += txt;
 					}
 					return dumptext;
