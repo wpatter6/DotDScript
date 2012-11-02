@@ -4,7 +4,7 @@
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
 // @version        1.2.5
-// @date           10.31.2012
+// @date           11.02.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -407,7 +407,7 @@ function main() {
 					r.boss=i[2]
 				}
 				else if (!r.id && i[1] == 'kv_raid_id'){
-					r.id=i[2]
+					r.id=i[2].replace(/http:?/i,""); // Workaround for when part of the next link gets glommed onto the last bit of this one
 				}
 				else if (i[1] != 'kv_action_type'){
 					return
