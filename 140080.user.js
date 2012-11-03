@@ -1618,7 +1618,6 @@ function main() {
 				}
 			},
 			GetRaidLink: function (raid) {
-				console.log(raid.id)
 				if(raid.id && raid.hash && raid.diff && raid.boss)
 					return 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons?kv_action_type=raidhelp&kv_difficulty='+raid.diff+'&kv_hash='+raid.hash+'&kv_raid_boss='+raid.boss+'&kv_raid_id='+SRDotDX.gui.GetRaidID(raid.id);
 			},

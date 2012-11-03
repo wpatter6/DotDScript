@@ -23,14 +23,14 @@ function shared() {//bulk of the script, shared between sites
 				//todo param as raid tab to generate UI in
 				
 				
-			}
+			},
 			addRaid: function(id){//todo gui.addRaid;
 			
 			}
 		},
 		chat: {//chat input/output (kong only)
 			init: function(){
-				RaidCatcher.chat.echo = function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)};
+				RaidCatcher.chat.echo = function(msg){holodeck.activeDialogue().RaidCatcher_echo(msg)};
 				RaidCatcher.chat.output = function(msg, whisper, to){			
 					if(whisper && ((to||'') != '')) msg = "/w " + to + " " + msg;
 					console.log('RaidCatcher chat output] '+msg);
@@ -44,10 +44,56 @@ function shared() {//bulk of the script, shared between sites
 					for(i=0;i<txt.length;i++) elems[i].value = txt[i];
 				}
 				//todo add all kong chat commands & raids from chat
+				ChatDialogue.prototype.RaidCatcher_echo = function(msg){
+					this.SRDotDX_DUM("DotD Extension","<br>"+msg,{class: "whisper whisper_received"},{non_user: true})
+				}
+				ChatDialogue.prototype.RaidCatcher_DUM = ChatDialogue.prototype.displayUnsanitizedMessage;
+				ChatDialogue.prototype.displayUnsanitizedMessage=function (b,d,e,f) {//TODO Replace SRDotDX
+					if(!this._user_manager.isMuted(b)){
+						if (typeof e != 'object') { e = {class: ''}  }
+						else if (typeof e.class != 'string') { e.class = ''; }
+						var isPublic = false;
+						try { isPublic = (/^room_\d+-dawn-of-the-dragons-\d+$/i.test(this._holodeck._chat_window._active_room._short_room_name) && e.class.indexOf("whisper") == -1?true:false) }
+						catch(err){}
+
+						var raid = SRDotDX.getRaidLink(d,b,isPublic)
+						if (typeof raid == 'object') {
+							e.class+= " SRDotDX_raid";
+							e.class+= " SRDotDX_hash_"+raid.hash;
+							e.class+= " SRDotDX_raidid_"+raid.id;
+							e.class+= (raid.seen?" SRDotDX_seenRaid":'');
+							e.class+=(raid.visited?" SRDotDX_visitedRaid":'');
+							e.class+=(raid.nuked?" SRDotDX_nukedRaid":'');
+							e.class+=" SRDotDX_filteredRaidChat" + raid.boss + '_' + (raid.diff - 1);							
+							d = raid.ptext + '<a href="'+raid.url+'" onClick="return false;" onMouseDown="SRDotDX.gui.FPXraidLinkMouseDown(event,'+'\''+raid.id+'\''+',this.href,true); return false">'+raid.linkText()+'</a>'+raid.ntext;
+							SRDotDX.gui.toggleRaid('visited',raid.id,raid.visited);
+							SRDotDX.config.raidList[raid.id].seen = true;
+							SRDotDX.gui.raidListItemUpdate(raid.id);
+							if(raid.isNew){
+								if(!SRDotDX.gui.AutoJoin)
+									SRDotDX.gui.updateMessage();
+								SRDotDX.gui.FPXFilterRaidListByName();
+							}
+						}
+						var pb = SRDotDX.getPastebinLink(d,b,isPublic)
+						if (typeof pb == 'object') {
+							var doImport = pb.user!=active_user.username() && SRDotDX.config.autoImportPaste && pb.user==b;
+							d = pb.ptext + '<a href="'+pb.url+'" target="_blank">'+(pb.isNew?'Pastebin Link':pb.user+'\'s Pastebin')+'</a> <span class="pb_'+pb.id+'">('+(doImport?'Importing...':'<a href="#" onClick="return false;" onMouseDown="SRDotDX.gui.FPXImportPasteBin(\''+pb.url+'\')">Import</a>')+')</span>'+pb.ntext;
+							if(doImport){
+								setTimeout("SRDotDX.gui.FPXImportPasteBin('"+pb.url+"');", 1000);
+							}
+						}
+						if(SRDotDX.config.mutedUsers[b]){
+							e.class+=" SRDotDX_nukedRaidList";
+							console.log("[SRDotDX] Muted message recieved from " + b + " : " + d);
+						}
+						this.RaidCatcher_DUM(b,d,e,f);
+					}
+				}
 			}
 		}
 		db: {//todo server interaction
-			get: function(filter){//todo db interaction
+			get: function(filter){//todo server get (GM_xmlHttpRequest works in chrome now)
 			}
 		},
 		raids: (function(){//stored raid list
@@ -212,11 +258,280 @@ function shared() {//bulk of the script, shared between sites
 			isNumber: function(n) {return !isNaN(parseFloat(n)) && isFinite(n);},
 			dateFormat: function(){var token=/d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,timezone=/\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,timezoneClip=/[^-+\dA-Z]/g,pad=function(val,len){val=String(val);len=len||2;while(val.length<len)val="0"+val;return val};return function(date,mask,utc){var dF=dateFormat;if(arguments.length==1&&Object.prototype.toString.call(date)=="[object String]"&&!/\d/.test(date)){mask=date;date=undefined}date=date?new Date(date):new Date;if(isNaN(date))throw SyntaxError("invalid date");mask=String(dF.masks[mask]||mask||dF.masks["default"]);if(mask.slice(0,4)=="UTC:"){mask=mask.slice(4);utc=true}var _=utc?"getUTC":"get",d=date[_+"Date"](),D=date[_+"Day"](),m=date[_+"Month"](),y=date[_+"FullYear"](),H=date[_+"Hours"](),M=date[_+"Minutes"](),s=date[_+"Seconds"](),L=date[_+"Milliseconds"](),o=utc?0:date.getTimezoneOffset(),flags={d:d,dd:pad(d),ddd:dF.i18n.dayNames[D],dddd:dF.i18n.dayNames[D+7],m:m+1,mm:pad(m+1),mmm:dF.i18n.monthNames[m],mmmm:dF.i18n.monthNames[m+12],yy:String(y).slice(2),yyyy:y,h:H%12||12,hh:pad(H%12||12),H:H,HH:pad(H),M:M,MM:pad(M),s:s,ss:pad(s),l:pad(L,3),L:pad(L>99?Math.round(L/10):L),t:H<12?"a":"p",tt:H<12?"am":"pm",T:H<12?"A":"P",TT:H<12?"AM":"PM",Z:utc?"UTC":(String(date).match(timezone)||[""]).pop().replace(timezoneClip,""),o:(o>0?"-":"+")+pad(Math.floor(Math.abs(o)/60)*100+Math.abs(o)%60,4),S:["th","st","nd","rd"][d%10>3?0:(d%100-d%10!=10)*d%10]};return mask.replace(token,function($0){return $0 in flags?flags[$0]:$0.slice(1,$0.length-1)})}}();dateFormat.masks={"default":"ddd mmm dd yyyy HH:MM:ss",shortDate:"m/d/yy",mediumDate:"mmm d, yyyy",longDate:"mmmm d, yyyy",fullDate:"dddd, mmmm d, yyyy",shortTime:"h:MM TT",mediumTime:"h:MM:ss TT",longTime:"h:MM:ss TT Z",isoDate:"yyyy-mm-dd",isoTime:"HH:MM:ss",isoDateTime:"yyyy-mm-dd'T'HH:MM:ss",isoUtcDateTime:"UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"};dateFormat.i18n={dayNames:["Sun","Mon","Tue","Wed","Thu","Fri","Sat","Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],monthNames:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","January","February","March","April","May","June","July","August","September","October","November","December"]},
 			timeSince: function(date,after){if(typeof date=='number')date=new Date(date);var seconds=Math.abs(Math.floor((new Date().getTime()-date.getTime())/1000));var interval=Math.floor(seconds/31536000);var pretext="about ";var posttext=" ago";if(after)posttext=" left";if(interval>=1){return pretext+interval+" year"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/2592000);if(interval>=1){return pretext+interval+" month"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/86400);if(interval>=1){return pretext+interval+" day"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/3600);if(interval>=1){return pretext+interval+" hour"+(interval==1?'':'s')+posttext}interval=Math.floor(seconds/60);if(interval>=1){return interval+" minute"+(interval==1?'':'s')+posttext}return Math.floor(seconds)+" second"+(seconds==1?'':'s')+posttext},
-			removeDupes: function(arr){var i,len=arr.length,out=[],obj={};for(i=0;i<len;i++){obj[arr[i]]=0}for(i in obj){out.push(i)}return out}
+			removeDupes: function(arr){var i,len=arr.length,out=[],obj={};for(i=0;i<len;i++){obj[arr[i]]=0}for(i in obj){out.push(i)}return out},
+			reload: function () {
+				RaidCatcher.chat.echo("Reloading, please wait...");
+				var reg = new RegExp(/var iframe_options = ([^\x3B]+)/g);
+				var match = reg.exec(activateGame); 
+				var iframe_options = eval('('+match[1]+')');
+				$('gameiframe').replace(new Element('iframe', {"id":"gameiframe","name":"gameiframe","style":"border:none;position:relative;z-index:1;","scrolling":"auto","border":0,"frameborder":0,"width":760,"height":700,"class":"dont_hide"}));
+				$('gameiframe').contentWindow.location.replace("http://web1.dawnofthedragons.com/kong?" + Object.toQueryString(iframe_options));
+			},
+			getShortNum: function (num) {
+				if (isNaN(num) || num < 0){return num}
+				else if (num>=1000000000000){return (num/1000000000000).toFixed(3)/1+"T"}
+				else if (num>=1000000000){return (num/1000000000).toFixed(2)/1+"B"}
+				else if (num>=1000000){return (num/1000000).toFixed(2)/1+"M"}
+				else if (num>=1000){return (num/1000).toFixed(1)/1+"K"}
+				else if (num>0){return num+""}
+			},
+			getStatText: function (stat) {
+				stat=stat.toLowerCase();
+				var r="";
+				if (stat=='?'||stat=='Unknown')return 'Unknown';
+				if (stat.indexOf("s")>-1)r="Stamina";
+				if (stat.indexOf("h")>-1)r+=(r!=''?(stat.indexOf("e")>-1?", ":" and "):"")+"Honor";
+				if (stat.indexOf("e")>-1)r+=(r!=''?" and ":"")+"Energy";
+				return r;
+			},
+			getLootTierText: function (raidid, diffIndex) {
+				if (typeof SRDotDX.raids[raidid] != 'object' || typeof SRDotDX.raids[raidid].loottiers != 'object' || typeof SRDotDX.raids[raidid].loottiers[diffIndex] != 'object') {
+					return "";
+				}
+				var tiers = SRDotDX.raids[raidid].loottiers[diffIndex];
+				var text = tiers[0];
+				for (var i = 1;i<tiers.length;i+=1) {
+					text = text + "/" + tiers[i] + " ";
+				}
+				return text;
+			},
+			getRaidDetailsBase: function(url){
+				var r = {diff: '', hash: '', boss: '', id: ''};
+				var reg = /[?&]([^=]+)=([^?&]+)/ig, p = url.replace(/&amp;/gi,"&");
+				while ((i = reg.exec(p)) != null) {
+					if (!r.diff && i[1] == 'kv_difficulty') r.diff=parseInt(i[2]);
+					else if (!r.hash && i[1] == 'kv_hash') r.hash=i[2];
+					else if (!r.boss && i[1] == 'kv_raid_boss') r.boss=i[2];
+					else if (!r.id && i[1] == 'kv_raid_id') r.id=i[2].replace(/http:?/i,""); // Workaround for when part of the next link gets glommed onto the last bit of this one
+					else if (i[1] != 'kv_action_type') return
+				}
+				if (typeof r != 'undefined' && typeof r.diff != 'undefined' && typeof r.hash != 'undefined' && typeof r.boss != 'undefined' && typeof r.id != 'undefined') {
+					r.diffLongText = ['Normal','Hard','Legendary','Nightmare','Insane','Hell'][r.diff-1];
+					r.diffShortText = ['N','H','L','NM','I','HL'][r.diff-1];
+					
+					var stats = RaidCatcher.data.raids[r.boss];
+					if (typeof stats == 'object') {
+						r.name = stats.name;
+						r.shortname = stats.shortname;
+						r.size = stats.size;
+						r.dur = stats.duration;
+						r.durText = stats.dur + "hrs";
+						r.stat = stats.stat;
+						r.statText = RaidCatcher.util.getStatText(stats.stat);
+						if (!isNaN(stats.health[r.diff-1])) {
+							r.health = stats.health[r.diff-1];
+							r.healthText = RaidCatcher.util.getShortNum(r.health);
+							if (r.boss == "dragons_lair") {
+								r.fairShareText = "";
+							} else {
+								r.fairShare = r.health / r.size;
+								r.fairShareText = RaidCatcher.util.getShortNum(r.fairShare);
+
+							}
+
+							if (typeof stats.loottiers == 'object' && typeof stats.loottiers[r.diff-1] == 'object') {
+								var tiers = stats.loottiers[r.diff-1];
+								var text = 'Tiered loot: ' + RaidCatcher.util.getLootTierText(stats.id,(r.diff - 1));
+								r.optimalShare = 0;
+								r.optimalShareText = text;
+
+							} else {
+
+								r.optimalShare = r.fairShare * {"1": 1, "10":1.25, "13":1.25, "15":1.25, "50": 2.2, "100":2.3, "250": 1, "500": 1.5}[r.size];					
+								r.optimalShareText = RaidCatcher.util.getShortNum(r.optimalShare);
+							}
+							
+						}
+						else if (stats.health[0] == 'Unlimited') {
+							r.health = '';
+							r.healthText = 'Unlimited';
+							if (typeof stats.loottiers == 'object' && typeof stats.loottiers[r.diff-1] == 'object' && stats.loottiers[r.diff-1][0]) {
+								// TODO: At some point, make the numeric FS/OS numbers here line up with the correct textual ones
+								r.fairshare = 1000000000;
+								r.optimalShare = 1000000000;
+								r.fairShareText = stats.loottiers[r.diff-1][0];
+								r.optimalShareText = stats.loottiers[r.diff-1][stats.loottiers[r.diff-1].length-1];
+							} else {
+								r.fairShare = 1000000000;
+								r.fairShareText = RaidCatcher.util.getShortNum(r.fairShare);
+								r.optimalShare = 1000000000;
+								r.optimalShareText = RaidCatcher.util.getShortNum(r.optimalShare);
+							}
+						}
+						else {
+							r.health = '';
+							r.healthText = 'Unknown';
+							r.fairShare = '';
+							r.fairShareText = 'Unknown';
+							r.fairShare = '';
+							r.optimalShareText = 'Unknown';
+						} 
+					}
+				}
+				return r;
+			},
+			getRaidDetails: function(url,user,visited,seen,ts,room) {
+				user=(user?user:'');
+				visited=(visited?visited:(user==active_user.username() && RaidCatcher.settings.markMyRaidsVisted));
+				seen=(seen?seen:false);
+				var i;
+				var r = RaidCatcher.util.getRaidDetailsBase(url);
+				if (typeof r != 'undefined' && typeof r.diff != 'undefined' && typeof r.hash != 'undefined' && typeof r.boss != 'undefined' && typeof r.id != 'undefined') {
+					var info = RaidCatcher.raids.getRaid(r.id);
+					if (typeof info != 'object') {
+						info = RaidCatcher.raids.addRaid(r.hash, r.id, r.boss, r.diff,visited,seen,user,ts,room)
+						if(typeof info == 'object') r.isNew = true;
+						//inserting new raid
+					} else r.isNew = false;
+					r.timeStamp = info.timeStamp;
+					r.seen = info.seen;
+					r.visited = info.visited;
+					r.nuked = info.nuked;
+
+					r.linkText = function () {
+						if (RaidCatcher.settings.formatRaidLinks){
+							var txt = RaidCatcher.settings.raidLinkFormat;
+							txt = txt.replace(/<visited:([^>]*)>/gi,(this.visited?"$1":""));
+							txt = txt.replace(/<seen:([^>]*)>/gi,(this.seen?"$1":""));
+							txt = txt.replace(/<diff>/gi,this.diffShortText);
+							txt = txt.replace(/<diff:Num>/gi,this.diff);
+							txt = txt.replace(/<diff:Long>/gi,this.diffLongText);
+							txt = txt.replace(/<bossId>/gi,this.boss);
+							txt = txt.replace(/<raidId>/gi,this.id);
+							txt = txt.replace(/<hash>/gi,this.hash);
+							txt = txt.replace(/<name>/gi,(!this.name?'Unknown':this.name));
+							txt = txt.replace(/<shortname>/gi,(!this.name?'Unknown':SRDotDX.raids[this.boss].shortname));
+							txt = txt.replace(/<size>/gi,(!this.name?'':this.size));
+							txt = txt.replace(/<dur>/gi,(!this.name?'':this.durText));
+							txt = txt.replace(/<dur:Num>/gi,(!this.name?'':this.dur));
+							txt = txt.replace(/<stat>/gi,(!this.name?'':this.stat));
+							txt = txt.replace(/<stat:Long>/gi,(!this.name?'':this.statText));
+							txt = txt.replace(/<health>/gi,(!this.name?'':this.healthText));
+							txt = txt.replace(/<health:Num>/gi,(!this.name?'':this.health));
+							txt = txt.replace(/<fs>/gi,(!this.name?'':this.fairShareText));
+							txt = txt.replace(/<fs:Num>/gi,(!this.name?'':this.fairShare));
+							txt = txt.replace(/<os>/gi,(!this.name?'':this.optimalShareText));
+							txt = txt.replace(/<os:Num>/gi,(!this.name?'':this.optimalShare));	
+							txt = txt.replace(/</g,"&lt;").replace(/>/g,"&gt;");
+							return txt.replace(/&lt;image&gt;/gi,'<image src="http://cdn2.kongregate.com/game_icons/0033/2679/i.gif" style="vertical-align: text-top; float: left;">');
+						} else {
+							return '<image src="http://cdn2.kongregate.com/game_icons/0033/2679/i.gif" style="vertical-align: text-top"> Dawn of the Dragons'
+						}
+					}
+					return r;
+				}
+			}
 		},
 		data: {//game raid information
-			get: function(){
-				//GM_xmlHttpRequest() CAN NOW BE USED IN CHROME
+			searchKeywords: {
+			z1: { reg: /^(z1)|(kobold\sbelts?)|(hilted\sspears?)$/i, sub: 'horgrak|mazalu|grune' },
+			z2: { reg: /^(z2)|(bandit\sinsignias?)$/i, sub: 'ataxes|alice|lurking' },
+			z3: { reg: /^(z3)|(dragon\sscales?)$/i, sub: 'briareus|scylla|gravlok|erebus' },
+			z4: { reg: /^(z4)|(scabbards?)|(wizard'?s\s?hats?)$/i, sub: 'bloodmane|kerberos|hydra|cai|tyranthius' },
+			z5: { reg: /^(z5)|(skulls?)|(souls?)|(notes?\sfrom\sthe\sfront)$/i, sub: 'ironclad|zombie|stein|bogstench|nalagarst' },
+			z6: { reg: /^(z6)|(war horns?)|(^lutes?)|(rune\s?stones?)$/i, sub: 'gunnar|nidhogg|kang|ulfrik|kalaxia' },
+			z7: { reg: /^(z7)|(oroc crystals?)|(glyphs?)$/i, sub: 'maraak|erakka|wexxa|guilbert|bellarius' },
+			z8: { reg: /^(z8)|(dream\s?catchers?)|(dream\s?threads?)$/i, sub: 'hargamesh|grimsly|rift|sisters|mardachus' },
+			z9: { reg: /^(z9)|(dragon'?s\st[eo][eo]th)$/i, sub: 'mesyra|nimrod|phaedra|tenebra|valanazes' },
+			farm: { reg: /^farm$/i, sub: 'maraak|erakka|wexxa|guilbert|bellarius|erebus|grune|mazalu' },
+			gloves: { reg: /^gloves?$/i, sub: 'ataxes|alice|lurking|slaughterers|lunatics|felendis|agony|obyron|hammer|dirthax|dreadbloom' },
+			flute: { reg: /^flutes?$/i, sub: 'horgrak|mazalu|grune|ataxes|alice|lurking|butcher|scylla|gravlok|erebus|celeano|arachna|azab|groblar|deathglare|ragetalon|gladiator|tetrarchos|scuttlegore|tithrasia|moon|varlachleth|euphronios' },
+			trim: { reg: /^((brown|grey|gray|green|blue|purple|orange)\s+)?trim(\s+(helm|shield|boots|chest|ring|hammer))?$/i, sub: 'butcher|scylla|gravlok' },
+			dragonsbane: { reg: /^(sword\s(hilt|guard|blade|tip|emblem))|(dragon eye pearls)|(dragonsbane)$/i, sub: 'erebus' }
+			
+		},
+			raids: {
+				agony:{name: 'Agony', shortname: 'Agony',  id: 'agony', stat: 'H', size:100, duration:168, health: [700000000,875000000,1120000000,1400000000,,]},
+				djinn:{name: 'Al-Azab', shortname: 'Al-Azab',  id: 'djinn', stat: 'H', size:100, duration:168, health: [55000000,68750000,88000000,110000000,,]},
+				animated_armor:{name: 'Animated Armor', shortname: 'Armor', id: 'animated_armor', stat: 'S', size:1, duration:12, health: [8000000,,,,,]},
+				spider:{name: 'Arachna', shortname: 'Arachna',  id: 'spider', stat: 'H', size:50, duration:144, health: [22000000,27500000,35200000,44000000,,]},
+				rhino:{name: 'Ataxes', shortname: 'Ataxes',  id: 'rhino', stat: 'S', size:10, duration:120, health: [2000000,2500000,3200000,4000000,,]},
+				gladiators:{name: 'Batiatus Gladiators ', shortname: 'Gladiators ',  id: 'gladiators', stat: 'H', size:10, duration:120, health: [12000000,15000000,19200000,24000000,,]},
+				bellarius:{name: 'Bellarius the Guardian', shortname: 'Bella',  id: 'bellarius', stat: 'S', size:500, duration:96, health: [900000000,1125000000,1440000000,1800000000,,]},
+				werewolfpack:{name: 'Black Moon', shortname: 'Black Moon',  id: 'werewolfpack', stat: 'H', size:50, duration:144, health: [135000000,168750000,216000000,270000000,,]},
+				alice:{name: 'Bloody Alice', shortname: 'Alice',  id: 'alice', stat: 'S', size:50, duration:120, health: [15000000,18750000,24000000,30000000,,]},
+				bogstench:{name: 'Bogstench', shortname: 'Bogstench',  id: 'bogstench', stat: 'S', size:250, duration:96, health: [450000000,562500000,720000000,900000000,,]},
+				'4ogre':{name: 'Briareus the Butcher', shortname: 'Briareus',  id: '4ogre', stat: 'S', size:10, duration:72, health: [4500000,5625000,7200000,9000000,,]},
+				bmane:{name: 'Bloodmane', shortname: 'Bmane',  id: 'bmane', stat: 'S', size:10, duration:72, health: [7000000,8750000,11200000,14000000,,]},
+				harpy:{name: 'Celeano', shortname: 'Cel',  id: 'harpy', stat: 'H', size:10, duration:120, health: [3000000,3750000,4800000,6000000,,]},
+				kobold:{name: 'Chieftain Horgrak', shortname: 'Horgrak',  id: 'kobold', stat: 'S', size:10, duration:168, health: [150000,187500,240000,300000,,]},
+				corrupterebus:{name: 'Corrupted Erebus', shortname: 'Corrupted', id: 'corrupterebus', stat: 'ESH', size:90000, duration:72, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited'], loottiers: [['1M','5M','10M','20M','50M','100M','150M','300M','450M','600M','750M','1B','2B','5B','20B'],[],[],[],[],[]]},
+				serpina:{name: 'Countess Serpina', shortname: 'Countess',  id: 'serpina', stat: 'E', size:15, duration:5, health: [75000000,112500000,150000000,187500000,,]},
+				dahrizons_general:{name: "Dahrizon's General", shortname: 'General', id: 'dahrizons_general', stat: 'S', size:1, duration:12, health: [1000000,,,,,]},
+				basilisk:{name: 'Deathglare', shortname: 'Deathglare',  id: 'basilisk', stat: 'H', size:50, duration:144, health: [45000000,56250000,72000000,90000000,,]},
+				dirthax:{name: 'Dirthax', shortname: 'Dirthax',  id: 'dirthax', stat: 'H', size:100, duration:168, health: [550000000,687500000,880000000,1100000000,,]},
+				dragons_lair:{name: 'Dragons Lair', shortname: 'Lair',  id: 'dragons_lair', stat: 'S', size:13, duration:5, health: [100000000,500000000,1000000000,1500000000,,], loottiers: [['8M','9M','10M','16M','20M','26M','30M','36M','40M','46M'],['40M','45M','50M','80M','100M','130M','150M','180M','200M','230M'],['80M','90M','100M','160M','200M','260M','300M','360M','400M','460M'],['120M','135M','150M','240M','300M','390M','450M','540M','600M','690M'],,]},
+				erakka_sak:{name: 'Erakka-Sak', shortname: 'Erakka',  id: 'erakka_sak', stat: 'S', size:50, duration:60, health: [62000000,77500000,99200000,124000000,,]},
+				giantgolem:{name: 'Euphronios', shortname: 'Euphronios',  id: 'giantgolem', stat: 'H', size:100, duration:168, health: [450000000,562500000,720000000,900000000,,]},
+				echthros:{name: 'Echthros', shortname: 'Echthros',  id: 'echthros', stat: 'ESH', size:90000, duration:96, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited'], loottiers: [[],[],[],['150M','200M','250M','300M','400M','500M','600M','700M','800M','900M','1B','2B','3B','4B','5B'],[],[]]},
+				drag:{name: 'Erebus the Black', shortname: 'Erebus',  id: 'drag', stat: 'S', size:250, duration:168, health: [150000000,187500000,240000000,300000000,,]},
+				felendis:{name: 'Felendis and Shaoquin', shortname: 'Felendis',  id: 'felendis', stat: 'H', size:100, duration:168, health: [441823718,549238221,707842125,888007007,,]},
+				ogre:{name: 'General Grune', shortname: 'Grune',  id: 'ogre', stat: 'S', size:100, duration:172, health: [20000000,25000000,32000000,40000000,,]},
+				dreadbloom:{name: 'Giant Dreadbloom', shortname: 'Dreadbloom',  id: 'dreadbloom', stat: 'H', size:100, duration:192, health: [900000000,1125000000,1440000000,1800000000,,]},
+				batman:{name: 'Gravlok the Night-Hunter', shortname: 'Grav',  id: 'batman', stat: 'S', size:100, duration:72, health: [50000000,62500000,80000000,100000000,,]},
+				evilgnome:{name: 'Groblar Deathcap', shortname: 'Groblar',  id: 'evilgnome', stat: 'H', size:10, duration:120, health: [6000000,7500000,9600000,12000000,,]},
+				guardian_golem:{name: 'Guardian Golem', shortname: 'Guardian', id: 'guardian_golem', stat: 'S', size:1, duration: 12, health: [3000000,3000000,3000000,3000000,,]},
+				guilbert:{name: 'Guilbert the Mad', shortname: 'Guil',  id: 'guilbert', stat: 'S', size:250, duration:96, health: [550000000,687500000,880000000,1100000000,,]},
+				gunnar:{name: 'Gunnar the Berserk', shortname: 'Gunnar',  id: 'gunnar', stat: 'S', size:10, duration:48, health: [12000000,15000000,19200000,24000000,,]},
+				war_boar:{name: 'Hammer', shortname: 'Hammer',  id: 'war_boar', stat: 'H', size:50, duration:144, health: [220000000,275000000,352000000,440000000,,]},
+				hargamesh:{name: 'Hargamesh', shortname: 'Hargamesh',  id: 'hargamesh', stat: 'S', size:10, duration:48, health: [18000000,22500000,28800000,36000000,,]},
+				grimsly:{name: 'Headmaster Grimsly', shortname: 'Grimsly',  id: 'grimsly', stat: 'S', size:50, duration:60, health: [72000000,90000000,115200000,144000000,,]},
+				hydra:{name: 'Hydra', shortname: 'Hydra',  id: 'hydra', stat: 'S', size:100, duration:72, health: [65000000,81250000,104000000,130000000,,]},
+				ironclad:{name: 'Ironclad', shortname: 'Ironclad',  id: 'ironclad', stat: 'S', size:10, duration:48, health: [10000000,12500000,16000000,20000000,,]},
+				pumpkin:{name: 'Jack', shortname: 'Jack', id: 'pumpkin', stat: 'S', size: 250, duration:48 , health: [,,,3000000000], loottiers: [[],[],[],['12M','24M','36M','48M','60M','72M','145M','216M','288M','360M','432M','504M','576M'],[],[]]},
+				jacksrevenge1:{name: "Jack's Revenge", shortname: 'Revenge', id: 'jacksrevenge1', stat: 'S', size: 250, duration:48 , health: [,,,15000000000], loottiers: [[],[],[],['60M','120M','180M','240M','300M','360M','720M','1.5B','3B'],[],[]]},
+				kang:{name: 'Kang-Gsod', shortname: 'Kang',  id: 'kang', stat: 'S', size:100, duration:72, health: [95000000,118750000,152000000,190000000,,]},
+				'3dawg':{name: 'Kerberos', shortname: 'Kerb',  id: '3dawg', stat: 'S', size:50, duration:72, health: [35000000,43750000,56000000,70000000,,]},
+				kessovtowers:{name: 'Kessov Towers', shortname: 'Towers',  id: 'kessovtowers', stat: 'ESH', size:90000, duration:120, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited']},
+				kessovtower:{name: 'Treachery and the Tower', shortname: 'Treachery',  id: 'kessovtowers', stat: 'ESH', size:90000, duration:24, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited'], loottiers: [['1M','5M','10M','20M','50M','100M','150M','300M','450M','600M','750M','1B','1.25B','1.5B','1.75B','2B'],[],[],[],[],[]]},
+				kessovforts:{name: 'Kessov Forts', shortname: 'Forts',  id: 'kessovforts', stat: 'ESH', size:90000, duration:120, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited']},
+				kessovcastle:{name: 'Kessov Castle', shortname: 'Castle',  id: 'kessovcastle', stat: 'ESH', size:90000, duration:144, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited'],loottiers: [['1','1M','5M','10M','20M','50M','100M','150M','300M','450M','600M','750M','1B','2B','5B','50B'],[],[],[],[],[]]},
+				kalaxia:{name: 'Kalaxia The Far-Seer', shortname: 'Kalaxia',  id: 'kalaxia', stat: 'S', size:500, duration:96, health: [800000000,1000000000,1280000000,1600000000,,]},
+				krykagrius:{name: 'Krykagrius', shortname: 'Krykagrius', id: 'krykagrius', stat: 'ESH', size:90000, duration:72, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited'], loottiers: [['1M','5M','10M','20M','50M','100M','150M','300M','450M','600M','750M','1B','2B','3B','4B','5B','10B','15B','20B'],[],[],[],[],[]]},
+				tyranthius:{name: 'Lord Tyranthius', shortname: 'Tyr',  id: 'tyranthius', stat: 'S', size:500, duration:168, health: [600000000,750000000,960000000,1200000000,,]},
+				lunacy:{name: 'Lunatics', shortname: 'Lunatics',  id: 'lunacy', stat: 'H', size:50, duration:144, health: [180000000,225000000,288000000,360000000,,]},
+				lurker:{name: 'Lurking Horror', shortname: 'Lurking',  id: 'lurker', stat: 'S', size:100, duration:120, health: [35000000,43750000,56000000,70000000,,]},
+				magma_horror:{name: 'Magma Horror', shortname: 'Magma',  id: 'magma_horror', stat: 'S', size:1, duration:24, health: [200000,250000,320000,400000,,]},
+				maraak:{name: 'Maraak the Impaler', shortname: 'Maraak',  id: 'maraak', stat: 'S', size:10, duration:48, health: [15000000,18750000,24000000,30000000,,]},
+				mardachus:{name: 'Mardachus the Destroyer', shortname: 'Mardachus',  id: 'mardachus', stat: 'S', size:500, duration:96, health: [1100000000,1375000000,1760000000,2200000000,,]},
+				scorp:{name: 'Mazalu', shortname: 'Mazalu',  id: 'scorp', stat: 'S', size:50, duration:168, health: [5000000,6250000,8000000,10000000,,]},
+				mestr:{name: 'Mestr Rekkr', shortname: 'Mestr',  id: 'mestr', stat: 'S', size:1, duration:48, health: [150000,187500,240000,300000,,]},
+				mesyra:{name: 'Mesyra the Watcher', shortname: 'Mesyra',  id: 'mesyra', stat: 'S', size:250, duration:96, health: [1000000000,1250000000,1600000000,2000000000,,]},
+				misako:{name: 'Misako', shortname: 'Misako',  id: 'misako', stat: 'S', size:1, duration:48, health: [100000,125000,160000,200000,,]},
+				nalagarst:{name: 'Nalagarst', shortname: 'Nalagarst',  id: 'nalagarst', stat: 'S', size:500, duration:98, health: [700000000,875000000,1120000000,1400000000,,]},
+				nidhogg:{name: 'Nidhogg', shortname: 'Nidhogg',  id: 'nidhogg', stat: 'S', size:50, duration:60, health: [52000000,65000000,83200000,104000000,,]},
+				nimrod:{name: 'Nimrod the Hunter', shortname: 'Nimrod',  id: 'nimrod', stat: 'S', size:250, duration:96, health: [1200000000,1500000000,1920000000,2400000000,,]},
+				phaedra:{name: 'Phaedra the Deceiver', shortname: 'Phaedra',  id: 'phaedra', stat: 'S', size:250, duration:96, health: [1400000000,1750000000,2240000000,2800000000,,]},
+				fairy_prince:{name: 'Prince Obyron', shortname: 'Obyron',  id: 'fairy_prince', stat: 'H', size:10, duration:120, health: [30000000,37500000,48000000,60000000,,]},
+				roc:{name: 'Ragetalon', shortname: 'Ragetalon',  id: 'roc', stat: 'H', size:100, duration:168, health: [110000000,137500000,176000000,220000000,,]},
+				rhalmarius_the_despoiler:{name: 'Rhalmarius the Despoiler', shortname: 'Rhal',  id: 'rhalmarius_the_despoiler', stat: 'H', size:100, duration:84, health: [500000000,1250000000,3125000000,7812500000,,]},
+				rift:{name: 'Rift the Mauler', shortname: 'Rift',  id: 'rift', stat: 'S', size:100, duration:72, health: [125000000,156250000,200000000,250000000,,]},
+				crabshark:{name: 'Scuttlegore', shortname: 'Scuttle',  id: 'crabshark', stat: 'H', size:100, duration:168, health: [220000000,275000000,352000000,440000000,,]},
+				squid:{name: 'Scylla', shortname: 'Scylla',  id: 'squid', stat: 'S', size:50, duration:72, health: [25000000,31250000,40000000,50000000,,]},
+				simulacrum_dahrizon:{name: 'Simulacrum of Dahrizon', shortname: 'Dahrizon', id: 'simulacrum_dahrizon', stat: 'S', size:1, duration:12, health: [12000000,,,,,]},
+				sircai:{name: 'Sir Cai', shortname: 'SirCai',  id: 'sircai', stat: 'S', size:250, duration:168, health: [350000000,437500000,560000000,700000000,,]},
+				sisters:{name: 'Sisters of the Song', shortname: 'Sisters',  id: 'sisters', stat: 'S', size:250, duration:96, health: [600000000,750000000,960000000,1200000000,,]},
+				slaughterers:{name: 'Slaughterers Six', shortname: 'Slaughterers',  id: 'slaughterers', stat: 'H', size:10, duration:120, health: [24000000,30000000,38400000,48000000,,]},
+				stein:{name: 'Stein', shortname: 'Stein',  id: 'stein', stat: 'S', size:100, duration:72, health: [80000000,100000000,128000000,160000000,,]},
+				tainted:{name: 'Tainted Erebus', shortname: 'Tainted',  id: 'tainted', stat: 'S', size:250, duration:168, health: [250000000,312500000,400000000,500000000,,]},
+				tenebra:{name: 'Tenebra Shadow Mistress', shortname: 'Tenebra',  id: 'tenebra', stat: 'S', size:500, duration:128, health: [2000000000,2500000000,3200000000,4000000000,,]},
+				tisiphone:{name: 'Tisiphone The Vengeful', shortname: 'Tisiphone',  id: 'tisiphone', stat: 'E', size:50, duration:48, health: [500000000,2500000000,5000000000,7500000000,,]},
+				chimera:{name: 'Tetrarchos', shortname: 'Tetrarchos',  id: 'chimera', stat: 'H', size:50, duration:144, health: [90000000,112500000,144000000,180000000,,]},
+				gorgon:{name: 'Tithrasia', shortname: 'Tithrasia',  id: 'gorgon', stat: 'H', size:10, duration:120, health: [18000000,22500000,28800000,36000000,,]},
+				ulfrik:{name: 'Ulfrik', shortname: 'Ulfrik',  id: 'ulfrik', stat: 'S', size:250, duration:96, health: [500000000,625000000,800000000,1000000000,,]},
+				valanazes:{name: 'Valanazes the Gold', shortname: 'Valanazes',  id: 'valanazes', stat: 'S', size:500, duration:128, health: [2400000000,3000000000,3840000000,4800000000,,]},
+				blobmonster:{name: 'Varlachleth', shortname: 'Varla',  id: 'blobmonster', stat: 'H', size:100, duration:168, health: [330000000,412500000,528000000,660000000,,]},
+				wexxa:{name: 'Wexxa the Worm-Tamer', shortname: 'Wexxa',  id: 'wexxa', stat: 'S', size:100, duration:72, health: [110000000,137500000,176000000,220000000,,]},
+				zombiehorde:{name: 'Zombie Horde', shortname: 'Zombies',  id: 'zombiehorde', stat: 'S', size:50, duration:60, health: [45000000,56250000,72000000,90000000,,]}
+			},
+			raidSizes: {
+				10: { name: 'Small', visible: 'Yes', pruneTimers: [3600000,10800000,32400000]}, // 1h, 2h, 3h
+				13: { name: 'Small', visible: 'No', pruneTimers: [3600000,10800000,32400000]},  // 1h, 2h, 3h
+				15: { name: 'Small', visible: 'No', prumeTimers: [18000000,18000000,18000000]}, // Serpina only, so 5h/5h/5h
+				50: { name: 'Medium', visible: 'Yes', pruneTimers: [3600000,10800000,32400000]}, // 1h, 2h, 3h
+				100:{ name: 'Large', visible: 'Yes', pruneTimers: [14400000,43200000,129600000]}, // 4h, 12h, 36h
+				250:{ name: 'Epic', visible: 'Yes', pruneTimers: [86400000,172800000,259200000]}, // 24h, 48h, 72h
+				500:{ name: 'Colossal', visible: 'Yes', pruneTimers: [86400000,172800000,259200000]} // 24h, 48h, 72h
 			}
 		},
 		session:{//session variables
