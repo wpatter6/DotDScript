@@ -12,26 +12,125 @@
 
 function shared() {//bulk of the script, shared between sites
 	
-	console.log("[RaidCatcher] Shared script initializing");
-	if(typeof GM_setValue=='undefined'||typeof GM_getValue=='undefined'||typeof GM_deleteValue=='undefined'){GM_setValue=function(name,value){localStorage.setItem(name,(typeof value).substring(0,1)+value)}GM_getValue=function(name,dvalue){var value=localStorage.getItem(name);if(typeof value!='string'){return dvalue}else{var type=value.substring(0,1);value=value.substring(1);if(type=='b'){return(value=='true')}else if(type=='n'){return Number(value)}else{return value}}}GM_deleteValue=function(name){localStorage.removeItem(name)}}
+	console.log("[RaidCatcher] Shared script adding...");
+	if (typeof GM_setValue == 'undefined' || typeof GM_getValue == 'undefined' || typeof GM_deleteValue == 'undefined') {
+		GM_setValue = function (name,value) {
+			localStorage.setItem(name, (typeof value).substring(0,1) + value);
+		}
+		GM_getValue = function (name,dvalue) {
+			var value = localStorage.getItem(name);
+			if (typeof value != 'string') {
+				return dvalue;
+			}
+			else {
+				var type = value.substring(0,1);
+				value = value.substring(1);
+				if (type == 'b') {
+					return (value == 'true');
+				}
+				else if (type == 'n') {
+					return Number(value);
+				}
+				else {
+					return value;
+				}
+			}
+		}
+		GM_deleteValue = function (name)  {
+			localStorage.removeItem(name);
+		}
+	}
 
 	window.RaidCatcher = {
 		version: {major: '0.0.1', minor: 'wpatter6/JHunz'},
 		ui:{//raid tab creation/interaction
-			cHTML:function(ele){function cEle(ele){this._ele=ele;this.ele=function(){return this._ele}this.set=function(param){for(var attr in param){if(param.hasOwnProperty(attr)){this._ele.setAttribute(attr,param[attr])}}return this}this.text=function(text){this._ele.appendChild(document.createTextNode(text));return this}this.html=function(text,overwrite){if(overwrite){this._ele.innerHTML=text}else{this._ele.innerHTML+=text}return this}this.attach=function(method,ele){if(typeof ele=='string')ele=document.getElementById(ele);if(!(ele instanceof Node)){throw"Invalid attachment element specified"}else if(!/^(?:to|before|after)$/i.test(method)){throw"Invalid append method specified"}else if(method=='to'){ele.appendChild(this._ele)}else if(method=='before'){ele.parentNode.insertBefore(this._ele,ele)}else if(typeof ele.nextSibling=='undefined'){ele.parentNode.appendChild(this._ele)}else{ele.parentNode.insertBefore(this._ele,ele.nextSibling)}return this}this.on=function(event,func,bubble){this._ele.addEventListener(event,func,bubble);return this}}if(typeof ele=="string"){ele=(/^#/i.test(ele)?document.getElementById(ele.substring(1)):document.createElement(ele))}if(ele instanceof Node){return new cEle(ele)}else{throw"Invalid element type specified"}},
-			init: function(el) {
-				//todo param as raid tab to generate UI in
-				
-				
+			cHTML: function (ele) {
+				function cEle(ele) {
+					this._ele = ele;
+					this.ele = function(){
+						return this._ele
+					}
+					this.set = function (param) {
+						for (var attr in param) {
+							if (param.hasOwnProperty(attr)) {
+								this._ele.setAttribute(attr,param[attr]);
+							}
+						}
+						return this
+					}
+					this.text = function(text){
+						this._ele.appendChild(document.createTextNode(text));
+						return this
+					}
+					this.html = function(text,overwrite){
+						if (overwrite){
+							this._ele.innerHTML=text
+						}
+						else {
+							this._ele.innerHTML+=text
+						}
+						return this
+					}
+					this.attach = function (method,ele) {
+						if (typeof ele == 'string') ele = document.getElementById(ele);
+						if (!(ele instanceof Node)){
+							throw "Invalid attachment element specified"
+						}
+						else if (!/^(?:to|before|after)$/i.test(method)){
+							throw "Invalid append method specified"
+						}
+						else if (method == 'to'){
+							ele.appendChild(this._ele)
+						}
+						else if (method == 'before'){
+							ele.parentNode.insertBefore(this._ele,ele)
+						}
+						else if (typeof ele.nextSibling == 'undefined'){
+							ele.parentNode.appendChild(this._ele)
+						}
+						else {
+							ele.parentNode.insertBefore(this._ele,ele.nextSibling)
+						}
+						return this;
+					}
+					this.on=function(event,func,bubble){
+						this._ele.addEventListener(event,func,bubble);
+						return this;
+					}
+				}
+				if (typeof ele == "string"){
+					ele = (/^#/i.test(ele)?document.getElementById(ele.substring(1)):document.createElement(ele));
+				}
+				if (ele instanceof Node){
+					return new cEle(ele)
+				}
+				else {
+					throw "Invalid element type specified"
+				}
+			},
+			init: function(el) {//todo param is raid tab to generate UI in
+				var pane = RaidCatcher.ui.cHTML('div').html('\
+					<div class="room_name_container h6_alt mbs">DotD Extension - <span class="room_name" id="StatusOutput"></span></div> \
+					<div class="room_name_container h6_alt mbs" id="UpdateNotification" style="display:none">Your script version is out of date.  <a href="http://userscripts.org/scripts/show/140080" target="_blank">Update</a> <a href="#" onclick="document.getElementById(\'UpdateNotification\').style.display=\'none\'; return false;">Dismiss</a></div> \
+					<ul id="RaidCatcher_tabpane_tabs"> \
+						<li class="tab active"> \
+							<div class="tab_head">Raids</div> \
+							<div class="tab_pane"> \
+							</div> \
+						</li> \
+					</ul> \
+				').attach("to",el).ele();
 			},
 			addRaid: function(id){//todo gui.addRaid;
-			
+			},
+			filterRaidList: function (){
 			}
 		},
 		chat: {//chat input/output (kong only)
 			init: function(){
+				console.log('[RaidCatcher] Kongregate chat initializing...');
 				RaidCatcher.chat.echo = function(msg){holodeck.activeDialogue().RaidCatcher_echo(msg)};
-				RaidCatcher.chat.output = function(msg, whisper, to){			
+				RaidCatcher.chat.output = function(msg, whisper, to){//DoWork
 					if(whisper && ((to||'') != '')) msg = "/w " + to + " " + msg;
 					console.log('RaidCatcher chat output] '+msg);
 					var txt = [];		
@@ -43,12 +142,15 @@ function shared() {//bulk of the script, shared between sites
 					holodeck.activeDialogue().sendInput();
 					for(i=0;i<txt.length;i++) elems[i].value = txt[i];
 				}
+				RaidCatcher.chat.linkClick = function(href){//ChatLinkClick
+				}
+				
 				//todo add all kong chat commands & raids from chat
 				ChatDialogue.prototype.RaidCatcher_echo = function(msg){
-					this.SRDotDX_DUM("DotD Extension","<br>"+msg,{class: "whisper whisper_received"},{non_user: true})
+					this.RaidCatcher_DUM("DotD Extension","<br>"+msg,{class: "whisper whisper_received"},{non_user: true})
 				}
 				ChatDialogue.prototype.RaidCatcher_DUM = ChatDialogue.prototype.displayUnsanitizedMessage;
-				ChatDialogue.prototype.displayUnsanitizedMessage=function (b,d,e,f) {//TODO Replace SRDotDX
+				ChatDialogue.prototype.displayUnsanitizedMessage=function (b,d,e,f) {//b=user,d=message,e=element,f=unk
 					if(!this._user_manager.isMuted(b)){
 						if (typeof e != 'object') { e = {class: ''}  }
 						else if (typeof e.class != 'string') { e.class = ''; }
@@ -56,7 +158,7 @@ function shared() {//bulk of the script, shared between sites
 						try { isPublic = (/^room_\d+-dawn-of-the-dragons-\d+$/i.test(this._holodeck._chat_window._active_room._short_room_name) && e.class.indexOf("whisper") == -1?true:false) }
 						catch(err){}
 
-						var raid = SRDotDX.getRaidLink(d,b,isPublic)
+						var raid = RaidCatcher.util.getRaidLink(d,b)
 						if (typeof raid == 'object') {
 							e.class+= " SRDotDX_raid";
 							e.class+= " SRDotDX_hash_"+raid.hash;
@@ -65,45 +167,40 @@ function shared() {//bulk of the script, shared between sites
 							e.class+=(raid.visited?" SRDotDX_visitedRaid":'');
 							e.class+=(raid.nuked?" SRDotDX_nukedRaid":'');
 							e.class+=" SRDotDX_filteredRaidChat" + raid.boss + '_' + (raid.diff - 1);							
-							d = raid.ptext + '<a href="'+raid.url+'" onClick="return false;" onMouseDown="SRDotDX.gui.FPXraidLinkMouseDown(event,'+'\''+raid.id+'\''+',this.href,true); return false">'+raid.linkText()+'</a>'+raid.ntext;
-							SRDotDX.gui.toggleRaid('visited',raid.id,raid.visited);
-							SRDotDX.config.raidList[raid.id].seen = true;
-							SRDotDX.gui.raidListItemUpdate(raid.id);
+							d = raid.ptext + '<a href="'+raid.url+'" onClick="return false;" onMouseDown="RaidCatcher.chat.linkClick(this.href,'+'\''+raid.id+'\''+');return false;">'+raid.linkText()+'</a>'+raid.ntext;
+							//SRDotDX.gui.toggleRaid('visited',raid.id,raid.visited);//TODO
+							RaidCatcher.raids.list[raid.id].seen = true;
+							//SRDotDX.gui.raidListItemUpdate(raid.id); //TODO
 							if(raid.isNew){
-								if(!SRDotDX.gui.AutoJoin)
-									SRDotDX.gui.updateMessage();
-								SRDotDX.gui.FPXFilterRaidListByName();
+								//if(!RaidCatcher.session.AutoJoin)
+								//	RaidCatcher.ui.updateMessage();
+								RaidCatcher.ui.filterRaidList();
 							}
 						}
-						var pb = SRDotDX.getPastebinLink(d,b,isPublic)
-						if (typeof pb == 'object') {
-							var doImport = pb.user!=active_user.username() && SRDotDX.config.autoImportPaste && pb.user==b;
-							d = pb.ptext + '<a href="'+pb.url+'" target="_blank">'+(pb.isNew?'Pastebin Link':pb.user+'\'s Pastebin')+'</a> <span class="pb_'+pb.id+'">('+(doImport?'Importing...':'<a href="#" onClick="return false;" onMouseDown="SRDotDX.gui.FPXImportPasteBin(\''+pb.url+'\')">Import</a>')+')</span>'+pb.ntext;
-							if(doImport){
-								setTimeout("SRDotDX.gui.FPXImportPasteBin('"+pb.url+"');", 1000);
-							}
-						}
-						if(SRDotDX.config.mutedUsers[b]){
+						if(RaidCatcher.settings.mutedUsers[b]){
 							e.class+=" SRDotDX_nukedRaidList";
-							console.log("[SRDotDX] Muted message recieved from " + b + " : " + d);
+							console.log("[RaidCatcher] Muted message recieved from " + b + " : " + d);
 						}
 						this.RaidCatcher_DUM(b,d,e,f);
 					}
 				}
+				console.log("[RaidCatcher] Kongregate chat initialized.");
 			}
-		}
+		},
 		db: {//todo server interaction
 			get: function(filter){//todo server get (GM_xmlHttpRequest works in chrome now)
 			}
 		},
 		raids: (function(){//stored raid list
 			var tmp;
-			try tmp=JSON.parse(GM_getValue('RaidCatcher_raids','{}'));
-			catch (e) tmp={};
+			try{ tmp=JSON.parse(GM_getValue('RaidCatcher_raids','{}')) }
+			catch (e) { tmp={} }
 			
 			//properties
 			tmp.count=(typeof tmp.count=='number'?tmp.count:0);
 			tmp.list=(typeof tmp.list=='object'?tmp.list:{});
+			
+			GM_setValue('RaidCatcher_raids',JSON.stringify(tmp));
 			
 			//functions
 			tmp.addRaid = function(hash,id,boss,diff,seen,visited,user,ts,room) {
@@ -118,9 +215,8 @@ function shared() {//bulk of the script, shared between sites
 						visited: visited,
 						user: user,
 						lastUser: user,
-						expTime: (typeof RaidCatcher.data.raids[boss] == 'object'?SRDotDX.raids[boss].duration:168) * 3600+parseInt((new Date).getTime() / 1000),
+						expTime: (typeof RaidCatcher.data.raids[boss] == 'object'?RaidCatcher.data.raids[boss].duration:168) * 3600+parseInt((new Date).getTime() / 1000),
 						timeStamp: ((typeof ts ==='undefined'||ts==null)?(new Date().getTime()):parseInt(ts)),
-						room: ((typeof room ==='undefined'||room==null)?SRDotDX.getRoomName():parseInt(room)),
 						nuked: false
 					}
 					RaidCatcher.ui.addRaid(id);
@@ -184,11 +280,12 @@ function shared() {//bulk of the script, shared between sites
 				if(b) setTimeout('RaidCatcher.raids.save(true);',30000);
 				console.log('[RaidCatcher] Raids saved (repeat="+b+")');
 			}
+			return tmp;
 		})(),
 		settings: (function(){//saved configuration
 			var tmp;
-			try tmp = JSON.parse(GM_getValue('RaidCatcher_settings','{}'));
-			catch (e) tmp = {};
+			try{ tmp = JSON.parse(GM_getValue('RaidCatcher_settings','{}')) }
+			catch (e){tmp = {}}
 			
 			//boolean
 			tmp.hideRaidLinks = (typeof tmp.hideRaidLinks == 'boolean'?tmp.hideRaidLinks:false);
@@ -232,7 +329,7 @@ function shared() {//bulk of the script, shared between sites
 					var tempVal = RaidCatcher.settings.filters[raidid];
 					RaidCatcher.settings.filters[raidid] = [tempVal, tempVal, tempVal, tempVal, tempVal, tempVal];
 				} else if ((typeof RaidCatcher.settings.filters[raidid] != 'boolean') && (typeof RaidCatcher.settings.filters[raidid] != 'object')) {
-					var raid = SRDotDX.raids[raidid];
+					var raid = RaidCatcher.raids.list[raidid];
 					if (raid.size == 1 || raid.stat == 'H' || raid.stat == 'h') {
 						RaidCatcher.settings.filters[raidid] = [true, true, true, true, true, true];
 					} else {
@@ -251,9 +348,11 @@ function shared() {//bulk of the script, shared between sites
 		})(),
 		util: {//utility functions
 			cleanRaidId: function(id) {//todo .gui.GetRaidID:
+				return id;
 			},
 			purge: function(){//todo .purge();
-			},
+				return;
+			},/*
 			elfade: function(elem,time){if(typeof time!='number')time=500;if(typeof elem=='string')elem=document.getElementById(elem);if(elem==null)return;var startOpacity=elem.style.opacity||1;elem.style.opacity=startOpacity;var tick=1/(time/100);(function go(){elem.style.opacity=Math.round((elem.style.opacity-tick)*100)/100;if(elem.style.opacity>0)setTimeout(go,100);else elem.style.display='none'})()},
 			isNumber: function(n) {return !isNaN(parseFloat(n)) && isFinite(n);},
 			dateFormat: function(){var token=/d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,timezone=/\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,timezoneClip=/[^-+\dA-Z]/g,pad=function(val,len){val=String(val);len=len||2;while(val.length<len)val="0"+val;return val};return function(date,mask,utc){var dF=dateFormat;if(arguments.length==1&&Object.prototype.toString.call(date)=="[object String]"&&!/\d/.test(date)){mask=date;date=undefined}date=date?new Date(date):new Date;if(isNaN(date))throw SyntaxError("invalid date");mask=String(dF.masks[mask]||mask||dF.masks["default"]);if(mask.slice(0,4)=="UTC:"){mask=mask.slice(4);utc=true}var _=utc?"getUTC":"get",d=date[_+"Date"](),D=date[_+"Day"](),m=date[_+"Month"](),y=date[_+"FullYear"](),H=date[_+"Hours"](),M=date[_+"Minutes"](),s=date[_+"Seconds"](),L=date[_+"Milliseconds"](),o=utc?0:date.getTimezoneOffset(),flags={d:d,dd:pad(d),ddd:dF.i18n.dayNames[D],dddd:dF.i18n.dayNames[D+7],m:m+1,mm:pad(m+1),mmm:dF.i18n.monthNames[m],mmmm:dF.i18n.monthNames[m+12],yy:String(y).slice(2),yyyy:y,h:H%12||12,hh:pad(H%12||12),H:H,HH:pad(H),M:M,MM:pad(M),s:s,ss:pad(s),l:pad(L,3),L:pad(L>99?Math.round(L/10):L),t:H<12?"a":"p",tt:H<12?"am":"pm",T:H<12?"A":"P",TT:H<12?"AM":"PM",Z:utc?"UTC":(String(date).match(timezone)||[""]).pop().replace(timezoneClip,""),o:(o>0?"-":"+")+pad(Math.floor(Math.abs(o)/60)*100+Math.abs(o)%60,4),S:["th","st","nd","rd"][d%10>3?0:(d%100-d%10!=10)*d%10]};return mask.replace(token,function($0){return $0 in flags?flags[$0]:$0.slice(1,$0.length-1)})}}();dateFormat.masks={"default":"ddd mmm dd yyyy HH:MM:ss",shortDate:"m/d/yy",mediumDate:"mmm d, yyyy",longDate:"mmmm d, yyyy",fullDate:"dddd, mmmm d, yyyy",shortTime:"h:MM TT",mediumTime:"h:MM:ss TT",longTime:"h:MM:ss TT Z",isoDate:"yyyy-mm-dd",isoTime:"HH:MM:ss",isoDateTime:"yyyy-mm-dd'T'HH:MM:ss",isoUtcDateTime:"UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"};dateFormat.i18n={dayNames:["Sun","Mon","Tue","Wed","Thu","Fri","Sat","Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],monthNames:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","January","February","March","April","May","June","July","August","September","October","November","December"]},
@@ -266,7 +365,7 @@ function shared() {//bulk of the script, shared between sites
 				var iframe_options = eval('('+match[1]+')');
 				$('gameiframe').replace(new Element('iframe', {"id":"gameiframe","name":"gameiframe","style":"border:none;position:relative;z-index:1;","scrolling":"auto","border":0,"frameborder":0,"width":760,"height":700,"class":"dont_hide"}));
 				$('gameiframe').contentWindow.location.replace("http://web1.dawnofthedragons.com/kong?" + Object.toQueryString(iframe_options));
-			},
+			},*/
 			getShortNum: function (num) {
 				if (isNaN(num) || num < 0){return num}
 				else if (num>=1000000000000){return (num/1000000000000).toFixed(3)/1+"T"}
@@ -285,15 +384,28 @@ function shared() {//bulk of the script, shared between sites
 				return r;
 			},
 			getLootTierText: function (raidid, diffIndex) {
-				if (typeof SRDotDX.raids[raidid] != 'object' || typeof SRDotDX.raids[raidid].loottiers != 'object' || typeof SRDotDX.raids[raidid].loottiers[diffIndex] != 'object') {
+				if (typeof RaidCatcher.data.raids[raidid] != 'object' || typeof RaidCatcher.data.raids[raidid].loottiers != 'object' || typeof RaidCatcher.data.raids[raidid].loottiers[diffIndex] != 'object') {
 					return "";
 				}
-				var tiers = SRDotDX.raids[raidid].loottiers[diffIndex];
+				var tiers = RaidCatcher.data.raids[raidid].loottiers[diffIndex];
 				var text = tiers[0];
 				for (var i = 1;i<tiers.length;i+=1) {
 					text = text + "/" + tiers[i] + " ";
 				}
 				return text;
+			},
+			getRaidLink: function (msg,user) {
+				msg = msg.replace(/[\r\n]/g,"");
+				var m = /^((?:(?!<a[ >]).)*)<a.*? href="((?:(?:https?:\/\/)?(?:www\.)?kongregate\.com)?\/games\/5thPlanetGames\/dawn-of-the-dragons(\?[^"]+))".*?<\/a>((?:(?!<\/?a[ >]).)*(?:<a.*? class="reply_link"[> ].*)?)$/i.exec(msg);
+				if (m) {
+					var raid = RaidCatcher.util.getRaidDetails(m[3],user)
+					if (typeof raid != 'undefined' && typeof raid != 'null') {
+						raid.ptext = m[1];
+						raid.url = m[2];
+						raid.ntext = m[4];
+						return raid;
+					}
+				}
 			},
 			getRaidDetailsBase: function(url){
 				var r = {diff: '', hash: '', boss: '', id: ''};
@@ -400,7 +512,7 @@ function shared() {//bulk of the script, shared between sites
 							txt = txt.replace(/<raidId>/gi,this.id);
 							txt = txt.replace(/<hash>/gi,this.hash);
 							txt = txt.replace(/<name>/gi,(!this.name?'Unknown':this.name));
-							txt = txt.replace(/<shortname>/gi,(!this.name?'Unknown':SRDotDX.raids[this.boss].shortname));
+							txt = txt.replace(/<shortname>/gi,(!this.name?'Unknown':RaidCatcher.data.raids[this.boss].shortname));
 							txt = txt.replace(/<size>/gi,(!this.name?'':this.size));
 							txt = txt.replace(/<dur>/gi,(!this.name?'':this.durText));
 							txt = txt.replace(/<dur:Num>/gi,(!this.name?'':this.dur));
@@ -421,6 +533,7 @@ function shared() {//bulk of the script, shared between sites
 					return r;
 				}
 			}
+			//todo more
 		},
 		data: {//game raid information
 			searchKeywords: {
@@ -438,7 +551,6 @@ function shared() {//bulk of the script, shared between sites
 			flute: { reg: /^flutes?$/i, sub: 'horgrak|mazalu|grune|ataxes|alice|lurking|butcher|scylla|gravlok|erebus|celeano|arachna|azab|groblar|deathglare|ragetalon|gladiator|tetrarchos|scuttlegore|tithrasia|moon|varlachleth|euphronios' },
 			trim: { reg: /^((brown|grey|gray|green|blue|purple|orange)\s+)?trim(\s+(helm|shield|boots|chest|ring|hammer))?$/i, sub: 'butcher|scylla|gravlok' },
 			dragonsbane: { reg: /^(sword\s(hilt|guard|blade|tip|emblem))|(dragon eye pearls)|(dragonsbane)$/i, sub: 'erebus' }
-			
 		},
 			raids: {
 				agony:{name: 'Agony', shortname: 'Agony',  id: 'agony', stat: 'H', size:100, duration:168, health: [700000000,875000000,1120000000,1400000000,,]},
@@ -535,22 +647,55 @@ function shared() {//bulk of the script, shared between sites
 			}
 		},
 		session:{//session variables
+			isInitialized: false,
+			platform: 0
+		},
+		init: function(platform, element){
+			console.log("[RaidCatcher] Creating " + platform + "...");
+			if(/kong/i.test(platform)){//kongregate
+				RaidCatcher.session.platform=1;
+				RaidCatcher.ui.init(element);
+				RaidCatcher.chat.init();
+			} else if(/ag/i.test(platform)||/armor/i.test(platform)) {//armor
+				RaidCatcher.session.platform=2;
+				RaidCatcher.ui.init(element);
+			} else { //facebook/standalone
+				RaidCatcher.session.platform=3;
+				RaidCatcher.ui.init(element);
+			}
+			console.log("[RaidCatcher] Created " + platform);
 		}
 	}
-	console.log("[RaidCatcher] Shared script initialized");
+	console.log("[RaidCatcher] Shared script added");
 }
-
 function kmain(){//kong initialization
-	if (typeof holodeck == 'object' && typeof ChatDialogue == 'function' && typeof activateGame == 'function' && 
-		typeof document.getElementById('kong_game_ui') != 'null' && typeof RaidCatcher == 'object') {
-		RaidCatcher.ui.init(document.getElementById(''));//todo create raid tab and pass in element to populate UI
-		RaidCatcher.chat.init();
-	} 
-	else
-	{
-		console.log('[RaidCatcher] Kong resources not found, retrying in 1 second...');
-		setTimeout(function(el){RaidCatcher.ui.init(el)}, 1000, el);
+	console.log("[Raid Catcher] Kongregate initializing....");
+	window.initKongDotD = function (tries){
+		tries=(tries||1);
+		if(tries > 50){
+			console.log('[RaidCatcher] Resources not found. Aborting');
+			return;
+		}
+		if (typeof holodeck == 'object' && typeof ChatDialogue == 'function' && typeof activateGame == 'function' && 
+			typeof document.getElementById('kong_game_ui') != 'null' && typeof RaidCatcher == 'object') {
+			
+			var link = RaidCatcher.ui.cHTML('a').set({href: '#dotd_tab_pane',class: ''}).attach("to",RaidCatcher.ui.cHTML('li').set({class: 'tab', id: 'dotd_tab'}).attach("after","game_tab").ele()).ele();
+			
+			var pane = RaidCatcher.ui.cHTML('div').set({id: 'dotd_tab_pane'}).attach("to",'kong_game_ui').ele();;
+			pane.style.height = document.getElementById("chat_tab_pane").style.height;
+			
+			holodeck._tabs.addTab(link);
+			RaidCatcher.init('kong', pane);
+			console.log('[RaidCatcher] Kongregate initialized.');
+		} 
+		else
+		{
+			console.log('[RaidCatcher] Resources not found ('+tries+' attempts), retrying in 1 second...');
+			console.log('[RaidCatcher] holodeck:'+(typeof holodeck)+ ", ChatDialogue:"+(typeof ChatDialogue)+", activateGame:"+(typeof activateGame)+", kong_game_ui:"+(typeof document.getElementById('kong_game_ui'))+", RaidCatcher:"+(typeof RaidCatcher));
+			setTimeout('initKongDotD('+(++tries)+')', 1000);
+		}
 	}
+	initKongDotD();
 }
 function amain(){//AG initialization
 }
@@ -558,7 +703,7 @@ function fmain(){//FB initialization
 }
 
 if (/^http:\/\/www\.kongregate\.com\/games\/5thplanetgames\/dawn-of-the-dragons(?:\/?$|\?|#)/i.test(document.location.href)) {//kmain
-	console.log("[Raid Catcher] Kongregate initializing....");
+
 	var script = document.createElement("script");
 	script.appendChild(document.createTextNode('('+shared+')()'));
 	(document.head || document.body || document.documentElement).appendChild(script);
