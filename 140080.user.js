@@ -245,11 +245,7 @@ function main() {
 
 			GM_setValue("SRDotDX",JSON.stringify(tmp));
 			tmp.addRaid = function(hash,id,boss,diff,seen,visited,user,ts,room) {
-				if(!isNumber(id)){
-					delete SRDotDX.config.raidList[id];
-					id=String(id).substring(0,9)
-					while(!isNumber(id) && id.length > 5) id=id.substring(0, id.length-1);
-				}
+				id=SRDotDX.gui.GetRaidID(id);
 				if (typeof SRDotDX.config.getRaid(id) != 'object') {
 					SRDotDX.config.raidList[id] = {
 						hash: hash,
@@ -1522,6 +1518,14 @@ function main() {
 					}
 				}
 			},
+			GetRaidID: function (id){
+				if(!isNumber(id)){
+					delete SRDotDX.config.raidList[id];
+					id=String(id).substring(0,9)
+					while(!isNumber(id) && id.length > 5) id=id.substring(0, id.length-1);
+				}
+				return id;
+			},//TODO
 			ResetJoiner: function(){
 				if(SRDotDX.gui.AutoJoinVisibleClicked)
 					SRDotDX.gui.doStatusOutput('Join finished. New: '+SRDotDX.gui.AutoJoinCurrentSuccesses+', Dead: '+SRDotDX.gui.AutoJoinCurrentDeads+(SRDotDX.gui.AutoJoinCurrentInvalids>0?', Invalid:'+SRDotDX.gui.AutoJoinCurrentInvalids:''), 10000);
@@ -1602,7 +1606,7 @@ function main() {
 			GetRaidLink: function (raid) {
 				console.log(raid.id)
 				if(raid.id && raid.hash && raid.diff && raid.boss)
-				return 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons?kv_action_type=raidhelp&kv_difficulty='+raid.diff+'&kv_hash='+raid.hash+'&kv_raid_boss='+raid.boss+'&kv_raid_id='+(!isNumber(raid.id)&&isNumber(String(raid.id).substring(0,7))?String(raid.id).substring(0,7):raid.id);//TODO REGEX
+					return 'http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons?kv_action_type=raidhelp&kv_difficulty='+raid.diff+'&kv_hash='+raid.hash+'&kv_raid_boss='+raid.boss+'&kv_raid_id='+SRDotDX.gui.GetRaidID(raid.id);
 			},
 			GetDumpText: function (raids) {
 				if(typeof raids == 'object'){
