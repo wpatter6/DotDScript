@@ -249,7 +249,7 @@ function main() {
 				if (typeof SRDotDX.config.getRaid(id) != 'object') {
 					SRDotDX.config.raidList[id] = {
 						hash: hash,
-						id: id,//TODO REGEX
+						id: id,
 						boss: boss,
 						diff: diff,
 						seen: seen,
@@ -295,8 +295,13 @@ function main() {
 				window.prompt("Export Data:",JSON.stringify(SRDotDX.config));
 			}
 			tmp.getRaid = function(id) {
+				id = SRDotDX.gui.GetRaidID(id);
 				if (typeof SRDotDX.config.raidList[id] == 'object') {
 					if (SRDotDX.config.raidList[id].timeLeft() > 1) {
+						if (SRDotDX.config.raidList[id].id != id) {
+							SRDotDX.config.raidList[id].id = id;
+						}
+
 						return SRDotDX.config.raidList[id];
 					}
 					else {
@@ -622,7 +627,8 @@ function main() {
 		gui: {
 			addRaid: function (id) {
 				var r = id;
-				if(typeof id == "string" || typeof id == "number") r = SRDotDX.config.raidList[id];
+				if(typeof id == "string" || typeof id == "number") r = SRDotDX.config.getRaid(id);
+				
 				if (r.boss) {
 					var rd = SRDotDX.raids[r.boss];
 					var a = document.getElementById("raid_list");
@@ -1260,7 +1266,7 @@ function main() {
 				if(typeof el != "string" && typeof el != "number") id = el.getAttribute("raidid");
 				else el = document.getElementsByClassName("raid_list_item_"+id)[0];
 				
-				var r = SRDotDX.config.raidList[id];
+				var r = SRDotDX.config.getRaid(id);
 				
 				
 				if(typeof r == 'object')
@@ -1363,7 +1369,7 @@ function main() {
 				var raidlistDIV=document.getElementById('raid_list');
 				var raidList = raidlistDIV.childNodes;
 				for(i=0; i<raidList.length; i+=1) {
-					var item = SRDotDX.config.raidList[raidList[i].getAttribute("raidid")];
+					var item = SRDotDX.config.getRaid(raidList[i].getAttribute("raidid"));
 					raidArray.push(item);
 				}
 				var sortFunc;
@@ -1460,7 +1466,7 @@ function main() {
 					for(i=0; i<raidList.length; i++) {
 						var item = raidList[i];
 						if(item.getAttribute("raidid")==id){
-							var raid = JSON.parse(JSON.stringify(SRDotDX.config.raidList[id]));
+							var raid = JSON.parse(JSON.stringify(SRDotDX.config.getRaid(id)));
 							raid.ele = item;
 							return raid;
 						}
@@ -1479,7 +1485,7 @@ function main() {
 					var raidList = document.getElementById('raid_list').childNodes;
 					for(i=0; i<raidList.length; i++) {
 						var item = raidList[i];
-						var raid = SRDotDX.config.raidList[item.getAttribute("raidid")];
+						var raid = SRDotDX.config.getRaid(item.getAttribute("raidid"));
 						if (!(typeof raid === 'undefined') && (
 							(/all/.test(s)) ||
 							(((/visited/.test(s) && raid.visited) || (/new/.test(s) && !raid.visited)) &&
@@ -1519,13 +1525,21 @@ function main() {
 				}
 			},
 			GetRaidID: function (id){
-				if(!isNumber(id)){
-					delete SRDotDX.config.raidList[id];
-					id=String(id).substring(0,9)
-					while(!isNumber(id) && id.length > 5) id=id.substring(0, id.length-1);
+				var newId = id;
+				if(!isNumber(id) && !(/$[0-9]+^/.test(id))){
+					newId = parseInt(id.replace(/[^%0-9]|(%[0-9][0-9])/g,""));
+
+					if (SRDotDX.config.raidList[id]) {
+						var tmp = SRDotDX.config.raidList[id];
+						tmp.id = newId;
+						delete SRDotDX.config.raidList[id];
+						if (!SRDotDX.config.raidList[newId]) {
+							SRDotDX.config.raidList[newId] = tmp;
+						}
+					}
 				}
-				return id;
-			},//TODO
+				return newId;
+			},
 			ResetJoiner: function(){
 				if(SRDotDX.gui.AutoJoinVisibleClicked)
 					SRDotDX.gui.doStatusOutput('Join finished. New: '+SRDotDX.gui.AutoJoinCurrentSuccesses+', Dead: '+SRDotDX.gui.AutoJoinCurrentDeads+(SRDotDX.gui.AutoJoinCurrentInvalids>0?', Invalid:'+SRDotDX.gui.AutoJoinCurrentInvalids:''), 10000);
@@ -1688,9 +1702,9 @@ function main() {
 					for(i=0; i<raidList.length; i+=1) {
 						var item = raidList[i];	
 						var raidid = item.getAttribute("raidid");
-						if (SRDotDX.config.raidList[raidid]) {
+						if (SRDotDX.config.getRaid(raidid)) {
 							try {
-								var raid = SRDotDX.config.raidList[raidid];
+								var raid = SRDotDX.config.getRaid(raidid);
 								if (SRDotDX.raids[raid.boss]) {
 									var raidInfo = SRDotDX.raids[raid.boss];
 									if (!raid.visited || raid.nuked) {
@@ -2779,7 +2793,8 @@ function main() {
 						case 1: SRDotDX.gui.FPXraidLinkClick(param1,param2,false); break;
 						case 3: 
 								if(SRDotDX.config.FPXmarkRightClick){
-									(function(p1,p2) {return setTimeout(function() {SRDotDX.gui.FPXraidLinkClick(p1,p2,true);}, SRDotDX.config.FPXoptsMarkRightClickDelay)})(param1,param2);
+									(function(p1,p2) {return setTimeout(function() {alert("FPXraidLinkClick source#4");
+						SRDotDX.gui.FPXraidLinkClick(p1,p2,true);}, SRDotDX.config.FPXoptsMarkRightClickDelay)})(param1,param2);
 								}else{
 									SRDotDX.gui.FPXraidLinkClick(param1,param2,true); 
 								}
