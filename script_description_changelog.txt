@@ -29,7 +29,8 @@ Contact Us: A list of ways to contact us for whatever reasons<br />
 4) Fixed an issue where pruning was not working correctly when difficulty and/or boss were left out of the URL.<br>
 5) Fixed an issue where some raids would be marked as invalid because part of the next link was mistakenly added to it<br>
 6) Fixed an issue where raids were being added and shared with characters appended to the url.<br>
-7) Added loot tiers for NM Jack and Jack's revenge raids.<br><br>
+7) Added loot tiers for NM Jack and Jack's revenge raids.<br>
+8) Added health values for Jack N-L difficulties.<br><br>
 <b>1.2.4</b><br>
 1) Hotfix to add the Jack's Revenge raid.<br>
 2) Added some missing data for Jack that was causing a couple weird bugs.<br><br>

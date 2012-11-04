@@ -4,7 +4,7 @@
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
 // @version        1.2.5
-// @date           11.02.2012
+// @date           11.03.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -3372,7 +3372,7 @@ function main() {
 			grimsly:{name: 'Headmaster Grimsly', shortname: 'Grimsly',  id: 'grimsly', stat: 'S', size:50, duration:60, health: [72000000,90000000,115200000,144000000,,]},
 			hydra:{name: 'Hydra', shortname: 'Hydra',  id: 'hydra', stat: 'S', size:100, duration:72, health: [65000000,81250000,104000000,130000000,,]},
 			ironclad:{name: 'Ironclad', shortname: 'Ironclad',  id: 'ironclad', stat: 'S', size:10, duration:48, health: [10000000,12500000,16000000,20000000,,]},
-			pumpkin:{name: 'Jack', shortname: 'Jack', id: 'pumpkin', stat: 'S', size: 250, duration:48 , health: [,,,3000000000], loottiers: [[],[],[],['12M','24M','36M','48M','60M','72M','145M','216M','288M','360M','432M','504M','576M'],[],[]]},
+			pumpkin:{name: 'Jack', shortname: 'Jack', id: 'pumpkin', stat: 'S', size: 250, duration:48 , health: [1000000000,1500000000,2000000000,3000000000], loottiers: [[],[],[],['12M','24M','36M','48M','60M','72M','145M','216M','288M','360M','432M','504M','576M'],[],[]]},
 			jacksrevenge1:{name: "Jack's Revenge", shortname: 'Revenge', id: 'jacksrevenge1', stat: 'S', size: 250, duration:48 , health: [,,,15000000000], loottiers: [[],[],[],['60M','120M','180M','240M','300M','360M','720M','1.5B','3B'],[],[]]},
 			kang:{name: 'Kang-Gsod', shortname: 'Kang',  id: 'kang', stat: 'S', size:100, duration:72, health: [95000000,118750000,152000000,190000000,,]},
 			'3dawg':{name: 'Kerberos', shortname: 'Kerb',  id: '3dawg', stat: 'S', size:50, duration:72, health: [35000000,43750000,56000000,70000000,,]},
