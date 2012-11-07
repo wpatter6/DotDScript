@@ -3203,12 +3203,11 @@ function main() {
 					return false;
 				});
 				var i;
-				if (typeof (i = SRDotDX.getRaidDetails(document.location.href)) == 'object'){
+				if (document.location.href.indexOf("kv_raid")>-1 && typeof (i = SRDotDX.getRaidDetails(document.location.href)) == 'object'){
 					if (SRDotDX.config.getRaid(i.id)) {
 						SRDotDX.config.raidList[i.id].visited = true;
 						SRDotDX.config.raidList[i.id].seen = true;
-					}
-					else {
+					} else {
 						SRDotDX.config.addRaid(i.hash,i.id,i.boss,i.diff,true,true,false,'')
 					}
 				}
