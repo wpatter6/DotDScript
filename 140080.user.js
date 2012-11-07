@@ -2709,7 +2709,7 @@ function main() {
 			},
 			FPXraidLinkClick: function (id, link,isRightClick) {
 				link = (typeof link=='string'?link:link.href);
-				id = SRDotDX.GetRaidID(id);
+				id = SRDotDX.gui.GetRaidID(id);
 				if(!isRightClick){
 					if(!SRDotDX.gui.AutoJoin){
 						SRDotDX.gui.AutoJoinCurrentTotal = 1;
