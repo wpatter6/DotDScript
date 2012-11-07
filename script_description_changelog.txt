@@ -31,7 +31,8 @@ Contact Us: A list of ways to contact us for whatever reasons<br />
 6) Fixed an issue where raids were being added and shared with characters appended to the url.<br>
 7) Added loot tiers for NM Jack and Jack's revenge raids.<br>
 8) Added health values for Jack N-L difficulties.<br>
-9) Fixed several issues with pastebin importing of invalid data.<br><br>
+9) Fixed several issues with pastebin importing of invalid data.<br>
+10) Raids are now marked visited upon actually joining them rather than when you click them.<br><br>
 <b>1.2.4</b><br>
 1) Hotfix to add the Jack's Revenge raid.<br>
 2) Added some missing data for Jack that was causing a couple weird bugs.<br><br>

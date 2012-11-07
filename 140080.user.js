@@ -3274,8 +3274,6 @@ function main() {
 					} else
 						document.getElementById('SRDotDX_joiner').src="http://web1.dawnofthedragons.com/kong?" + Object.toQueryString(iframe_options);
 				}
-				SRDotDX.config.raidList[r.id].visited = true;
-				SRDotDX.gui.toggleRaid("visited",r.id,true);
 				SRDotDX.gui.raidListItemUpdate(r.id);
 			}
 		},
@@ -3611,6 +3609,14 @@ function main() {
 			// message indicating the landing page is loaded
 			if (/landed/i.test(event.data)) {
 				console.log("[SRDotDX] Raid id " + lastJoinedRaidId + " " + event.data +  " : " + SRDotDX.gui.AutoJoin + " : " +SRDotDX.gui.AutoJoinCurrentLanded + " : " + SRDotDX.gui.AutoJoinCurrentIndex + " : " + SRDotDX.gui.AutoJoinRaids.length);
+
+				// Mark raid visited
+				if (SRDotDX.config.raidList[lastJoinedRaidId]) {
+					SRDotDX.config.raidList[lastJoinedRaidId].visited = true;
+					SRDotDX.gui.toggleRaid('visited',lastJoinedRaidId,true);
+				}
+
+
 				if (isJoining) {
 					SRDotDX.gui.AutoJoinCurrentLanded++;
 					if (SRDotDX.config.asyncJoin) SRDotDX.gui.currentJoinFrame = parseInt(String(event.data).split("|")[1]);//recieved from iframe is available
