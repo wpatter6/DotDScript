@@ -2803,8 +2803,7 @@ function main() {
 						case 1: SRDotDX.gui.FPXraidLinkClick(param1,param2,false); break;
 						case 3: 
 								if(SRDotDX.config.FPXmarkRightClick){
-									(function(p1,p2) {return setTimeout(function() {alert("FPXraidLinkClick source#4");
-						SRDotDX.gui.FPXraidLinkClick(p1,p2,true);}, SRDotDX.config.FPXoptsMarkRightClickDelay)})(param1,param2);
+									(function(p1,p2) {return setTimeout(function() {SRDotDX.gui.FPXraidLinkClick(p1,p2,true);}, SRDotDX.config.FPXoptsMarkRightClickDelay)})(param1,param2);
 								}else{
 									SRDotDX.gui.FPXraidLinkClick(param1,param2,true); 
 								}
@@ -3614,6 +3613,7 @@ function main() {
 				if (SRDotDX.config.raidList[lastJoinedRaidId]) {
 					SRDotDX.config.raidList[lastJoinedRaidId].visited = true;
 					SRDotDX.gui.toggleRaid('visited',lastJoinedRaidId,true);
+					SRDotDX.gui.raidListItemUpdate(lastJoinedRaidId);
 				}
 
 
