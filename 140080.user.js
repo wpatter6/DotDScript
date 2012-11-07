@@ -503,6 +503,11 @@ function main() {
 			return pb;
 		},
 		getRaidDetails: function(url,user,visited,seen,ts,room) {
+			if (typeof url == "undefined" || url == "undefined") {
+				return;
+			}
+
+			console.log("getRaidDetails, URL: " + url + ", typeof url: " + (typeof url));
 			user=(user?user:'');
 			visited=(visited?visited:(user==active_user.username() && SRDotDX.config.markMyRaidsVisted));
 			seen=(seen?seen:false);
@@ -1015,6 +1020,7 @@ function main() {
 			},
 			deleteRaid: function (ele,id,upd) {
 				upd=(typeof upd === 'undefined'?true:upd);
+				id = SRDotDX.gui.GetRaidID(id);
 				if (SRDotDX.config.raidList[id]) {
 					delete SRDotDX.config.raidList[id];
 				}
@@ -1026,7 +1032,7 @@ function main() {
 				if(!SRDotDX.config.confirmDeletes || confirm("This will delete all " + SRDotDX.config.raidList.length + " raids stored. Continue? \n (This message can be disabled on the options tab.)")){
 					console.log("[SRDotDX]::{FPX}:: DELETE ALL STARTED...");
 					for (var id in SRDotDX.config.raidList){					
-							if (SRDotDX.config.raidList[id]) {
+							if (SRDotDX.config.raidList.hasOwnProperty(id) && SRDotDX.config.raidList[id]) {
 								delete SRDotDX.config.raidList[id];
 							}				
 					}
@@ -1527,7 +1533,11 @@ function main() {
 			GetRaidID: function (id){
 				var newId = id;
 				if(!isNumber(id) && !(/$[0-9]+^/.test(id))){
-					newId = parseInt(id.replace(/[^%0-9]|(%[0-9][0-9])/g,""));
+					if (isNaN(id)) {
+						newId = 0;
+					} else {
+						newId = parseInt(id.replace(/[^%0-9]|(%[0-9][0-9])/g,""));
+					}
 
 					if (SRDotDX.config.raidList[id]) {
 						var tmp = SRDotDX.config.raidList[id];
@@ -2699,10 +2709,11 @@ function main() {
 			},
 			FPXraidLinkClick: function (id, link,isRightClick) {
 				link = (typeof link=='string'?link:link.href);
+				id = SRDotDX.GetRaidID(id);
 				if(!isRightClick){
 					if(!SRDotDX.gui.AutoJoin){
 						SRDotDX.gui.AutoJoinCurrentTotal = 1;
-						SRDotDX.gui.AutoJoinRaids = [SRDotDX.gui.GetRaid(id)];
+						SRDotDX.gui.AutoJoinRaids = [id];
 						SRDotDX.gui.AutoJoin = true;
 						SRDotDX.gui.doStatusOutput("Joining " + SRDotDX.raids[SRDotDX.config.raidList[id].boss].shortname + "...");
 						SRDotDX.loadRaid(link);
@@ -2817,12 +2828,14 @@ function main() {
 				}
 			},
 			raidListItemUpdateTimeSince: function (id) {
+				id = SRDotDX.gui.GetRaidID(id);
 				var raid = SRDotDX.config.raidList[id];
 				if (typeof raid == 'object') {
 					document.getElementById('timeSince_' + id).innerHTML = timeSince(new Date(raid.timeStamp))
 				}
 			},
 			raidListItemUpdate: function (id) {
+				id = SRDotDX.gui.GetRaidID(id);
 				var raid = SRDotDX.config.raidList[id];
 				if (typeof raid == 'object') {
 					var ele = document.getElementById("raid_list").firstChild;
