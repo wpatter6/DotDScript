@@ -3,8 +3,8 @@
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        1.2.5
-// @date           11.03.2012
+// @version        1.2.6
+// @date           11.08.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -137,7 +137,7 @@ function main() {
 	window.elfade=function(elem,time){if(typeof time!='number')time=500;if(typeof elem=='string')elem=document.getElementById(elem);if(elem==null)return;var startOpacity=elem.style.opacity||1;elem.style.opacity=startOpacity;var tick=1/(time/100);(function go(){elem.style.opacity=Math.round((elem.style.opacity-tick)*100)/100;if(elem.style.opacity>0)setTimeout(go,100);else elem.style.display='none'})()}
 	
 	window.SRDotDX = {
-		version: {major: "1.2.5", minor: "wpatter6/JHunz"},
+		version: {major: "1.2.6", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -3255,8 +3255,11 @@ function main() {
 				} else {
 					iframe_options['kv_difficulty'] = 4; // Set a default difficulty URL param for the url to load to work around an issue when it's unspecified.  Doesn't affect what is actually loaded at all.
 				}
-				iframe_options['kv_hash'] = r.hash;
-				if (r.boss != null && r.boss != "") {
+				if (r.hash != null && r.hash != "") {
+					iframe_options['kv_hash'] = r.hash;
+				} else {
+					iframe_options['kv_hash'] = 'XXXXXX'; // Set a default hash URL param fo rthe url to load to work around an issue when it's unspecified.  Doesn't affect what is actually loaded at all.
+				}if (r.boss != null && r.boss != "") {
 					iframe_options['kv_raid_boss'] = r.boss;
 				} else {
 					iframe_options['kv_raid_boss'] = 'agony'; // Set a default boss URL param for the url to load to work around an issue when it's unspecified.  Doesn't affect what is actually loaded at all.

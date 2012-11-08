@@ -22,6 +22,8 @@ Known Incompatibilities: If you're using one userscript, you're probably using s
 Contact Us: A list of ways to contact us for whatever reasons<br />
 &nbsp;</p>
 <h3><b>Changelog</b></h3><p>
+<b>1.2.6</b><br>
+1) Fixed an issue with raids with blank hashes not deleting properly.<br>
 <b>1.2.5</b><br>
 1) Fixed pretty posting with Jack and Jack's Revenge raids.<br>
 2) Fixed the Play Now button not reloading the frame, for those of you who haven't turned off "Refresh game to join raids", seriously that option is awesome and you should try it.<br>
