@@ -332,6 +332,7 @@ function main() {
 					// Delete from known raids
 					console.log("Removing dead raid: " + id);
 
+					SRDotDX.gui.toggleRaid('dead',id,true);
 
 					var raidListEle = document.getElementById('raid_list');
 					var deleted = false;
@@ -623,14 +624,18 @@ function main() {
 					//inserting new raid
 				} else r.isNew = false;
 
-				if (typeof info != 'object') {
-					// If it's still not defined here, it must have already been in the dead cache and no further info needs to be returned
-					return;
+				// If it's still not defined here, it must have already been in the dead cache.  Mark it as seen and visited.
+				if (typeof info == 'object') {
+					r.timeStamp = info.timeStamp;
+					r.seen = info.seen;
+					r.visited = info.visited;
+					r.dead = false;
+				} else {
+					r.seen = true;
+					r.visited = true;
+					r.dead = true;
 				}
 
-				r.timeStamp = info.timeStamp;
-				r.seen = info.seen;
-				r.visited = info.visited;
 				
 				r.linkText = function () {
 					if (SRDotDX.config.formatRaidLinks){
@@ -1892,6 +1897,8 @@ function main() {
 					SRDotDX.gui.cHTML('style').set({type: "text/css",id:'SRDotDX_visitedRaidListClass'}).text('.SRDotDX_visitedRaidList{display: '+(SRDotDX.config.hideVisitedRaidsInRaidList == true?'none !important':'block')+'}').attach('to',document.head);
 					SRDotDX.gui.cHTML('style').set({type: "text/css",id: 'SRDotDX_seenRaidClass'}).text('.SRDotDX_seenRaid{display: '+(SRDotDX.config.hideSeenRaids == true?'none !important':'block')+'}').attach('to',document.head);
 					SRDotDX.gui.cHTML('style').set({type: "text/css",id: 'SRDotDX_mutedMessageClass'}).text('.SRDotDX_mutedMessage{display: none !important}').attach('to',document.head);
+					SRDotDX.gui.cHTML('style').set({type: "text/css",id: 'SRDotDX_deadRaidClass'}).text('.SRDotDX_deadRaid{display: none !important}').attach('to',document.head);
+					SRDotDX.gui.cHTML('style').set({type: "text/css",id: 'SRDotDX_deadRaidListClass'}).text('.SRDotDX_deadRaidList{display: none !important}').attach('to',document.head);
 					for (var i in SRDotDX.raids) {
 						if (SRDotDX.raids.hasOwnProperty(i)) {
 							var raid = SRDotDX.raids[i];
@@ -3036,11 +3043,15 @@ function main() {
 							e.class+= " SRDotDX_raidid_"+raid.id;
 							e.class+= (raid.seen?" SRDotDX_seenRaid":'');
 							e.class+=(raid.visited?" SRDotDX_visitedRaid":'');
+							e.class+=(raid.dead?" SRDotDX_deadRaid":'');
 							e.class+=" SRDotDX_filteredRaidChat" + raid.boss + '_' + (raid.diff - 1);							
 							d = raid.ptext + '<a href="'+raid.url+'" onClick="return false;" onMouseDown="SRDotDX.gui.FPXraidLinkMouseDown(event,'+'\''+raid.id+'\''+',this.href,true); return false">'+raid.linkText()+'</a>'+raid.ntext;
 							SRDotDX.gui.toggleRaid('visited',raid.id,raid.visited);
-							SRDotDX.raidList.raids[raid.id].seen = true;
-							SRDotDX.gui.raidListItemUpdate(raid.id);
+							if (SRDotDX.raidList.raids[raid.id]) {
+								SRDotDX.raidList.raids[raid.id].seen = true;
+								SRDotDX.gui.raidListItemUpdate(raid.id);
+							
+							}
 							if(raid.isNew){
 								if(!SRDotDX.gui.AutoJoin)
 									SRDotDX.gui.updateMessage();
@@ -3652,26 +3663,7 @@ function main() {
 			}
 			console.log("[SRDotDX] Game message " + event.data + " : " + isJoining);
 
-			// message to nuke a raid because it's dead
-			if (/dead/i.test(event.data)) {
-				console.log("[SRDotDX] Nuking raid " + lastJoinedRaidId);
-				SRDotDX.raidList.markRaidDead(lastJoinedRaidId);
-				
-				if (SRDotDX.gui.AutoJoin&&isJoining) {
-					SRDotDX.gui.AutoJoinCurrentDeads++;
-				} else {
-					SRDotDX.gui.doStatusOutput("Join Failed. Raid is dead.");
-				}
-			}
 
-			// message to nuke a raid because it's from the wrong guild
-			if (/wrongguild/i.test(event.data)) {
-				console.log("[SRDotDX] Nuking raid " + lastJoinedRaidId);
-				SRDotDX.raidList.markRaidDead(lastJoinedRaidId);
-				if (!SRDotDX.gui.AutoJoin||!isJoining){
-					SRDotDX.gui.doStatusOutput("Join Failed. Wrong guild.");
-				}
-			}
 			if(/member/i.test(event.data)){
 				if (!SRDotDX.gui.AutoJoin||!isJoining){
 					SRDotDX.gui.doStatusOutput("Join Failed. You are already a member.");
@@ -3721,8 +3713,32 @@ function main() {
 					SRDotDX.gui.toggleRaid('visited',lastJoinedRaidId,true);
 					SRDotDX.gui.raidListItemUpdate(lastJoinedRaidId);
 				}
+			}
 
 
+			// message to nuke a raid because it's dead
+			if (/dead/i.test(event.data)) {
+				console.log("[SRDotDX] Nuking raid " + lastJoinedRaidId);
+				SRDotDX.raidList.markRaidDead(lastJoinedRaidId);
+				
+				if (SRDotDX.gui.AutoJoin&&isJoining) {
+					SRDotDX.gui.AutoJoinCurrentDeads++;
+				} else {
+					SRDotDX.gui.doStatusOutput("Join Failed. Raid is dead.");
+				}
+			}
+
+			// message to nuke a raid because it's from the wrong guild
+			if (/wrongguild/i.test(event.data)) {
+				console.log("[SRDotDX] Nuking raid " + lastJoinedRaidId);
+				SRDotDX.raidList.markRaidDead(lastJoinedRaidId);
+				if (!SRDotDX.gui.AutoJoin||!isJoining){
+					SRDotDX.gui.doStatusOutput("Join Failed. Wrong guild.");
+				}
+			}
+
+			// Checking for the landed page a second time because raids should be marked dead after the raid is visited but before we reset all the joining stuff
+			if (/landed/i.test(event.data)) {
 				if (isJoining) {
 					SRDotDX.gui.AutoJoinCurrentLanded++;
 					if (SRDotDX.config.asyncJoin) SRDotDX.gui.currentJoinFrame = parseInt(String(event.data).split("|")[1]);//recieved from iframe is available
@@ -3735,18 +3751,10 @@ function main() {
 					if(SRDotDX.gui.AutoJoinCurrentLanded == SRDotDX.gui.AutoJoinRaids.length){// finished auto-joining
 						console.log("[SRDotDX] Finished auto joining");
 
-
-
 						if(isJoining && SRDotDX.config.refreshGameToJoin)
 							SRDotDX.reload();
 
-
 						SRDotDX.gui.ResetJoiner();
-
-
-
-
-
 
 					}
 				}
