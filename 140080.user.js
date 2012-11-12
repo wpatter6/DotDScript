@@ -332,7 +332,9 @@ function main() {
 					// Delete from known raids
 					console.log("Removing dead raid: " + id);
 
-					SRDotDX.gui.toggleRaid('dead',id,true);
+					console.log("Calling toggleRaid");
+					SRDotDX.gui.toggleRaid('dead',id,true,true);
+					console.log("Finished calling toggleRaid");
 
 					var raidListEle = document.getElementById('raid_list');
 					var deleted = false;
@@ -407,6 +409,7 @@ function main() {
 						return SRDotDX.raidList.raids[id];
 					}
 					else {
+						console.log("Marking dead: getRaid");
 						SRDotDX.raidList.markRaidDead(id);
 					}
 				}
@@ -2986,9 +2989,10 @@ function main() {
 					SRDotDX.gui.cHTML("style").set({type: "text/css", id: p.id}).text(p.cls).attach("to",document.head);
 				}
 			},
-			toggleRaid: function(type,id,tog) {
+			toggleRaid: function(type,id,tog,skipRaidDetails) {
 				var d = document.getElementsByClassName("SRDotDX_raidid_" + id);
-				if (typeof SRDotDX.raidList.raids[id] == 'object') {
+				skipRaidDetails = (typeof skipRaidDetails == "undefined")?false:skipRaidDetails;
+				if (typeof SRDotDX.raidList.raids[id] == 'object' && !skipRaidDetails) {
 					var raid = SRDotDX.raidList.raids[id];
 					var raid = SRDotDX.getRaidDetails("&kv_difficulty="+raid.diff+"&kv_hash="+raid.hash+"&kv_raid_boss="+raid.boss+"&kv_raid_id="+raid.id);
 				}
@@ -2999,7 +3003,7 @@ function main() {
 					else if (tog == false && d[i].className.indexOf("SRDotDX_"+type+"Raid") > -1) {
 						d[i].className = d[i].className.replace(eval("/SRDotDX_"+type+"Raid( |$)/i"),"");
 					}
-					if (typeof raid == 'object') {
+					if (typeof raid == 'object' && !skipRaidDetails) {
 						d[i].getElementsByTagName("a")[0].innerHTML = raid.linkText();
 					}
 				}
