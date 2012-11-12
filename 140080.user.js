@@ -1266,12 +1266,13 @@ function main() {
 			},
 			FPXFilterRaidSingle: function(el, re, diffFilter, p_re, posterSwitch, roomFilter, roomSwitch){
 				re=(re?re:new RegExp(document.FPXRaidFilterForm.FPXRaidBossNameFilter.value, "i"));
-				if(typeof el == "undefined") return;
+
 				var id = el;
 				
 				if(typeof el != "string" && typeof el != "number") id = el.getAttribute("raidid");
 				else el = document.getElementsByClassName("raid_list_item_"+id)[0];
 				
+
 				var r = SRDotDX.config.getRaid(id);
 				
 				
@@ -1287,6 +1288,10 @@ function main() {
 						el.className = el.className.replace(/raid_list_item (hidden )?(.*)/i,"raid_list_item hidden $2");
 						return false;
 					}
+				} else {
+					console.log("typeof r is not object, filtering by default.  id: " + id);
+					el.className = el.className.replace(/raid_list_item (hidden )?(.*)/i,"raid_list_item hidden $2");
+					return false;
 				}
 			},
 			PastebinCollisions:0,
