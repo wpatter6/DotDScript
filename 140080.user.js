@@ -296,26 +296,29 @@ function main() {
 			tmp.raids = {};
 			tmp.deadCache = {};
 
-			// Force config to be evaluated so the upgrade code runs
-			if (SRDotDX.config.pending126Upgrade != false) {
-				console.log("1.2.6 upgrade code didn't run for some reason.  That's not great.");
-				return tmp;
+			// The rest of it is defining functions
+
+			tmp.load = function() {
+				// Force config to be evaluated so the upgrade code runs
+				if (SRDotDX.config.pending126Upgrade != false) {
+					console.log("1.2.6 upgrade code didn't run for some reason.  That's not great.");
+					return tmp;
+				}
+
+				// Grab theoretically alive raids
+				try {
+					tmp.raids = JSON.parse(GM_getValue("SRDotDX_raids","{}"));
+				}
+				catch (e) {tmp.raids = {}}
+
+				// Grab dead raid cache
+				try {
+					tmp.deadCache = JSON.parse(GM_getValue("SRDotDX_deadCache","{}"));
+				}
+				catch (e) {tmp.deadCache = {}}
+
 			}
-
-			// Grab theoretically alive raids
-			try {
-				tmp.raids = JSON.parse(GM_getValue("SRDotDX_raids","{}"));
-			}
-			catch (e) {tmp.raids = {}}
-
-			// Grab dead raid cache
-			try {
-				tmp.deadCache = JSON.parse(GM_getValue("SRDotDX_deadCache","{}"));
-			}
-			catch (e) {tmp.deadCache = {}}
-
-			// Define functions
-
+			
 			tmp.isDeadRaid = function(id) {
 				if (typeof SRDotDX.raidList.deadCache[id] != "undefined") {
 					return true;
@@ -324,11 +327,29 @@ function main() {
 			}
 
 			tmp.markRaidDead = function(id) {
+				//console.log("[SRDotDX] raidList.markRaidDead: " + id);
 				if (typeof SRDotDX.raidList.raids[id] == 'object') {
 					// Delete from known raids
 					console.log("Removing dead raid: " + id);
-					delete SRDotDX.raidList.raids[id];
-					SRDotDX.gui.raidListRemoveById(id);
+
+
+					var raidListEle = document.getElementById('raid_list');
+					var deleted = false;
+					if (raidListEle) {
+						var raidEle = raidListEle.getElementsByClassName("raid_list_item_"+id)[0];
+						if (raidEle) {
+							var deleteEle = raidEle.getElementsByClassName("FPXDeleteLink")[0];
+							if (deleteEle) {
+								SRDotDX.gui.deleteRaid(deleteEle,id,false);
+								deleted = true;
+							}
+						}
+					}
+
+					if (deleted == false && SRDotDX.raidList.raids[id]) {
+						delete SRDotDX.raidList.raids[id];
+					}
+
 				}
 
 				if (typeof SRDotDX.raidList.deadCache[id] == "undefined") {
@@ -340,6 +361,7 @@ function main() {
 			}
 
 			tmp.removeExpired = function(recur) {
+				console.log("[SRDotDX]: Removing expired raids");
 				var currentTime = parseInt((new Date).getTime() / 1000);
 
 				// Delete expired raids
@@ -351,27 +373,32 @@ function main() {
 					}
 				}
 
+				//console.log("[SRDotDX]: Done removing expired raids, removing expired dead raids");
+
 				// Delete expired dead-cached raids
 				for (var id in SRDotDX.raidList.deadCache) {
 					if (SRDotDX.raidList.deadCache.hasOwnProperty(id)) {
-						if (SRDotDX.raidList.raids[id].expTime <= currentTime) {
+						if (SRDotDX.raidList.deadCache[id].expTime <= currentTime) {
 							delete SRDotDX.raidList.deadCache[id];
 						}
 					}
 				}
+
+				//console.log("[SRDotDX]: Done removing expired dead raids");
 						
 
 				// Called again in 5 minutes if called with recur=true
-				recur = (typeof recur==='undefined'?false:b);
+				recur = (typeof recur==='undefined'?false:recur);
 				if(recur) setTimeout("SRDotDX.raidList.removeExpired(true);",300000);
 				console.log("[SRDotDX] Expired raids marked dead (repeat="+recur+")");
-
 			}
 
 			tmp.getRaid = function(id) {
+				//console.log("[SRDotDX] raidList.getRaid");
 				id = SRDotDX.gui.GetRaidID(id);
 				if (typeof SRDotDX.raidList.raids[id] == 'object') {
-					if (SRDotDX.raidList.raids[id].timeLeft() > 1) {
+					var timeLeft = SRDotDX.raidList.raids[id].expTime - parseInt((new Date).getTime() / 1000);
+					if (timeLeft > 1) {
 						if (SRDotDX.raidList.raids[id].id != id) {
 							SRDotDX.raidList.raids[id].id = id;
 						}
@@ -385,32 +412,35 @@ function main() {
 			}
 
 			tmp.addRaid = function(hash,id,boss,diff,seen,visited,user,ts,room) {
+				//console.log("[SRDotDX] raidList.addRaid");
 				id=SRDotDX.gui.GetRaidID(id);
-				if (!SRDotDX.raidList.isDeadRaid(id) && typeof SRDotDX.raidList.getRaid(id) != 'object') {
-					SRDotDX.raidList.raids[id] = {
-						hash: hash,
-						id: id,
-						boss: boss,
-						diff: diff,
-						seen: seen,
-						visited: visited,
-						user: user,
-						lastUser: user,
-						expTime: (typeof SRDotDX.raids[boss] == 'object'?SRDotDX.raids[boss].duration:168) * 3600+parseInt((new Date).getTime() / 1000),
-						timeLeft: function (){return this.expTime - parseInt((new Date).getTime() / 1000)},
-						timeStamp: ((typeof ts ==='undefined'||ts==null)?(new Date().getTime()):parseInt(ts)),
-						room: ((typeof room ==='undefined'||room==null)?SRDotDX.getRoomName():parseInt(room))
+				if (!SRDotDX.raidList.isDeadRaid(id)) {
+					if (typeof SRDotDX.raidList.getRaid(id) != 'object') {
+						SRDotDX.raidList.raids[id] = {
+							hash: hash,
+							id: id,
+							boss: boss,
+							diff: diff,
+							seen: seen,
+							visited: visited,
+							user: user,
+							lastUser: user,
+							expTime: (typeof SRDotDX.raids[boss] == 'object'?SRDotDX.raids[boss].duration:168) * 3600+parseInt((new Date).getTime() / 1000),
+							timeLeft: function (){return this.expTime - parseInt((new Date).getTime() / 1000)},
+							timeStamp: ((typeof ts ==='undefined'||ts==null)?(new Date().getTime()):parseInt(ts)),
+							room: ((typeof room ==='undefined'||room==null)?SRDotDX.getRoomName():parseInt(room))
+						}
+						SRDotDX.gui.addRaid(id);
+						//onNewRaid
+						setTimeout(function(){SRDotDX.purge()}, 1);
 					}
-					SRDotDX.gui.addRaid(id);
-					//onNewRaid
-					setTimeout(function(){SRDotDX.purge()}, 1);
+					SRDotDX.raidList.raids[id].lastUser = user;
+					return SRDotDX.raidList[id]
 				}
-				SRDotDX.raidList.raids[id].lastUser = user;
-				return SRDotDX.raidList[id]
 			}
 
 			tmp.save = function (recur) {
-				recur = (typeof recur==='undefined'?false:b);				
+				recur = (typeof recur==='undefined'?false:recur);				
 				
 				GM_setValue("SRDotDX_raids",JSON.stringify(SRDotDX.raidList.raids));
 				GM_setValue("SRDotDX_deadCache",JSON.stringify(SRDotDX.raidList.deadCache));
@@ -418,7 +448,7 @@ function main() {
 				console.log("[SRDotDX] Raid list saved (repeat="+recur+")");
 			}
 
-			return tmp
+			return tmp;
 		})(),
 		purge: function() {
 			var el = document.getElementById('raid_list');
@@ -592,6 +622,12 @@ function main() {
 					if(typeof info == 'object') r.isNew = true;
 					//inserting new raid
 				} else r.isNew = false;
+
+				if (typeof info != 'object') {
+					// If it's still not defined here, it must have already been in the dead cache and no further info needs to be returned
+					return;
+				}
+
 				r.timeStamp = info.timeStamp;
 				r.seen = info.seen;
 				r.visited = info.visited;
@@ -981,6 +1017,7 @@ function main() {
 			doStatusOutput: function (str, msecs, showInChat){
 				showInChat=(typeof showInChat === 'undefined'?true:showInChat);
 				msecs=(typeof msecs === 'undefined'?4000:msecs);
+				console.log("doStatusOutput: " + str);
 				var el = document.getElementById('StatusOutput');
 				el.innerHTML=str;
 				if(SRDotDX.config.showStatusOverlay && showInChat){
@@ -1848,6 +1885,7 @@ function main() {
 				}
 			},
 			load: function () {
+				console.log("SRDotDX.gui.load");
 				if (typeof holodeck == 'object' && typeof holodeck._tabs == 'object' && typeof holodeck._tabs.addTab == 'function') {
 					SRDotDX.gui.cHTML('style').set({type: "text/css",id: 'SRDotDX_raidClass'}).text('.SRDotDX_raid{display:'+(SRDotDX.config.hideRaidLinks == true?'none !important':'block')+'}').attach('to',document.head);
 					SRDotDX.gui.cHTML('style').set({type: "text/css",id: 'SRDotDX_visitedRaidClass'}).text('.SRDotDX_visitedRaid{display: '+(SRDotDX.config.hideVisitedRaids == true?'none !important':'block')+'}').attach('to',document.head);
@@ -2971,6 +3009,7 @@ function main() {
 			}
 		},
 		load: function (fails) {
+			console.log("Running load function");
 			if (typeof holodeck == 'object' && typeof ChatDialogue == 'function' && typeof activateGame == 'function' && typeof document.getElementById('kong_game_ui') != 'null') {
 				ChatDialogue.prototype.SRDotDX_echo = function(msg){
 					this.SRDotDX_DUM("DotD Extension","<br>"+msg,{class: "whisper whisper_received"},{non_user: true})
@@ -3295,7 +3334,8 @@ function main() {
 				}
 
 				SRDotDX.config.save(true);
-				SRDotDX.raidList.deleteExpired(true);
+				SRDotDX.raidList.load();
+				SRDotDX.raidList.removeExpired(true);
 				SRDotDX.raidList.save(true);
 				SRDotDX.gui.load();
 				SRDotDX.gui.UpdateSelectedRaidCount();
