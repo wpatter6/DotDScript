@@ -25,6 +25,7 @@ Contact Us: A list of ways to contact us for whatever reasons<br />
 <b>1.2.6</b><br>
 1) Fixed an issue with raids with blank hashes not deleting properly.<br>
 2) Fixed the issue with Treachery and the Tower filter settings not saving.<br>
+3) Fixed an issue with searching raids sometimes not making certain raids disappear properly.<br><br>
 <b>1.2.5</b><br>
 1) Fixed pretty posting with Jack and Jack's Revenge raids.<br>
 2) Fixed the Play Now button not reloading the frame, for those of you who haven't turned off "Refresh game to join raids", seriously that option is awesome and you should try it.<br>
