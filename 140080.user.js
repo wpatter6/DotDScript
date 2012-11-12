@@ -4,7 +4,7 @@
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
 // @version        1.2.6
-// @date           11.08.2012
+// @date           11.12.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -178,40 +178,42 @@ function main() {
 			tmp.selectedRaids = (typeof tmp.selectedRaids == 'string'?tmp.selectedRaids:"");
 			tmp.pastebinUrl = (typeof tmp.pastebinUrl == 'string'?tmp.pastebinUrl:"");
 			tmp.lastUpdateCheck = (typeof tmp.lastUpdateCheck == 'number'?tmp.lastUpdateCheck:0);
-
+			tmp.pending126Upgrade = (typeof tmp.pending126Upgrade == 'boolean'?tmp.pending126Upgrade:true);
+			
 			if (typeof tmp.mutedUsers != 'object')tmp.mutedUsers = {};
-			if (typeof tmp.raidList != 'object')tmp.raidList = {};
 			if (typeof tmp.pasteList != 'object')tmp.pasteList = {};
 
-			// Raid list indexing upgrade code
-			tmp.pendingRaidListIndexingChange = (typeof tmp.pendingRaidListIndexingChange == 'boolean'?tmp.pendingRaidListIndexingChange:true);
-			if (tmp.pendingRaidListIndexingChange == true) {
-				var raidList2 = {};
-
-				for (var hash in tmp.raidList) {
-					if (tmp.raidList.hasOwnProperty(hash)) {
-						raidList2[tmp.raidList[hash].id] = tmp.raidList[hash];
-					}
-				}
-
-				tmp.raidList = raidList2;
-				tmp.pendingRaidListIndexingChange = false;
-			}
-
-			// Delete expired raids
-			for (var id in tmp.raidList){
-				if (tmp.raidList.hasOwnProperty(id)) {
-					tmp.raidList[id].timeLeft = function (){
-						return this.expTime - parseInt((new Date).getTime() / 1000);
-					}
-					if (tmp.raidList[id].timeLeft() < 0) {
-						delete tmp.raidList[id];
-					}
-				}
-			}
 
 			if (typeof tmp.filters != 'object') {
 				tmp.filters = {}
+			}
+
+			// 1.2.6 Upgrade code - Split out raid list from config into raid list and dead cache
+			if (tmp.pending126Upgrade == true) {
+				if (typeof tmp.raidList == 'object') {
+					var raidList2 = {};
+					var deadCache = {};
+
+					for (var id in tmp.raidList) {
+						if (tmp.raidList.hasOwnProperty(id)) {
+							var raid = tmp.raidList[id];
+							
+							if(raid.nuked == true) {
+								deadCache[id] = {};
+								deadCache[id].expTime = 604800 + parseInt((new Date).getTime() / 1000);
+							} else {
+								raidList2[id] = raid;
+								delete raidList2[id].nuked;
+							}
+						}
+					}					
+		
+					GM_setValue("SRDotDX_raids",JSON.stringify(raidList2));
+					GM_setValue("SRDotDX_deadCache",JSON.stringify(deadCache));
+					delete tmp.raidList;
+				}
+
+				tmp.pending126Upgrade = false;
 			}
 
 			// Default filtering settings filter out guild raids and personal raids from chat
@@ -244,31 +246,7 @@ function main() {
 			if (tmp.FPXoptsMarkRightClickDelay == 8000) { tmp.FPXoptsMarkRightClickDelay = 2000; }
 
 			GM_setValue("SRDotDX",JSON.stringify(tmp));
-			tmp.addRaid = function(hash,id,boss,diff,seen,visited,user,ts,room) {
-				id=SRDotDX.gui.GetRaidID(id);
-				if (typeof SRDotDX.config.getRaid(id) != 'object') {
-					SRDotDX.config.raidList[id] = {
-						hash: hash,
-						id: id,
-						boss: boss,
-						diff: diff,
-						seen: seen,
-						visited: visited,
-						user: user,
-						lastUser: user,
-						expTime: (typeof SRDotDX.raids[boss] == 'object'?SRDotDX.raids[boss].duration:168) * 3600+parseInt((new Date).getTime() / 1000),
-						timeLeft: function (){return this.expTime - parseInt((new Date).getTime() / 1000)},
-						timeStamp: ((typeof ts ==='undefined'||ts==null)?(new Date().getTime()):parseInt(ts)),
-						room: ((typeof room ==='undefined'||room==null)?SRDotDX.getRoomName():parseInt(room)),
-						nuked: false
-					}
-					SRDotDX.gui.addRaid(id);
-					//onNewRaid
-					setTimeout(function(){SRDotDX.purge()}, 1);
-				}
-				SRDotDX.config.raidList[id].lastUser = user;
-				return SRDotDX.config.raidList[id]
-			}
+
 			tmp.addPaste = function(url,id,poster,user,newtotal,total){
 				if (typeof SRDotDX.config.getPaste(id) != 'object') {
 					SRDotDX.config.pasteList[id]={
@@ -291,23 +269,8 @@ function main() {
 				return SRDotDX.config.pasteList[id]				
 			}
 			tmp.export = function () {
-				SRDotDX.config.save();
+				SRDotDX.config.save(false);
 				window.prompt("Export Data:",JSON.stringify(SRDotDX.config));
-			}
-			tmp.getRaid = function(id) {
-				id = SRDotDX.gui.GetRaidID(id);
-				if (typeof SRDotDX.config.raidList[id] == 'object') {
-					if (SRDotDX.config.raidList[id].timeLeft() > 1) {
-						if (SRDotDX.config.raidList[id].id != id) {
-							SRDotDX.config.raidList[id].id = id;
-						}
-
-						return SRDotDX.config.raidList[id];
-					}
-					else {
-						delete SRDotDX.config.raidList[id];
-					}
-				}
 			}
 			tmp.getPaste = function(id) {
 				if (typeof SRDotDX.config.pasteList[id] == 'object') {
@@ -318,13 +281,7 @@ function main() {
 			tmp.import = function (data) {
 			}
 			tmp.save = function (b) {
-				b = (typeof b==='undefined'?true:b);
-				for (var id in SRDotDX.config.raidList){
-					if (SRDotDX.config.raidList.hasOwnProperty(id) && SRDotDX.config.raidList[id].timeLeft <= 0) {
-						delete SRDotDX.config.raidList[id];
-						SRDotDX.gui.raidListRemoveById(id);
-					}
-				}
+				b = (typeof b==='undefined'?false:b);
 				var a = SRDotDX.config.raidFormat;
 				SRDotDX.config.raidFormat = SRDotDX.config.raidLinkFormat.replace(/\{/g,"&#123;").replace(/\}/g,"&#125;").replace(/\[/g,"&#91;").replace(/\]/g,"&#93;")
 				GM_setValue("SRDotDX",JSON.stringify(SRDotDX.config));
@@ -333,6 +290,135 @@ function main() {
 				console.log("[SRDotDX] Config saved (repeat="+b+")");
 			}
 			return tmp;
+		})(),
+		raidList: (function() {
+			var tmp = {};
+			tmp.raids = {};
+			tmp.deadCache = {};
+
+			// Force config to be evaluated so the upgrade code runs
+			if (SRDotDX.config.pending126Upgrade != false) {
+				console.log("1.2.6 upgrade code didn't run for some reason.  That's not great.");
+				return tmp;
+			}
+
+			// Grab theoretically alive raids
+			try {
+				tmp.raids = JSON.parse(GM_getValue("SRDotDX_raids","{}"));
+			}
+			catch (e) {tmp.raids = {}}
+
+			// Grab dead raid cache
+			try {
+				tmp.deadCache = JSON.parse(GM_getValue("SRDotDX_deadCache","{}"));
+			}
+			catch (e) {tmp.deadCache = {}}
+
+			// Define functions
+
+			tmp.isDeadRaid = function(id) {
+				if (typeof SRDotDX.raidList.deadCache[id] != "undefined") {
+					return true;
+				}
+				return false;
+			}
+
+			tmp.markRaidDead = function(id) {
+				if (typeof SRDotDX.raidList.raids[id] == 'object') {
+					// Delete from known raids
+					console.log("Removing dead raid: " + id);
+					delete SRDotDX.raidList.raids[id];
+					SRDotDX.gui.raidListRemoveById(id);
+				}
+
+				if (typeof SRDotDX.raidList.deadCache[id] == "undefined") {
+					// Add to dead cache if not already there
+					console.log("Added raid to dead cache: " + id);
+					SRDotDX.raidList.deadCache[id] = {};
+					SRDotDX.raidList.deadCache[id].expTime = 604800 + parseInt((new Date).getTime() / 1000);
+				}
+			}
+
+			tmp.removeExpired = function(recur) {
+				var currentTime = parseInt((new Date).getTime() / 1000);
+
+				// Delete expired raids
+				for (var id in SRDotDX.raidList.raids){
+					if (SRDotDX.raidList.raids.hasOwnProperty(id)) {
+						if (SRDotDX.raidList.raids[id].expTime <= currentTime) {
+							SRDotDX.raidList.markRaidDead(id);
+						}
+					}
+				}
+
+				// Delete expired dead-cached raids
+				for (var id in SRDotDX.raidList.deadCache) {
+					if (SRDotDX.raidList.deadCache.hasOwnProperty(id)) {
+						if (SRDotDX.raidList.raids[id].expTime <= currentTime) {
+							delete SRDotDX.raidList.deadCache[id];
+						}
+					}
+				}
+						
+
+				// Called again in 5 minutes if called with recur=true
+				recur = (typeof recur==='undefined'?false:b);
+				if(recur) setTimeout("SRDotDX.raidList.removeExpired(true);",300000);
+				console.log("[SRDotDX] Expired raids marked dead (repeat="+recur+")");
+
+			}
+
+			tmp.getRaid = function(id) {
+				id = SRDotDX.gui.GetRaidID(id);
+				if (typeof SRDotDX.raidList.raids[id] == 'object') {
+					if (SRDotDX.raidList.raids[id].timeLeft() > 1) {
+						if (SRDotDX.raidList.raids[id].id != id) {
+							SRDotDX.raidList.raids[id].id = id;
+						}
+
+						return SRDotDX.raidList.raids[id];
+					}
+					else {
+						SRDotDX.raidList.markRaidDead(id);
+					}
+				}
+			}
+
+			tmp.addRaid = function(hash,id,boss,diff,seen,visited,user,ts,room) {
+				id=SRDotDX.gui.GetRaidID(id);
+				if (!SRDotDX.raidList.isDeadRaid(id) && typeof SRDotDX.raidList.getRaid(id) != 'object') {
+					SRDotDX.raidList.raids[id] = {
+						hash: hash,
+						id: id,
+						boss: boss,
+						diff: diff,
+						seen: seen,
+						visited: visited,
+						user: user,
+						lastUser: user,
+						expTime: (typeof SRDotDX.raids[boss] == 'object'?SRDotDX.raids[boss].duration:168) * 3600+parseInt((new Date).getTime() / 1000),
+						timeLeft: function (){return this.expTime - parseInt((new Date).getTime() / 1000)},
+						timeStamp: ((typeof ts ==='undefined'||ts==null)?(new Date().getTime()):parseInt(ts)),
+						room: ((typeof room ==='undefined'||room==null)?SRDotDX.getRoomName():parseInt(room))
+					}
+					SRDotDX.gui.addRaid(id);
+					//onNewRaid
+					setTimeout(function(){SRDotDX.purge()}, 1);
+				}
+				SRDotDX.raidList.raids[id].lastUser = user;
+				return SRDotDX.raidList[id]
+			}
+
+			tmp.save = function (recur) {
+				recur = (typeof recur==='undefined'?false:b);				
+				
+				GM_setValue("SRDotDX_raids",JSON.stringify(SRDotDX.raidList.raids));
+				GM_setValue("SRDotDX_deadCache",JSON.stringify(SRDotDX.raidList.deadCache));
+				if(recur) setTimeout("SRDotDX.raidList.save(true);",30000);
+				console.log("[SRDotDX] Raid list saved (repeat="+recur+")");
+			}
+
+			return tmp
 		})(),
 		purge: function() {
 			var el = document.getElementById('raid_list');
@@ -343,21 +429,7 @@ function main() {
 						console.log("[SRDotDX] Purging started " + diff);
 						
 						var i=0, total=0;
-						var draids = SRDotDX.gui.GetRaids('nuked_');
-						draids.sort(function(a,b){
-							if(a && !(typeof a.timeStamp === 'undefined' || typeof b.timeStamp === 'undefined'))
-								if(a.timeStamp < b.timeStamp) return -1;
-							return 1;
-						});
-						console.log("[SRDotDX] Purging dead raids (" + diff + "/" + draids.length + ")");//dead raids first
-						while(i<draids.length && diff > 0){
-							
-							SRDotDX.gui.deleteRaid(draids[i].ele.getElementsByClassName("FPXDeleteLink")[0], draids[i].id);
-							i++; diff--;
-						}
-						console.log("[SRDotDX] Purged dead raids (" + i + "/" + draids.length + ")");
-						delete draids;
-						total+=i; i=0;
+						
 						if(diff > 0){
 							var uraids = SRDotDX.gui.GetRaids('new_hidden_');
 							uraids.sort(function(a,b){
@@ -514,17 +586,16 @@ function main() {
 			var i;
 			var r = SRDotDX.getRaidDetailsBase(url);
 			if (typeof r != 'undefined' && typeof r.diff != 'undefined' && typeof r.hash != 'undefined' && typeof r.boss != 'undefined' && typeof r.id != 'undefined') {
-				var info = SRDotDX.config.getRaid(r.id);
+				var info = SRDotDX.raidList.getRaid(r.id);
 				if (typeof info != 'object') {
-					info = SRDotDX.config.addRaid(r.hash, r.id, r.boss, r.diff,visited,seen,user,ts,room)
+					info = SRDotDX.raidList.addRaid(r.hash, r.id, r.boss, r.diff,visited,seen,user,ts,room)
 					if(typeof info == 'object') r.isNew = true;
 					//inserting new raid
 				} else r.isNew = false;
 				r.timeStamp = info.timeStamp;
 				r.seen = info.seen;
 				r.visited = info.visited;
-				r.nuked = info.nuked;
-
+				
 				r.linkText = function () {
 					if (SRDotDX.config.formatRaidLinks){
 						var txt = SRDotDX.config.raidLinkFormat;
@@ -632,7 +703,7 @@ function main() {
 		gui: {
 			addRaid: function (id) {
 				var r = id;
-				if(typeof id == "string" || typeof id == "number") r = SRDotDX.config.getRaid(id);
+				if(typeof id == "string" || typeof id == "number") r = SRDotDX.raidList.getRaid(id);
 				
 				if (r.boss) {
 					var rd = SRDotDX.raids[r.boss];
@@ -721,9 +792,8 @@ function main() {
 						var url = "/games/5thPlanetGames/dawn-of-the-dragons?kv_action_type=raidhelp&kv_difficulty="+r.diff+"&kv_hash="+r.hash+"&kv_raid_boss="+r.boss+"&kv_raid_id="+r.id;
 						var filterClass = " SRDotDX_filteredRaidList" + rd.id + '_' + (r.diff - 1);
 						var visitedClass = (r.visited == true ? " SRDotDX_visitedRaidList" : "");
-						var nukedClass = (r.nuked == true ? " SRDotDX_nukedRaidList" : "");
 						var lii = SRDotDX.gui.cHTML('div').set({
-							class: 'raid_list_item raid_list_item_'+ r.id + filterClass + visitedClass + nukedClass,
+							class: 'raid_list_item raid_list_item_'+ r.id + filterClass + visitedClass,
 							style: b%2==0?'background-color:#e0e0e0':'',
 							raidId: r.id,
 							raidHash: r.hash,
@@ -775,7 +845,7 @@ function main() {
 					}
 				}
 				else {
-					delete SRDotDX.config.raidList[a];
+					delete SRDotDX.raidList.raids[a];
 				}
 			},
 			addPaste: function (id) {
@@ -1021,19 +1091,19 @@ function main() {
 			deleteRaid: function (ele,id,upd) {
 				upd=(typeof upd === 'undefined'?true:upd);
 				id = SRDotDX.gui.GetRaidID(id);
-				if (SRDotDX.config.raidList[id]) {
-					delete SRDotDX.config.raidList[id];
+				if (SRDotDX.raidList.raids[id]) {
+					delete SRDotDX.raidList.raids[id];
 				}
 				setTimeout(function(ele,upd) {
 					ele.parentNode.removeChild(ele);
 				},1,ele.parentNode.parentNode.parentNode);
 			},
 			FPXdeleteAllRaids: function () {
-				if(!SRDotDX.config.confirmDeletes || confirm("This will delete all " + SRDotDX.config.raidList.length + " raids stored. Continue? \n (This message can be disabled on the options tab.)")){
+				if(!SRDotDX.config.confirmDeletes || confirm("This will delete all " + SRDotDX.raidList.raids.length + " raids stored. Continue? \n (This message can be disabled on the options tab.)")){
 					console.log("[SRDotDX]::{FPX}:: DELETE ALL STARTED...");
-					for (var id in SRDotDX.config.raidList){					
-							if (SRDotDX.config.raidList.hasOwnProperty(id) && SRDotDX.config.raidList[id]) {
-								delete SRDotDX.config.raidList[id];
+					for (var id in SRDotDX.raidList.raids){					
+							if (SRDotDX.raidList.raids.hasOwnProperty(id) && SRDotDX.raidList.raids[id]) {
+								delete SRDotDX.raidList.raids[id];
 							}				
 					}
 					console.log("[SRDotDX]::{FPX}:: removing from raid_list div");
@@ -1153,7 +1223,7 @@ function main() {
 				SRDotDX.gui.doStatusOutput('Posting finished');
 				//document.getElementById("FPXShareTab").innerHTML="Share";
 				SRDotDX.gui.FPXTimerArray = [];
-				SRDotDX.config.save(true);
+				SRDotDX.config.save(false);
 			},
 			FPXStartPosting: function() {
 				SRDotDX.gui.isPosting = true;
@@ -1273,7 +1343,7 @@ function main() {
 				else el = document.getElementsByClassName("raid_list_item_"+id)[0];
 				
 
-				var r = SRDotDX.config.getRaid(id);
+				var r = SRDotDX.raidList.getRaid(id);
 				
 				
 				if(typeof r == 'object')
@@ -1380,7 +1450,7 @@ function main() {
 				var raidlistDIV=document.getElementById('raid_list');
 				var raidList = raidlistDIV.childNodes;
 				for(i=0; i<raidList.length; i+=1) {
-					var item = SRDotDX.config.getRaid(raidList[i].getAttribute("raidid"));
+					var item = SRDotDX.raidList.getRaid(raidList[i].getAttribute("raidid"));
 					raidArray.push(item);
 				}
 				var sortFunc;
@@ -1450,7 +1520,6 @@ function main() {
 				}
 				
 				for(var i=0; i<raidArray.length; i++){
-					//SRDotDX.config.raidList[r.id] = r;
 					SRDotDX.gui.addRaid(raidArray[i]);
 				}
 				SRDotDX.gui.FPXFilterRaidListByName();
@@ -1477,7 +1546,7 @@ function main() {
 					for(i=0; i<raidList.length; i++) {
 						var item = raidList[i];
 						if(item.getAttribute("raidid")==id){
-							var raid = JSON.parse(JSON.stringify(SRDotDX.config.getRaid(id)));
+							var raid = JSON.parse(JSON.stringify(SRDotDX.raidList.getRaid(id)));
 							raid.ele = item;
 							return raid;
 						}
@@ -1485,23 +1554,21 @@ function main() {
 				}
 				return null;
 			},
-			GetRaids: function (s) {//pass string to get raids you want, false to get selected non-dead raids, anything else to get selected raids, 
+			GetRaids: function (s) {//pass string to get raids you want, anything else to get selected raids, 
 				var r = [];
-				s = (typeof s=='boolean'?(s?SRDotDX.config.selectedRaids:SRDotDX.config.selectedRaids.replace('nuked_', '')):(typeof s == 'string'?s:SRDotDX.config.selectedRaids));
+				s = (typeof s=='boolean'?(s?SRDotDX.config.selectedRaids:SRDotDX.config.selectedRaids):(typeof s == 'string'?s:SRDotDX.config.selectedRaids));
 				if(!/visible/.test(s) && !/hidden/.test(s)) s += 'visible_hidden_';
 				if(!/visited/.test(s) && !/new/.test(s)) s += 'visited_new_';
-				if(!/nuked/.test(s) && !/alive/.test(s)) s += 'nuked_alive_';
 				//console.log("[SRDotDX] Getting " + s);
 				if(s != ""){
 					var raidList = document.getElementById('raid_list').childNodes;
 					for(i=0; i<raidList.length; i++) {
 						var item = raidList[i];
-						var raid = SRDotDX.config.getRaid(item.getAttribute("raidid"));
+						var raid = SRDotDX.raidList.getRaid(item.getAttribute("raidid"));
 						if (!(typeof raid === 'undefined') && (
 							(/all/.test(s)) ||
 							(((/visited/.test(s) && raid.visited) || (/new/.test(s) && !raid.visited)) &&
-							((/visible/.test(s) && item.offsetWidth+item.offsetHeight>0) || (/hidden/.test(s) && item.offsetWidth+item.offsetHeight==0)) &&
-							((/nuked/.test(s) && raid.nuked) || (/alive/.test(s) && !raid.nuked)))
+							((/visible/.test(s) && item.offsetWidth+item.offsetHeight>0) || (/hidden/.test(s) && item.offsetWidth+item.offsetHeight==0)))
 						)) {
 							try {
 								r.push(JSON.parse(JSON.stringify(raid)));
@@ -1544,12 +1611,12 @@ function main() {
 						newId = parseInt(id.replace(/[^%0-9]|(%[0-9][0-9])/g,""));
 					}
 
-					if (SRDotDX.config.raidList[id]) {
-						var tmp = SRDotDX.config.raidList[id];
+					if (SRDotDX.raidList.raids[id]) {
+						var tmp = SRDotDX.raidList.raids[id];
 						tmp.id = newId;
-						delete SRDotDX.config.raidList[id];
-						if (!SRDotDX.config.raidList[newId]) {
-							SRDotDX.config.raidList[newId] = tmp;
+						delete SRDotDX.raidList.raids[id];
+						if (!SRDotDX.raidList.raids[newId]) {
+							SRDotDX.raidList.raids[newId] = tmp;
 						}
 					}
 				}
@@ -1641,7 +1708,6 @@ function main() {
 					var dumptext = "!!OBJECT_IMPORT!!|"+active_user.username()+"|"+new Date().getTime()+"|";
 					for(i=0; i<raids.length; i++){
 						var raid = raids[i];
-						if (raid.nuked == true) { continue; }
 						var txt = SRDotDX.gui.GetRaidLink(raid)+","+raid.timeStamp+","+raid.user+","+raid.room+";"
 						dumptext += txt;
 					}
@@ -1716,15 +1782,15 @@ function main() {
 					for(i=0; i<raidList.length; i+=1) {
 						var item = raidList[i];	
 						var raidid = item.getAttribute("raidid");
-						if (SRDotDX.config.getRaid(raidid)) {
+						if (SRDotDX.raidList.getRaid(raidid)) {
 							try {
-								var raid = SRDotDX.config.getRaid(raidid);
+								var raid = SRDotDX.raidList.getRaid(raidid);
 								if (SRDotDX.raids[raid.boss]) {
 									var raidInfo = SRDotDX.raids[raid.boss];
-									if (!raid.visited || raid.nuked) {
+									if (!raid.visited) {
 										if(SRDotDX.raidSizes[raidInfo.size] && SRDotDX.raidSizes[raidInfo.size].pruneTimers && SRDotDX.raidSizes[raidInfo.size].pruneTimers[SRDotDX.config.unvisitedRaidPruningMode]) {
 											var pruneTimer = SRDotDX.raidSizes[raidInfo.size].pruneTimers[SRDotDX.config.unvisitedRaidPruningMode];
-											if(raid.nuked) pruneTimer = pruneTimer / 2;//double time nuked pruning
+											
 											if ((pruneTime - raid.timeStamp) >= pruneTimer) {
 												SRDotDX.gui.deleteRaid(item.getElementsByClassName("FPXDeleteLink")[0], raidid);
 												ct++;
@@ -1787,8 +1853,7 @@ function main() {
 					SRDotDX.gui.cHTML('style').set({type: "text/css",id: 'SRDotDX_visitedRaidClass'}).text('.SRDotDX_visitedRaid{display: '+(SRDotDX.config.hideVisitedRaids == true?'none !important':'block')+'}').attach('to',document.head);
 					SRDotDX.gui.cHTML('style').set({type: "text/css",id:'SRDotDX_visitedRaidListClass'}).text('.SRDotDX_visitedRaidList{display: '+(SRDotDX.config.hideVisitedRaidsInRaidList == true?'none !important':'block')+'}').attach('to',document.head);
 					SRDotDX.gui.cHTML('style').set({type: "text/css",id: 'SRDotDX_seenRaidClass'}).text('.SRDotDX_seenRaid{display: '+(SRDotDX.config.hideSeenRaids == true?'none !important':'block')+'}').attach('to',document.head);
-					SRDotDX.gui.cHTML('style').set({type: "text/css",id: 'SRDotDX_nukedRaidClass'}).text('.SRDotDX_nukedRaid{display:none !important}').attach('to',document.head);
-					SRDotDX.gui.cHTML('style').set({type: "text/css",id: 'SRDotDX_nukedRaidListClass'}).text('.SRDotDX_nukedRaidList{display:none !important}').attach('to',document.head);
+					SRDotDX.gui.cHTML('style').set({type: "text/css",id: 'SRDotDX_mutedMessageClass'}).text('.SRDotDX_mutedMessage{display: none !important}').attach('to',document.head);
 					for (var i in SRDotDX.raids) {
 						if (SRDotDX.raids.hasOwnProperty(i)) {
 							var raid = SRDotDX.raids[i];
@@ -1900,9 +1965,7 @@ function main() {
 											<input type="radio" class="raid_selection" name="radio_raid_new_visited" value="new_">New<br/>\
 											<input type="radio" class="raid_selection" name="radio_raid_new_visited" value="new_visited_">Both<br/>\
 											</td><td style="padding-right:5px">\
-											<input type="radio" class="raid_selection" name="radio_raid_alive_dead" value="alive_">Alive<br/>\
-											<input type="radio" class="raid_selection" name="radio_raid_alive_dead" value="nuked_">Dead<br/>\
-											<input type="radio" class="raid_selection" name="radio_raid_alive_dead" value="alive_nuked_">Both<br/>\
+											<input type="hidden" class="raid_selection" name="radio_raid_alive_dead" value="alive_">\
 											</td></tr><table>\
 											</td><td align="center"> \
 											<input name="JoinRaids" id="AutoJoinVisibleButton" style="padding:5px" onclick="SRDotDX.gui.RaidAction(\'join\');return false;" tabIndex="-1" type="button" value="Join" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Join all selected (not dead) raids.\');"> \
@@ -2694,8 +2757,8 @@ function main() {
 				while (i.hasChildNodes() && i.childNodes.length > 0) {
 					i.removeChild(i.firstChild);
 				}
-				for (var a in SRDotDX.config.raidList) {
-					if (SRDotDX.config.raidList.hasOwnProperty(a)) {
+				for (var a in SRDotDX.raidList.raids) {
+					if (SRDotDX.raidList.raids.hasOwnProperty(a)) {
 						SRDotDX.gui.addRaid(a);
 					}
 				}
@@ -2720,18 +2783,18 @@ function main() {
 						SRDotDX.gui.AutoJoinCurrentTotal = 1;
 						SRDotDX.gui.AutoJoinRaids = [id];
 						SRDotDX.gui.AutoJoin = true;
-						SRDotDX.gui.doStatusOutput("Joining " + SRDotDX.raids[SRDotDX.config.raidList[id].boss].shortname + "...");
+						SRDotDX.gui.doStatusOutput("Joining " + SRDotDX.raids[SRDotDX.raidList.raids[id].boss].shortname + "...");
 						SRDotDX.loadRaid(link);
 					} else {
 						SRDotDX.gui.AutoJoinCurrentTotal++;
-						SRDotDX.gui.doStatusOutput("Adding " + SRDotDX.raids[SRDotDX.config.raidList[id].boss].shortname + "...");
+						SRDotDX.gui.doStatusOutput("Adding " + SRDotDX.raids[SRDotDX.raidList.raids[id].boss].shortname + "...");
 						if(SRDotDX.gui.AutoJoinVisibleClicked) 
 							SRDotDX.gui.AutoJoinRaids.splice(SRDotDX.gui.AutoJoinCurrentIndex+1, 0, SRDotDX.gui.GetRaid(id));
 						else SRDotDX.gui.AutoJoinRaids.push(SRDotDX.gui.GetRaid(id));
 					}
 				}
 				else if(document.getElementById('FPX_options_markVisitedRightClick').checked){
-					SRDotDX.config.raidList[id].visited = true;
+					SRDotDX.raidList.raids[id].visited = true;
 					SRDotDX.gui.toggleRaid('visited',id,true);				
 					SRDotDX.gui.raidListItemUpdate(id);
 				}
@@ -2818,9 +2881,9 @@ function main() {
 			},
 			raidListCBClicked: function (ele,cb,id) {
 			console.log("[SRDotDX]::{FPX}:: Clicked on::"+ele.checked+"::"+cb+"::"+id);
-				if (SRDotDX.config.raidList[id]) {
+				if (SRDotDX.raidList.raids[id]) {
 				console.log("[SRDotDX]::{FPX}:: Clicked on1::"+ele.checked+"::"+cb+"::"+id);
-					SRDotDX.config.raidList[id][cb] = ele.checked;
+					SRDotDX.raidList.raids[id][cb] = ele.checked;
 					console.log("[SRDotDX]::{FPX}:: Clicked on2::"+ele+"::"+cb+"::"+id);
 					SRDotDX.gui.toggleRaid(cb,id,true);
 					console.log("[SRDotDX]::{FPX}:: Clicked on3::"+ele+"::"+cb+"::"+id);
@@ -2833,14 +2896,14 @@ function main() {
 			},
 			raidListItemUpdateTimeSince: function (id) {
 				id = SRDotDX.gui.GetRaidID(id);
-				var raid = SRDotDX.config.raidList[id];
+				var raid = SRDotDX.raidList.raids[id];
 				if (typeof raid == 'object') {
 					document.getElementById('timeSince_' + id).innerHTML = timeSince(new Date(raid.timeStamp))
 				}
 			},
 			raidListItemUpdate: function (id) {
 				id = SRDotDX.gui.GetRaidID(id);
-				var raid = SRDotDX.config.raidList[id];
+				var raid = SRDotDX.raidList.raids[id];
 				if (typeof raid == 'object') {
 					var ele = document.getElementById("raid_list").firstChild;
 					while (ele) {
@@ -2880,8 +2943,8 @@ function main() {
 			},
 			toggleRaid: function(type,id,tog) {
 				var d = document.getElementsByClassName("SRDotDX_raidid_" + id);
-				if (typeof SRDotDX.config.raidList[id] == 'object') {
-					var raid = SRDotDX.config.raidList[id];
+				if (typeof SRDotDX.raidList.raids[id] == 'object') {
+					var raid = SRDotDX.raidList.raids[id];
 					var raid = SRDotDX.getRaidDetails("&kv_difficulty="+raid.diff+"&kv_hash="+raid.hash+"&kv_raid_boss="+raid.boss+"&kv_raid_id="+raid.id);
 				}
 				for (var i = d.length -1;i>-1;i--) {
@@ -2934,11 +2997,10 @@ function main() {
 							e.class+= " SRDotDX_raidid_"+raid.id;
 							e.class+= (raid.seen?" SRDotDX_seenRaid":'');
 							e.class+=(raid.visited?" SRDotDX_visitedRaid":'');
-							e.class+=(raid.nuked?" SRDotDX_nukedRaid":'');
 							e.class+=" SRDotDX_filteredRaidChat" + raid.boss + '_' + (raid.diff - 1);							
 							d = raid.ptext + '<a href="'+raid.url+'" onClick="return false;" onMouseDown="SRDotDX.gui.FPXraidLinkMouseDown(event,'+'\''+raid.id+'\''+',this.href,true); return false">'+raid.linkText()+'</a>'+raid.ntext;
 							SRDotDX.gui.toggleRaid('visited',raid.id,raid.visited);
-							SRDotDX.config.raidList[raid.id].seen = true;
+							SRDotDX.raidList.raids[raid.id].seen = true;
 							SRDotDX.gui.raidListItemUpdate(raid.id);
 							if(raid.isNew){
 								if(!SRDotDX.gui.AutoJoin)
@@ -2955,7 +3017,7 @@ function main() {
 							}
 						}
 						if(SRDotDX.config.mutedUsers[b]){
-							e.class+=" SRDotDX_nukedRaidList";
+							e.class+=" SRDotDX_mutedMessage";
 							console.log("[SRDotDX] Muted message recieved from " + b + " : " + d);
 						}
 						this.SRDotDX_DUM(b,d,e,f);
@@ -3132,7 +3194,7 @@ function main() {
 				holodeck.addChatCommand("spit",function(deck,text) {
 					var p;
 					if (p = /^\/spit ([0-9]*).*$/i.exec(text)) {
-						var r = SRDotDX.config.getRaid(p[1]);
+						var r = SRDotDX.raidList.getRaid(p[1]);
 						var adjectives = ['stupid','worthless','terrible','awful','despicable','horrible','disgusting','ridiculous','horrendous','abominable','hideous'];
 						var spitSounds = ['*ptoo*','*ptooie*', '*ptui*', '*pthu*'];
 						var random1=Math.floor(Math.random()*11);
@@ -3221,18 +3283,20 @@ function main() {
 				});
 				var i;
 				if (document.location.href.indexOf("kv_raid")>-1 && typeof (i = SRDotDX.getRaidDetails(document.location.href)) == 'object'){
-					if (SRDotDX.config.getRaid(i.id)) {
-						SRDotDX.config.raidList[i.id].visited = true;
-						SRDotDX.config.raidList[i.id].seen = true;
+					if (SRDotDX.raidList.getRaid(i.id)) {
+						SRDotDX.raidList.raids[i.id].visited = true;
+						SRDotDX.raidList.raids[i.id].seen = true;
 					} else {
-						SRDotDX.config.addRaid(i.hash,i.id,i.boss,i.diff,true,true,false,'')
+						SRDotDX.raidList.addRaid(i.hash,i.id,i.boss,i.diff,true,true,false,'')
 					}
 				}
 				window.onbeforeunload = function(){
 					SRDotDX.config.save(false);
 				}
 
-				SRDotDX.config.save();
+				SRDotDX.config.save(true);
+				SRDotDX.raidList.deleteExpired(true);
+				SRDotDX.raidList.save(true);
 				SRDotDX.gui.load();
 				SRDotDX.gui.UpdateSelectedRaidCount();
 				setTimeout(function(){delete SRDotDX.load},1);
@@ -3283,12 +3347,6 @@ function main() {
 				}
 				SRDotDX.gui.raidListItemUpdate(r.id);
 			}
-		},
-		nukeRaid: function (id) {
-			if (SRDotDX.config.raidList[id]) {
-				SRDotDX.config.raidList[id].nuked = true;
-				SRDotDX.gui.toggleRaid("nuked",id,true);
-			} 
 		},
 
 		BeginUpdateChecking: function() {
@@ -3557,7 +3615,7 @@ function main() {
 			// message to nuke a raid because it's dead
 			if (/dead/i.test(event.data)) {
 				console.log("[SRDotDX] Nuking raid " + lastJoinedRaidId);
-				SRDotDX.nukeRaid(lastJoinedRaidId);
+				SRDotDX.raidList.markRaidDead(lastJoinedRaidId);
 				
 				if (SRDotDX.gui.AutoJoin&&isJoining) {
 					SRDotDX.gui.AutoJoinCurrentDeads++;
@@ -3569,7 +3627,7 @@ function main() {
 			// message to nuke a raid because it's from the wrong guild
 			if (/wrongguild/i.test(event.data)) {
 				console.log("[SRDotDX] Nuking raid " + lastJoinedRaidId);
-				SRDotDX.nukeRaid(lastJoinedRaidId);	
+				SRDotDX.raidList.markRaidDead(lastJoinedRaidId);
 				if (!SRDotDX.gui.AutoJoin||!isJoining){
 					SRDotDX.gui.doStatusOutput("Join Failed. Wrong guild.");
 				}
@@ -3608,7 +3666,7 @@ function main() {
 				if (SRDotDX.gui.AutoJoin&&isJoining) {
 					SRDotDX.gui.AutoJoinCurrentSuccesses++;
 				} else {
-					SRDotDX.gui.doStatusOutput(SRDotDX.raids[SRDotDX.config.raidList[lastJoinedRaidId].boss].shortname +" joined successfully.");
+					SRDotDX.gui.doStatusOutput(SRDotDX.raids[SRDotDX.raidList.raids[lastJoinedRaidId].boss].shortname +" joined successfully.");
 				}
 
 			}
@@ -3618,8 +3676,8 @@ function main() {
 				console.log("[SRDotDX] Raid id " + lastJoinedRaidId + " " + event.data +  " : " + SRDotDX.gui.AutoJoin + " : " +SRDotDX.gui.AutoJoinCurrentLanded + " : " + SRDotDX.gui.AutoJoinCurrentIndex + " : " + SRDotDX.gui.AutoJoinRaids.length);
 
 				// Mark raid visited
-				if (SRDotDX.config.raidList[lastJoinedRaidId]) {
-					SRDotDX.config.raidList[lastJoinedRaidId].visited = true;
+				if (SRDotDX.raidList.raids[lastJoinedRaidId]) {
+					SRDotDX.raidList.raids[lastJoinedRaidId].visited = true;
 					SRDotDX.gui.toggleRaid('visited',lastJoinedRaidId,true);
 					SRDotDX.gui.raidListItemUpdate(lastJoinedRaidId);
 				}
@@ -3728,7 +3786,7 @@ function DDmain(){//game frame script
 			} else if (/already completed/i.test(text)) {
 				message += " dead";
 			} else if (/not a member of the guild/i.test(text)) {
-				// If the raid is dead or it's a raid from another guild, add to the message to nuke it so it's invisible and unshareable
+				// If the raid is from another guild, add to the message to nuke it so it's invisible and unshareable
 				message += " wrongguild";
 			} else if (/(invalid|find) raid (hash|ID)/i.test(text)) {
 				// If the hash or ID is invalid, add to the message to delete it so that hopefully a version with the right hash/ID can be added later
