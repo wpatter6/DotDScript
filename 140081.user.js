@@ -772,7 +772,10 @@ function amain(){//AG initialization
 			var isHover = false;
 			window.addEventListener('resize', rf);
 			window.addEventListener('message', function(event){//needed to hide raid pane when other tabs are clicked.
-				if(/web1\.dawnofthedragons\.com/.test(event.origin) && /HideRaids/.test(event.data) && !/hidden/.test(pane.className)) pane.className += " hidden";
+				if(/web1\.dawnofthedragons\.com/.test(event.origin) && /HideRaids/.test(event.data) && !/hidden/.test(pane.className)){
+					pane.className += " hidden";
+					tabclickpane.className += " hidden";
+				}
 			});
 			tab.addEventListener('click', function () {pane.className = pane.className.replace(/hidden/gi, '');tabclickpane.className = tabclickpane.className.replace(/hidden/gi, '');});
 			tab.addEventListener('mouseover', function () {tabhoverpane.className = tabhoverpane.className.replace(/hidden/gi, '');});
