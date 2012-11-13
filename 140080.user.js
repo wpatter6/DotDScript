@@ -4,7 +4,7 @@
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
 // @version        1.2.6
-// @date           11.12.2012
+// @date           11.13.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -430,7 +430,6 @@ function main() {
 							user: user,
 							lastUser: user,
 							expTime: (typeof SRDotDX.raids[boss] == 'object'?SRDotDX.raids[boss].duration:168) * 3600+parseInt((new Date).getTime() / 1000),
-							timeLeft: function (){return this.expTime - parseInt((new Date).getTime() / 1000)},
 							timeStamp: ((typeof ts ==='undefined'||ts==null)?(new Date().getTime()):parseInt(ts)),
 							room: ((typeof room ==='undefined'||room==null)?SRDotDX.getRoomName():parseInt(room))
 						}
@@ -439,7 +438,7 @@ function main() {
 						setTimeout(function(){SRDotDX.purge()}, 1);
 					}
 					SRDotDX.raidList.raids[id].lastUser = user;
-					return SRDotDX.raidList[id]
+					return SRDotDX.raidList[id];
 				}
 			}
 
@@ -456,9 +455,9 @@ function main() {
 		})(),
 		purge: function() {
 			var el = document.getElementById('raid_list');
-			if(el){
+			if(el && SRDotDX.config.useMaxRaidCount){
 				var diff = el.childNodes.length - SRDotDX.config.maxRaidCount;
-				if(SRDotDX.config.useMaxRaidCount && diff > 0){
+				if(diff > 0){
 					if(!SRDotDX.gui.Importing){
 						console.log("[SRDotDX] Purging started " + diff);
 						
@@ -627,16 +626,21 @@ function main() {
 					//inserting new raid
 				} else r.isNew = false;
 
-				// If it's still not defined here, it must have already been in the dead cache.  Mark it as seen and visited.
 				if (typeof info == 'object') {
+					// Raid info exists now, mark it appropriately
 					r.timeStamp = info.timeStamp;
 					r.seen = info.seen;
 					r.visited = info.visited;
 					r.dead = false;
-				} else {
+				} else if (SRDotDX.raidList.isDeadRaid(r.id)) {
+					// It's in the dead cache, so it should be marked seen, visited, and dead.
+					console.log("Raid info not defined, and it's in the dead cache");
 					r.seen = true;
 					r.visited = true;
 					r.dead = true;
+				} else {
+					// Raid info doesn't exist but it isn't in the dead cache.  Don't know why this happens yet.
+					console.log("Raid info is not defined and the raid is not dead.  What's going on here?");
 				}
 
 				
