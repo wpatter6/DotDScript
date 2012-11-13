@@ -2831,15 +2831,16 @@ function main() {
 				link = (typeof link=='string'?link:link.href);
 				id = SRDotDX.gui.GetRaidID(id);
 				if(!isRightClick){
+					var shortName = (SRDotDX.raids.hasOwnProperty(SRDotDX.raidList.raids[id].boss)) ? SRDotDX.raids[SRDotDX.raidList.raids[id].boss].shortname : "Unknown Raid";
 					if(!SRDotDX.gui.AutoJoin){
 						SRDotDX.gui.AutoJoinCurrentTotal = 1;
 						SRDotDX.gui.AutoJoinRaids = [id];
 						SRDotDX.gui.AutoJoin = true;
-						SRDotDX.gui.doStatusOutput("Joining " + SRDotDX.raids[SRDotDX.raidList.raids[id].boss].shortname + "...");
+						SRDotDX.gui.doStatusOutput("Joining " + shortName + "...");
 						SRDotDX.loadRaid(link);
 					} else {
 						SRDotDX.gui.AutoJoinCurrentTotal++;
-						SRDotDX.gui.doStatusOutput("Adding " + SRDotDX.raids[SRDotDX.raidList.raids[id].boss].shortname + "...");
+						SRDotDX.gui.doStatusOutput("Adding " + shortName + "...");
 						if(SRDotDX.gui.AutoJoinVisibleClicked) 
 							SRDotDX.gui.AutoJoinRaids.splice(SRDotDX.gui.AutoJoinCurrentIndex+1, 0, SRDotDX.gui.GetRaid(id));
 						else SRDotDX.gui.AutoJoinRaids.push(SRDotDX.gui.GetRaid(id));
