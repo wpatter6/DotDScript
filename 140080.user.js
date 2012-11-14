@@ -418,7 +418,7 @@ function main() {
 			tmp.addRaid = function(hash,id,boss,diff,seen,visited,user,ts,room) {
 				//console.log("[SRDotDX] raidList.addRaid");
 				id=SRDotDX.gui.GetRaidID(id);
-				if (!SRDotDX.raidList.isDeadRaid(id)) {
+				if (id != 0 && !SRDotDX.raidList.isDeadRaid(id)) {
 					if (typeof SRDotDX.raidList.getRaid(id) != 'object') {
 						SRDotDX.raidList.raids[id] = {
 							hash: hash,
@@ -1658,6 +1658,9 @@ function main() {
 						newId = 0;
 					} else {
 						newId = parseInt(id.replace(/[^%0-9]|(%[0-9][0-9])/g,""));
+						if (isNaN(newId)) {
+							newId = 0;
+						}
 					}
 
 					if (SRDotDX.raidList.raids[id]) {
