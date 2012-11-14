@@ -895,6 +895,8 @@ function main() {
 						var ri = SRDotDX.gui.cHTML('div').set({
 							class: 'raid_list_item_info'
 						}).html(info).attach("to",li);
+
+						SRDotDX.gui.FPXFilterRaidSingle(r.id,new RegExp(document.FPXRaidFilterForm.FPXRaidBossNameFilter.value, "i"),document.FPXRaidFilterForm.FPXRaidBossDifficultyFilter.value,new RegExp(document.FPXRaidFilterForm.FPXPostedNameFilter.value, "i"),document.FPXRaidFilterForm.FPXPostedNameSwitch.value,document.FPXRaidFilterForm.FPXRoomNameFilter.value,document.FPXRaidFilterForm.FPXRoomNameSwitch.value);
 					}
 				}
 				else {
