@@ -27,7 +27,8 @@ Contact Us: A list of ways to contact us for whatever reasons<br />
 2) Fixed the issue with Treachery and the Tower filter settings not saving.<br>
 3) Fixed an issue with searching raids sometimes not making certain raids disappear properly.<br>
 4) Optimized the way raids are stored and saved.<br>
-5) Fixed the issue that made it impossible to join raids with unknown IDs (e.g. new world raids)<br><br>
+5) Fixed the issue that made it impossible to join raids with unknown IDs (e.g. new world raids)<br>
+6) Fixed an issue with importing pastebins with newline characters in unexpected places.<br><br>
 <b>1.2.5</b><br>
 1) Fixed pretty posting with Jack and Jack's Revenge raids.<br>
 2) Fixed the Play Now button not reloading the frame, for those of you who haven't turned off "Refresh game to join raids", seriously that option is awesome and you should try it.<br>

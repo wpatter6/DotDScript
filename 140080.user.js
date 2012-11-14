@@ -612,6 +612,11 @@ function main() {
 				return;
 			}
 
+			// Remove extraneous newlines
+			if (typeof url == "string") {
+				url = url.replace(/(\r\n|\n|\r)/gm,"");
+			}
+
 			console.log("getRaidDetails, URL: " + url + ", typeof url: " + (typeof url));
 			user=(user?user:'');
 			visited=(visited?visited:(user==active_user.username() && SRDotDX.config.markMyRaidsVisted));
