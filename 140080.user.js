@@ -754,7 +754,7 @@ function main() {
 			return text;
 		},
 		gui: {
-			addRaid: function (id) {
+			addRaid: function (id, doFilter = true) {
 				var r = id;
 				if(typeof id == "string" || typeof id == "number") r = SRDotDX.raidList.getRaid(id);
 				
@@ -896,7 +896,9 @@ function main() {
 							class: 'raid_list_item_info'
 						}).html(info).attach("to",li);
 
-						SRDotDX.gui.FPXFilterRaidSingle(r.id,new RegExp(document.FPXRaidFilterForm.FPXRaidBossNameFilter.value, "i"),document.FPXRaidFilterForm.FPXRaidBossDifficultyFilter.value,new RegExp(document.FPXRaidFilterForm.FPXPostedNameFilter.value, "i"),document.FPXRaidFilterForm.FPXPostedNameSwitch.value,document.FPXRaidFilterForm.FPXRoomNameFilter.value,document.FPXRaidFilterForm.FPXRoomNameSwitch.value);
+						if (doFilter) {
+							SRDotDX.gui.FPXFilterRaidSingle(r.id,new RegExp(document.FPXRaidFilterForm.FPXRaidBossNameFilter.value, "i"),document.FPXRaidFilterForm.FPXRaidBossDifficultyFilter.value,new RegExp(document.FPXRaidFilterForm.FPXPostedNameFilter.value, "i"),document.FPXRaidFilterForm.FPXPostedNameSwitch.value,document.FPXRaidFilterForm.FPXRoomNameFilter.value,document.FPXRaidFilterForm.FPXRoomNameSwitch.value);
+						}
 					}
 				}
 				else {
@@ -2821,7 +2823,7 @@ function main() {
 				}
 				for (var a in SRDotDX.raidList.raids) {
 					if (SRDotDX.raidList.raids.hasOwnProperty(a)) {
-						SRDotDX.gui.addRaid(a);
+						SRDotDX.gui.addRaid(a,false);
 					}
 				}
 			},
