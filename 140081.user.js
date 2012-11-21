@@ -5,14 +5,13 @@
 // @author         JHunz, wpatter6
 // @version        0.0.1
 // @date           11.02.2012
-// @grant          GM_xmlHttpRequest
+// @grant          GM_xmlhttpRequest
 // @include		   *armorgames.com/dawn-of-the-dragons-game*
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *web*.dawnofthedragons.com/*
 // ==/UserScript==
 
 function shared() {//bulk of the script, shared between sites
-	
 	console.log("[RaidCatcher] Shared script adding...");
 	if (typeof GM_setValue == 'undefined' || typeof GM_getValue == 'undefined' || typeof GM_deleteValue == 'undefined') {
 		GM_setValue = function (name,value) {
@@ -109,14 +108,15 @@ function shared() {//bulk of the script, shared between sites
 					throw "Invalid element type specified"
 				}
 			},
-			init: function(el) {//param is raid pane to generate UI in
+			init: function(el) {
+				console.log("[RaidCatcher] ui init");
 				RaidCatcher.ui.cHTML('style').set({type: "text/css",id: 'DotD_shared_styles'}).text(' \
 					#dotd_tab_pane ul{margin: 0px;padding: 0px;list-style-type: none;position: relative;}\
 					#dotd_tab_pane ul li.tab{float: left;height: 100%;}\
 					#dotd_tab_pane ul li.tab.active div.tab_head{background-color:white;cursor:default;text-decoration:none;}\
 					#dotd_tab_pane ul li.tab div.tab_head{font-family: Verdana, Arial, sans-serif;font-size: 10px;padding: 3px 5px 4px 5px;background-color: silver;cursor: pointer;text-decoration: underline;margin-right: 1px;}\
 					#dotd_tab_pane ul li.tab.active div.tab_pane{position: absolute;display: block;left: 0px;}\
-					#dotd_tab_pane ul li.tab div.tab_pane{padding: 2px 5px;background-color: white;display: none; width:100%; height:100%;}\
+					#dotd_tab_pane ul li.tab div.tab_pane{padding-left:5px;background-color: white;display: none; width:100%; height:100%;}\
 				').attach('to',document.head);
 				
 				var pane = RaidCatcher.ui.cHTML('div').set({style: 'padding:5px;width:100%;height:100%;'}).html('\
@@ -126,7 +126,88 @@ function shared() {//bulk of the script, shared between sites
 						<li class="tab active"> \
 							<div class="tab_head">Raids</div> \
 							<div class="tab_pane"> \
-								This is the raids tab \
+								<div id="RaidFilterDiv" class="collapsible_panel"> \
+									<p class="panel_handle spritegame mts closed_link" onclick="RaidCatcher.ui.toggleDisplay(\'RaidFiltering\', this, \'raid_list\')"> <a> Raid Filtering </a> </p> \
+									<div id="RaidFiltering" style="display:none"> \
+										<hr>\
+										<table><tr><td align="right">Boss:</td> \
+										<td><select id="RaidBossDifficultyFilter" tabIndex="50" onchange="SRDotDX.gui.FPXFilterRaidListByName()"> \
+											<option value="0" selected>All or Any</option> \
+											<option value="1">Normal</option> \
+											<option value="2">Hard</option> \
+											<option value="3">Legendary</option> \
+											<option value="4">Nightmare</option> \
+											<!--<option value="5">Insane</option> \
+											<option value="6">Hell</option>--> \
+										</select></td><td> <input id="RaidBossNameFilter" size="10" tabIndex="51" onkeyup="SRDotDX.gui.FPXFilterRaidListByName()"></td></tr> \
+										<tr><td>Poster:</td>\
+										<td><select id="PostedNameSwitch" tabIndex="-1"> \
+											<option value="0" selected>Contains</option> \
+											<option value="1">Not Contains</option> \
+										</select></td><td> <input id="PostedNameFilter" size="10" tabIndex="52" onkeyup="SRDotDX.gui.FPXFilterRaidListByName()"></td></tr> \
+										<tr><td>Room:</td>\
+										<td><select id="RoomNameSwitch" tabIndex="-1"> \
+											<option value="0" selected>Equals</option> \
+											<option value="1">Not Equals</option> \
+										</select></td><td> <input id="RoomNameFilter" size="10" tabIndex="53" onkeyup="SRDotDX.gui.FPXFilterRaidListByName()"></td></tr> \
+										<tr><td colspan="3" align="left"><input type="checkbox" tabIndex="54" id="SRDotDX_options_hideVisitedRaidsInRaidList"> Hide visited </td></tr> \
+										</table> \
+										<hr>\
+									</div> \
+								</div> \
+								<div id="RaidSortingDiv" class="collapsible_panel"> \
+									<p class="panel_handle spritegame mts closed_link" onclick="RaidCatcher.ui.toggleDisplay(\'RaidSort\', this, \'raid_list\')"> <a> Raid Sorting </a> </p> \
+									<div id="RaidSort" style="display:none"> \
+										<hr>\
+										Sort By: \
+										<select id="RaidSortSelection" tabIndex="-1"> \
+											<option value="Time" selected>TimeStamp</option> \
+											<option value="Name">Raid Name</option> \
+											<option value="Diff">Difficulty</option> \
+											<option value="Id">Raid Id</option> \
+										</select> \
+										<select id="RaidSortDirection" tabIndex="-1"> \
+											<option value="asc" selected>Ascending</option> \
+											<option value="desc">Descending</option> \
+										</select> \
+										<input type="button" onClick="SRDotDX.gui.FPXSortRaids();return false;" value="Sort"> \
+										<input type="checkbox" id="SRDotDX_options_newRaidsAtTopOfRaidList"> New raids at top of raid list <br> \
+										<hr>\
+									</div> \
+								</div> \
+								<div id="RaidActionsDiv" class="collapsible_panel"> \
+									<p class="panel_handle spritegame mts closed_link" onclick="RaidCatcher.ui.toggleDisplay(\'RaidActions\', this, \'raid_list\');SRDotDX.gui.UpdateSelectedRaidCount();"> <a> Raid Actions </a> </p> \
+									<div id="RaidActions" style="display:none"> \
+										<hr> \
+										<form name="RaidActionsForm" onsubmit="return false">\
+										<input type="checkbox" id="selection_all_checkbox"> All Raids <span style="float:right" id="selected_raid_count">&nbsp;</span>\
+										<table style="width;100%">\
+										<tr><td style="padding-right:5px">\
+										<input type="radio" class="raid_selection" name="radio_raid_visibility" value="visible_">Visible<br/>\
+										<input type="radio" class="raid_selection" name="radio_raid_visibility" value="hidden_">Hidden<br/>\
+										<input type="radio" class="raid_selection" name="radio_raid_visibility" value="visible_hidden_">Both<br/>\
+										</td><td style="padding-right:5px">\
+										<input type="radio" class="raid_selection" name="radio_raid_new_visited" value="visited_">Visited<br/>\
+										<input type="radio" class="raid_selection" name="radio_raid_new_visited" value="new_">New<br/>\
+										<input type="radio" class="raid_selection" name="radio_raid_new_visited" value="new_visited_">Both<br/>\
+										</td><td style="padding-right:5px">\
+										<input type="hidden" class="raid_selection" name="radio_raid_alive_dead" value="alive_">\
+										</td></tr><table>\
+										</td><td align="center"> \
+										<input name="JoinRaids" id="AutoJoinVisibleButton" onclick="SRDotDX.gui.RaidAction(\'join\');return false;" tabIndex="-1" type="button" value="Join" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Join all selected (not dead) raids.\');"> \
+										<input name="DumpRaids" onclick="SRDotDX.gui.RaidAction(\'share\');return false;" tabIndex="-1" type="button" value="Share" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Copy all selected (not dead) raids to the share tab.\');"> \
+										<input name="PostRaids" id="PostRaidsButton" onclick="SRDotDX.gui.RaidAction(\'post\');return false;" tabIndex="-1" type="button" value="Post" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Post all selected (not dead) raids to chat.\');"> \
+										<input name="PasteRaids" onclick="SRDotDX.gui.RaidAction(\'paste\');return false;" tabIndex="-1" type="button" value="Paste" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Update your pastebin with the selected (not dead) raids.\');">\
+										<input name="DeleteRaids" onclick="SRDotDX.gui.RaidAction(\'delete\');return false;" tabIndex="-1" type="button" value="Delete" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Delete selected raids.\');"> \
+										</td></tr></table> \
+										<textarea id="QuickShareText" style="display:none;height:16px;width:90%;"></textarea> \
+										</form>\ \
+										<hr> \
+									</div> \
+								</div> \
+								<input type="button" onclick="RaidCatcher.request.raids()" value="Import" />\
+								<div id="raid_list" tabIndex="-1"> \
+								</div>\
 							</div> \
 						</li> \
 						<li class="tab"> \
@@ -163,6 +244,22 @@ function shared() {//bulk of the script, shared between sites
 					e[i].style.width = w + "px";
 					e[i].style.height = h + "px";
 				}
+				delete this.init;
+			},
+			toggleDisplay: function(el, sender, el2){
+				if(typeof el == "string") el = document.getElementById(el);
+				if(typeof el2 == "string") el2 = document.getElementById(el2);
+				if(el.style.display == "none"){
+					el.style.display = "block";
+					if(typeof sender == "object") sender.className = sender.className.replace("closed_link", "opened_link");
+					if(!(typeof el2 === "undefined"))el2.style.height = (el2.offsetHeight - el.offsetHeight - parseInt(el.offsetHeight/13)) + "px";
+				}else{
+					h = el.offsetHeight;
+					el.style.display = "none";
+					if(typeof sender == "object") sender.className = sender.className.replace("opened_link", "closed_link");
+					if(!(typeof el2 === "undefined")) el2.style.height = (el2.offsetHeight+h+parseInt(h/13)) + "px";
+				}
+				delete this.init;
 			},
 			addRaid: function(id){//todo gui.addRaid;
 			},
@@ -228,15 +325,37 @@ function shared() {//bulk of the script, shared between sites
 					}
 				}
 				console.log("[RaidCatcher] Kongregate chat initialized.");
+				delete this.init;
 			}
 		},
-		db: {//todo server interaction
-			get: function(filter){//todo server get (GM_xmlHttpRequest works in chrome now)
+		request: {
+			raids: function(){//todo server get (GM_xmlHttpRequest works in chrome now)
+				console.log("[RaidCatcher] Get raids");
+				if(RaidCatcher.session.auth){
+					RaidCatcher.request.req({
+						eventName: "rc:raidsget",
+						url: "http://dotd.azurewebsites.net/RaidSpitter.aspx?u="+RaidCatcher.session.user+"&a="+RaidCatcher.session.auth+"&p="+RaidCatcher.session.platformId,
+						method: "GET",
+						headers: { "Content-Type": "application/JSON" },
+						timeout: 30000
+					});
+				}
+			},
+			req: function(param){
+				console.log("[RaidCatcher] do request " + param.eventName);
+				var a = document.createEvent("MessageEvent");
+				a.initMessageEvent("rc:xmlreq", false, false, param, document.location.protocol + "//" + document.location.hostname, 0, window, null);
+				document.dispatchEvent(a);
+			},
+			init: function () {
+				console.log("[RaidCatcher] request.init()");
+				document.addEventListener("rc:raidsget", RaidCatcher.raids.addRaids, false);
+				delete this.init;
 			}
 		},
 		raids: (function(){//stored raid list
 			var tmp;
-			try{ tmp=JSON.parse(GM_getValue('RaidCatcher_raids','{}')) }
+			try{ tmp=JSON.parse(GM_getValue('RaidCatcher_raids_'+RaidCatcher.session.platform+'_'+RaidCatcher.session.user,'{}')) }
 			catch (e) { tmp={} }
 			
 			//properties
@@ -246,6 +365,13 @@ function shared() {//bulk of the script, shared between sites
 			GM_setValue('RaidCatcher_raids',JSON.stringify(tmp));
 			
 			//functions
+			tmp.addRaids = function(e){
+				console.log("[RaidCatcher] raids.addRaids " + typeof e);
+				var r;
+				try{ r = JSON.parse(e.data.responseText) } 
+				catch (e) { return; }
+				console.log(r);
+			}
 			tmp.addRaid = function(hash,id,boss,diff,seen,visited,user,ts,room) {
 				id=RaidCatcher.util.cleanRaidId(id);
 				if (typeof RaidCatcher.raids.getRaid(id) != 'object') {
@@ -319,7 +445,7 @@ function shared() {//bulk of the script, shared between sites
 			}
 			tmp.save = function(b){//pass bool to specify if it should repeat
 				b = (typeof b==='undefined'?true:b);
-				GM_setValue('RaidCatcher_raids',JSON.stringify(RaidCatcher.raids));
+				GM_setValue('RaidCatcher_raids_'+RaidCatcher.session.platform+'_'+RaidCatcher.session.user,JSON.stringify(RaidCatcher.raids));
 				if(b) setTimeout('RaidCatcher.raids.save(true);',30000);
 				console.log('[RaidCatcher] Raids saved (repeat="+b+")');
 			}
@@ -335,7 +461,7 @@ function shared() {//bulk of the script, shared between sites
 			tmp.hideVisitedRaids = (typeof tmp.hideVisitedRaids == 'boolean'?tmp.hideVisitedRaids:false);
 			tmp.hideVisitedRaidsInRaidList = (typeof tmp.hideVisitedRaidsInRaidList == 'boolean'?tmp.hideVisitedRaidsInRaidList:false);
 			tmp.hideSeenRaids = (typeof tmp.hideSeenRaids == 'boolean'?tmp.hideSeenRaids:false);
-			tmp.markRightClick = (typeof tmp.FPXmarkRightClick == 'boolean'?tmp.FPXmarkRightClick:false);
+			tmp.markRightClick = (typeof tmp.markRightClick == 'boolean'?tmp.markRightClick:false);
 			tmp.markMyRaidsVisted = (typeof tmp.markMyRaidsVisted == 'boolean'?tmp.markMyRaidsVisted:false);
 			tmp.useMaxRaidCount = (typeof tmp.useMaxRaidCount =='boolean'?tmp.useMaxRaidCount:false);
 			tmp.refreshGameToJoin = (typeof tmp.refreshGameToJoin == 'boolean'? tmp.refreshGameToJoin:true);
@@ -409,6 +535,14 @@ function shared() {//bulk of the script, shared between sites
 				$('gameiframe').replace(new Element('iframe', {"id":"gameiframe","name":"gameiframe","style":"border:none;position:relative;z-index:1;","scrolling":"auto","border":0,"frameborder":0,"width":760,"height":700,"class":"dont_hide"}));
 				$('gameiframe').contentWindow.location.replace("http://web1.dawnofthedragons.com/kong?" + Object.toQueryString(iframe_options));
 			},*/
+			stringFormat: function() {
+				var s = arguments[0];
+				for (var i = 0; i < arguments.length - 1; i++) {       
+					var reg = new RegExp("\\{" + i + "\\}", "gm");             
+					s = s.replace(reg, arguments[i + 1]);
+				}
+				return s;
+			},
 			getShortNum: function (num) {
 				if (isNaN(num) || num < 0){return num}
 				else if (num>=1000000000000){return (num/1000000000000).toFixed(3)/1+"T"}
@@ -689,24 +823,30 @@ function shared() {//bulk of the script, shared between sites
 				500:{ name: 'Colossal', visible: 'Yes', pruneTimers: [86400000,172800000,259200000]} // 24h, 48h, 72h
 			}
 		},
-		session:{//session variables
-			isInitialized: false,
-			platform: 0
-		},
-		init: function(platform, element){
-			console.log("[RaidCatcher] Creating " + platform + "...");
-			if(/kong/i.test(platform)){//kongregate
-				RaidCatcher.session.platform=1;
-				RaidCatcher.ui.init(element);
-				RaidCatcher.chat.init();
-			} else if(/ag/i.test(platform)||/armor/i.test(platform)) {//armor
-				RaidCatcher.session.platform=2;
-				RaidCatcher.ui.init(element);
-			} else { //facebook/standalone
-				RaidCatcher.session.platform=3;
-				RaidCatcher.ui.init(element);
+		session:{},
+		init: function(s, p){
+			console.log("[RaidCatcher] Creating " + s.platform + " for " + s.user + "...");
+			RaidCatcher.session = s;
+			if(RaidCatcher.ui.init){
+				console.log("[RaidCatcher] ui.init...");
+				RaidCatcher.ui.init(p);
+				console.log("[RaidCatcher] ui.init done");
 			}
-			console.log("[RaidCatcher] Created " + platform);
+			
+			if(RaidCatcher.request.init){
+				console.log("[RaidCatcher] request.init...");
+				RaidCatcher.request.init();
+				console.log("[RaidCatcher] request.init done");
+			}
+			
+			if(/kong/i.test(s.platform) && RaidCatcher.chat.init){
+				console.log("[RaidCatcher] chat.init...");
+				RaidCatcher.chat.init();
+				console.log("[RaidCatcher] chat.init done");
+			}
+				
+			console.log("[RaidCatcher] Created " + s.platform);
+			delete this.init;
 		}
 	}
 	console.log("[RaidCatcher] Shared script added");
@@ -719,18 +859,19 @@ function kmain(){//kong initialization
 			console.log('[RaidCatcher] Resources not found. Aborting');
 			return;
 		}
-		if (typeof holodeck == 'object' && typeof ChatDialogue == 'function' && typeof activateGame == 'function' && 
-			typeof document.getElementById('kong_game_ui') != 'null' && typeof RaidCatcher == 'object') {
-			
+		if (typeof holodeck == 'object' && typeof ChatDialogue == 'function' && typeof activateGame == 'function' && typeof document.getElementById('kong_game_ui') != 'null' && typeof RaidCatcher == 'object') {
 			var link = RaidCatcher.ui.cHTML('a').set({href: '#dotd_tab_pane',class: ''}).attach("to",RaidCatcher.ui.cHTML('li').set({class: 'tab', id: 'dotd_tab'}).attach("after","game_tab").ele()).ele();
 			var pane = RaidCatcher.ui.cHTML('div').set({id: 'dotd_tab_pane'}).attach("to",'kong_game_ui').ele();
 			pane.style.height = document.getElementById("chat_tab_pane").style.height;
 			holodeck._tabs.addTab(link);
-			RaidCatcher.init('kong', pane);
+			RaidCatcher.init({
+				platform: 'kong',
+				platformId: 1,
+				user: active_user.username,
+				auth: active_user.gameAuthToken
+			}, pane);
 			console.log('[RaidCatcher] Kongregate initialized.');
-		} 
-		else
-		{
+		}else{
 			console.log('[RaidCatcher] Resources not found ('+tries+' attempts), retrying in 1 second...');
 			console.log('[RaidCatcher] holodeck:'+(typeof holodeck)+ ", ChatDialogue:"+(typeof ChatDialogue)+", activateGame:"+(typeof activateGame)+", kong_game_ui:"+(typeof document.getElementById('kong_game_ui'))+", RaidCatcher:"+(typeof RaidCatcher));
 			setTimeout('initKongDotD('+(++tries)+')', 1000);
@@ -753,6 +894,11 @@ function amain(){//AG initialization
 				#dotd_tab_pane {position:absolute;background-color:#DDD;width:264px !important;height:640px !important;z-index:500;}\
 				#dotd_tab {position:absolute; width:65px; height:36px;z-index:500;cursor:pointer;background-image:url(http://i.imgur.com/WVr5l.png)}\
 				.dotd_tab_overlay {position:absolute; width:65px; height:36px;z-index:500;pointer-events:none;background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAABmJLR0QAAAAAAAD5Q7t/AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3AsMEDEXzYbZWAAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAAFUlEQVQI12P8//+/LwMDAwMTAxQAADQ8A058cLdLAAAAAElFTkSuQmCC)}\
+				.panel_handle {margin: 5px 0 8px;line-height: 10px;cursor: pointer;}\
+				.panel_handle a {padding-left: 14px;font-weight: bold;text-transform: uppercase;text-decoration: none;color: #333;outline: none;}\
+				.spritegame {background-image: url(http://www.kongregate.com/images/presentation/gamepage_sprite.png?35);background-color: transparent;background-repeat: no-repeat;}\
+				.closed_link {background-position: -42px -1147px;}\
+				.opened_link {background-position: -42px -1161px;}\
 				.hidden{display:none}\
 			').attach('to',document.head);
 			
@@ -761,6 +907,7 @@ function amain(){//AG initialization
 			var tabhoverpane = RaidCatcher.ui.cHTML('div').set({id: 'dotd_tab_hover_pane', class: 'hidden dotd_tab_overlay'}).attach("to", document.getElementsByTagName('body')[0]).ele();
 			var tabclickpane = RaidCatcher.ui.cHTML('div').set({id: 'dotd_tab_click_pane', class: 'hidden dotd_tab_overlay'}).attach("to", document.getElementsByTagName('body')[0]).ele();
 			var rf = function () {//handles window resizing and raid control placement
+				console.log("[RaidCatcher] Repositioning");
 				var el = document.getElementById('game-iframe');
 				var x = parseInt(el.offsetLeft);
 				var y = parseInt(el.offsetTop);
@@ -781,7 +928,13 @@ function amain(){//AG initialization
 			tab.addEventListener('mouseover', function () {tabhoverpane.className = tabhoverpane.className.replace(/hidden/gi, '');});
 			tab.addEventListener('mouseout', function () { tabhoverpane.className += ' hidden';});
 			
-			RaidCatcher.init('ag', pane);
+			var u=document.getElementsByClassName("username")[0].firstChild.innerHTML;
+			RaidCatcher.init({
+				platform: 'ag',
+				platformId: 2,
+				user: u,
+				auth: u
+			}, pane);
 			
 			pane.className = 'hidden';
 			console.log('[RaidCatcher] AG initialized.');
@@ -795,35 +948,55 @@ function amain(){//AG initialization
 }
 function fmain(){//FB initialization
 }
-function agamemain(){
+function agamemain(){//AG game frame
+	console.log("[RaidCatcher] agamemain()");
 	document.getElementById('chatcontainer').addEventListener('click', function (){
 		window.parent.postMessage('HideRaids', 'http://armorgames.com/dawn-of-the-dragons-game');
 	});
 }
-if(/^http:\/\/web1\.dawnofthedragons\.com\/armor/i.test(document.location.href)){//agamemain
-	var ascript = document.createElement("script");
-	ascript.appendChild(document.createTextNode('('+agamemain+')()'));
-	(document.head || document.body || document.documentElement).appendChild(ascript);
-}
-if (/^http:\/\/armorgames\.com\/dawn-of-the-dragons-game/i.test(document.location.href)) {//amain
-	if(window==window.top){
-		var script = document.createElement("script");
-		script.appendChild(document.createTextNode('('+shared+')()'));
-		(document.head || document.body || document.documentElement).appendChild(script);
+var d = document;
+if(top === self){
+	d.addEventListener("rc:xmlreq", function (param) {
+		param = param.data;
+		param.callback = function (e, r) {
+			this.onload = null;
+			this.onerror = null;
+			this.ontimeout = null;
+			this.event = e;
+			this.status = r.status;
+			this.responseText = r.responseText;
+			var c = document.createEvent("MessageEvent");
+			c.initMessageEvent(this.eventName, false, false, this, document.location.protocol + "//" + document.location.hostname, 1, unsafeWindow, null);
+			document.dispatchEvent(c);
+		};
+		param.onload = param.callback.bind(param, "load");
+		param.onerror = param.callback.bind(param, "error");
+		param.ontimeout = param.callback.bind(param, "timeout");
+		setTimeout(function (a) { GM_xmlhttpRequest(a); }, 0, param);
+	});
+	
+	if (/^http:\/\/armorgames\.com\/dawn-of-the-dragons-game/i.test(d.location.href)) {//amain
+		var script = d.createElement("script");
+		script.appendChild(d.createTextNode('('+shared+')()'));
+		(d.head || d.body || d.documentElement).appendChild(script);
 		
-		var ascript = document.createElement("script");
-		ascript.appendChild(document.createTextNode('('+amain+')()'));
-		(document.head || document.body || document.documentElement).appendChild(ascript);
+		var ascript = d.createElement("script");
+		ascript.appendChild(d.createTextNode('('+amain+')()'));
+		(d.head || d.body || d.documentElement).appendChild(ascript);
+	}
+	if (/^http:\/\/www\.kongregate\.com\/games\/5thplanetgames\/dawn-of-the-dragons(?:\/?$|\?|#)/i.test(d.location.href)) {//kmain
+		var script = d.createElement("script");
+		script.appendChild(d.createTextNode('('+shared+')()'));
+		(d.head || d.body || d.documentElement).appendChild(script);
+		
+		var kscript = d.createElement("script");
+		kscript.appendChild(d.createTextNode('('+kmain+')()'));
+		(d.head || d.body || d.documentElement).appendChild(kscript);
+
 	}
 }
-if (/^http:\/\/www\.kongregate\.com\/games\/5thplanetgames\/dawn-of-the-dragons(?:\/?$|\?|#)/i.test(document.location.href)) {//kmain
-	if(window==window.top){
-		var script = document.createElement("script");
-		script.appendChild(document.createTextNode('('+shared+')()'));
-		(document.head || document.body || document.documentElement).appendChild(script);
-		
-		var kscript = document.createElement("script");
-		kscript.appendChild(document.createTextNode('('+kmain+')()'));
-		(document.head || document.body || document.documentElement).appendChild(kscript);
-	}
+if(/^http:\/\/web1\.dawnofthedragons\.com\/armor/i.test(d.location.href)){//agamemain
+	var ascript = d.createElement("script");
+	ascript.appendChild(d.createTextNode('('+agamemain+')()'));
+	(d.head || d.body || d.documentElement).appendChild(ascript);
 }
