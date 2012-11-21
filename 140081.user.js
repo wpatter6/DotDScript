@@ -371,6 +371,11 @@ function shared() {//bulk of the script, shared between sites
 				try{ r = JSON.parse(e.data.responseText) } 
 				catch (e) { return; }
 				console.log(r);
+				if(r.auth){
+				
+				} else { //authentication failed
+				
+				}
 			}
 			tmp.addRaid = function(hash,id,boss,diff,seen,visited,user,ts,room) {
 				id=RaidCatcher.util.cleanRaidId(id);
@@ -824,12 +829,12 @@ function shared() {//bulk of the script, shared between sites
 			}
 		},
 		session:{},
-		init: function(s, p){
+		init: function(s){
 			console.log("[RaidCatcher] Creating " + s.platform + " for " + s.user + "...");
 			RaidCatcher.session = s;
 			if(RaidCatcher.ui.init){
 				console.log("[RaidCatcher] ui.init...");
-				RaidCatcher.ui.init(p);
+				RaidCatcher.ui.init(s.element);
 				console.log("[RaidCatcher] ui.init done");
 			}
 			
@@ -868,8 +873,10 @@ function kmain(){//kong initialization
 				platform: 'kong',
 				platformId: 1,
 				user: active_user.username,
-				auth: active_user.gameAuthToken
-			}, pane);
+				userId: active_user.id,
+				auth: active_user.gameAuthToken(),
+				element: pane
+			});
 			console.log('[RaidCatcher] Kongregate initialized.');
 		}else{
 			console.log('[RaidCatcher] Resources not found ('+tries+' attempts), retrying in 1 second...');
@@ -929,12 +936,21 @@ function amain(){//AG initialization
 			tab.addEventListener('mouseout', function () { tabhoverpane.className += ' hidden';});
 			
 			var u=document.getElementsByClassName("username")[0].firstChild.innerHTML;
+			var str=document.getElementById('game-iframe').getAttribute("origin").split("?")[1];
+			var strs = str.split("&");
+			var uid, aut;
+			for(var st in strs){
+				if(strs[st].indexOf('user_id')==0) uid = strs[st].split("=")[1];
+				if(strs[st].indexOf('auth_token')==0) aut = strs[st].split("=")[1];
+			}
 			RaidCatcher.init({
 				platform: 'ag',
 				platformId: 2,
 				user: u,
-				auth: u
-			}, pane);
+				userId: uid,
+				auth: aut,
+				element: pane
+			});
 			
 			pane.className = 'hidden';
 			console.log('[RaidCatcher] AG initialized.');
