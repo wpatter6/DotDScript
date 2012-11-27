@@ -3,7 +3,7 @@
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        1.2.6
+// @version        1.2.7
 // @date           11.13.2012
 // @grant          none
 // @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
@@ -137,7 +137,7 @@ function main() {
 	window.elfade=function(elem,time){if(typeof time!='number')time=500;if(typeof elem=='string')elem=document.getElementById(elem);if(elem==null)return;var startOpacity=elem.style.opacity||1;elem.style.opacity=startOpacity;var tick=1/(time/100);(function go(){elem.style.opacity=Math.round((elem.style.opacity-tick)*100)/100;if(elem.style.opacity>0)setTimeout(go,100);else elem.style.display='none'})()}
 	
 	window.SRDotDX = {
-		version: {major: "1.2.6", minor: "wpatter6/JHunz"},
+		version: {major: "1.2.7", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -3563,7 +3563,11 @@ function main() {
 			valanazes:{name: 'Valanazes the Gold', shortname: 'Valanazes',  id: 'valanazes', stat: 'S', size:500, duration:128, health: [2400000000,3000000000,3840000000,4800000000,,]},
 			blobmonster:{name: 'Varlachleth', shortname: 'Varla',  id: 'blobmonster', stat: 'H', size:100, duration:168, health: [330000000,412500000,528000000,660000000,,]},
 			wexxa:{name: 'Wexxa the Worm-Tamer', shortname: 'Wexxa',  id: 'wexxa', stat: 'S', size:100, duration:72, health: [110000000,137500000,176000000,220000000,,]},
-			zombiehorde:{name: 'Zombie Horde', shortname: 'Zombies',  id: 'zombiehorde', stat: 'S', size:50, duration:60, health: [45000000,56250000,72000000,90000000,,]}
+			zombiehorde:{name: 'Zombie Horde', shortname: 'Zombies',  id: 'zombiehorde', stat: 'S', size:50, duration:48, health: [45000000,56250000,72000000,90000000,,]},
+			xessus:{name: 'Xessus of the Grim Wood', shortname: 'Xessus', id: 'xessus', stat: 'H', size:100, duration:48, health: [,,,1000000000,,]},
+			malchar:{name: 'Malchar the Tri-Eyed', shortname: 'Malchar', id: 'malchar', stat: 'H', size:100, duration:48, health: [,,,1000000000,,]},
+			krasgore:{name: 'Krasgore', shortname: 'Krasgore', id: 'krasgore', stat: 'H', size:100, duration:48, health: [,,,1000000000,,]},
+			nrlux:{name: 'N\'rlux the Devourer', shortname: 'N\'rlux', id: 'nrlux', stat: 'H', size:100, duration:48, health: [,,,20000000000,,]}
 		},
 		raidSizes: {
 			10: { name: 'Small', visible: 'Yes', pruneTimers: [3600000,10800000,32400000]}, // 1h, 2h, 3h
