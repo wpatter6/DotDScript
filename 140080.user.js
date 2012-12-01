@@ -4,9 +4,9 @@
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
 // @version        1.2.7
-// @date           11.13.2012
+// @date           11.30.2012
 // @grant          none
-// @include        http://www.kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
+// @include        *kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
 // @include        *web*.dawnofthedragons.com/kong*
 // @include        http://userscripts.org/scripts/review/140080
@@ -137,7 +137,7 @@ function main() {
 	window.elfade=function(elem,time){if(typeof time!='number')time=500;if(typeof elem=='string')elem=document.getElementById(elem);if(elem==null)return;var startOpacity=elem.style.opacity||1;elem.style.opacity=startOpacity;var tick=1/(time/100);(function go(){elem.style.opacity=Math.round((elem.style.opacity-tick)*100)/100;if(elem.style.opacity>0)setTimeout(go,100);else elem.style.display='none'})()}
 	
 	window.SRDotDX = {
-		version: {major: "1.2.7", minor: "wpatter6/JHunz"},
+		version: {major: "1.2.6", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -179,6 +179,7 @@ function main() {
 			tmp.pastebinUrl = (typeof tmp.pastebinUrl == 'string'?tmp.pastebinUrl:"");
 			tmp.lastUpdateCheck = (typeof tmp.lastUpdateCheck == 'number'?tmp.lastUpdateCheck:0);
 			tmp.pending126Upgrade = (typeof tmp.pending126Upgrade == 'boolean'?tmp.pending126Upgrade:true);
+			tmp.addFilteredRaids = (typeof tmp.addFilteredRaids == 'boolean'?tmp.addFilteredRaids:false);
 			
 			if (typeof tmp.mutedUsers != 'object')tmp.mutedUsers = {};
 			if (typeof tmp.pasteList != 'object')tmp.pasteList = {};
@@ -188,7 +189,7 @@ function main() {
 				tmp.filters = {}
 			}
 
-			// 1.2.6 Upgrade code - Split out raid list from config into raid list and dead cache
+			// 1.2.7 Upgrade code - Split out raid list from config into raid list and dead cache
 			if (tmp.pending126Upgrade == true) {
 				if (typeof tmp.raidList == 'object') {
 					var raidList2 = {};
@@ -417,28 +418,37 @@ function main() {
 
 			tmp.addRaid = function(hash,id,boss,diff,seen,visited,user,ts,room) {
 				//console.log("[SRDotDX] raidList.addRaid");
+				var originalId = id;
 				id=SRDotDX.gui.GetRaidID(id);
-				if (id != 0 && !SRDotDX.raidList.isDeadRaid(id)) {
-					if (typeof SRDotDX.raidList.getRaid(id) != 'object') {
-						SRDotDX.raidList.raids[id] = {
-							hash: hash,
-							id: id,
-							boss: boss,
-							diff: diff,
-							seen: seen,
-							visited: visited,
-							user: user,
-							lastUser: user,
-							expTime: (typeof SRDotDX.raids[boss] == 'object'?SRDotDX.raids[boss].duration:168) * 3600+parseInt((new Date).getTime() / 1000),
-							timeStamp: ((typeof ts ==='undefined'||ts==null)?(new Date().getTime()):parseInt(ts)),
-							room: ((typeof room ==='undefined'||room==null)?SRDotDX.getRoomName():parseInt(room))
+				if (id != 0) {
+					if(!SRDotDX.raidList.isDeadRaid(id)) {
+						if (typeof SRDotDX.raidList.getRaid(id) != 'object') {
+							console.log("Adding new raid");
+							SRDotDX.raidList.raids[id] = {
+								hash: hash,
+								id: id,
+								boss: boss,
+								diff: diff,
+								seen: seen,
+								visited: visited,
+								user: user,
+								lastUser: user,
+								expTime: (typeof SRDotDX.raids[boss] == 'object'?SRDotDX.raids[boss].duration:168) * 3600+parseInt((new Date).getTime	() / 1000),	
+								timeStamp: ((typeof ts ==='undefined'||ts==null)?(new Date().getTime()):parseInt(ts)),
+								room: ((typeof room ==='undefined'||room==null)?SRDotDX.getRoomName():parseInt(room))
+							}
+							SRDotDX.gui.addRaid(id);
+							//onNewRaid
+							setTimeout(function(){SRDotDX.purge()}, 1);
 						}
-						SRDotDX.gui.addRaid(id);
-						//onNewRaid
-						setTimeout(function(){SRDotDX.purge()}, 1);
+						SRDotDX.raidList.raids[id].lastUser = user;
+						console.log("Returning raid");
+						return SRDotDX.raidList.raids[id];
+					} else {
+						console.log("Dead raid: Returning nothing");
 					}
-					SRDotDX.raidList.raids[id].lastUser = user;
-					return SRDotDX.raidList[id];
+				} else {
+					console.log("ID == 0.  Original ID: " + originalId);
 				}
 			}
 
@@ -625,7 +635,9 @@ function main() {
 			var r = SRDotDX.getRaidDetailsBase(url);
 			if (typeof r != 'undefined' && typeof r.diff != 'undefined' && typeof r.hash != 'undefined' && typeof r.boss != 'undefined' && typeof r.id != 'undefined') {
 				var info = SRDotDX.raidList.getRaid(r.id);
-				if (typeof info != 'object') {
+				var isFiltered = SRDotDX.config.getFilter(r.boss, r.diff - 1);
+				isFiltered = (typeof isFiltered == 'boolean') ? isFiltered : false;
+				if (typeof info != 'object' && !SRDotDX.raidList.isDeadRaid(r.id) && (!isFiltered || SRDotDX.config.addFilteredRaids)) {
 					info = SRDotDX.raidList.addRaid(r.hash, r.id, r.boss, r.diff,visited,seen,user,ts,room)
 					if(typeof info == 'object') r.isNew = true;
 					//inserting new raid
@@ -643,6 +655,12 @@ function main() {
 					r.seen = true;
 					r.visited = true;
 					r.dead = true;
+				} else if (isFiltered && !SRDotDX.config.addFilteredRaids) {
+					// This is a filtered raid that you haven't joined.  Set seen, visited, and dead to false
+					console.log("Raid info not defined because it filtered out rather than added");
+					r.seen = false;
+					r.visited = false;
+					r.dead = false;
 				} else {
 					// Raid info doesn't exist but it isn't in the dead cache.  Don't know why this happens yet.
 					console.log("Raid info is not defined and the raid is not dead.  What's going on here?");
@@ -2085,7 +2103,8 @@ function main() {
 												<input type="checkbox" id="SRDotDX_options_refreshGameToJoin"> Refresh game to join raids (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Unchecking this will cause raids to be joined behind the scenes without refreshing the game.  You will have to refresh your raid list in game for newly added raids to show up.\');">?</a>) <br> \
 												<input type="checkbox" id="FPX_options_doAsyncJoining"> Enable asynchronous raid joining <input type="text" id="FPX_options_asyncCount" size="2"> (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'Enabling this feature will dramatically increase raid joining speed.  Increasing the number will increase the amount of asynchronous requests for joining raids.  The higher this number, the more bandwidth and memory that will be used when joining raids, which may cause performance issues.  This must be a number between 1 and 20.\');">?</a>)<br>\
 												<input type="checkbox" id="SRDotDX_options_confirmWhenDeleting"> Confirm when manually deleting raids <br> \
-												<input type="checkbox" id="SRDotDX_options_showRaidLink"> Show raid link in raid list <br><br> \
+												<input type="checkbox" id="SRDotDX_options_showRaidLink"> Show raid link in raid list <br> \
+												<input type="checkbox" id="SRDotDX_options_addFilteredRaids"> Add filtered raids to raid list <br><br> \
 												Unvisited raid pruning (<a href="#" onclick="return false;" onmouseout="FPX.tooltip.hide();" onmouseover="FPX.tooltip.show(\'How fast the script will automatically remove unvisited raids.  Small and Medium raids: Aggressive 1h, Moderate 2h, Slow 3h.  Large Raids: Aggressive 4h, Moderate 12h, Slow 36h.  Epic and Colossal raids: Aggressive 24h, Moderate 48h, Slow 72h.\');">?</a>)<br> \
 												<input type="radio" id="FPX_options_unvisitedPruningAggressive" name="unvisitedPruning" value="Aggressive"/>Aggressive&nbsp;&nbsp; \
 												<input type="radio" id="FPX_options_unvisitedPruningModerate" name="unvisitedPruning" value="Moderate"/>Moderate&nbsp;&nbsp; \
@@ -2420,6 +2439,7 @@ function main() {
 					var optsConfirmPasteSize = SRDotDX.gui.cHTML('#SRDotDX_options_confirmPasteSize');
 					var optsAutoPostPaste = SRDotDX.gui.cHTML('#SRDotDX_options_autoPostPaste');
 					var optsPastebinUrl = SRDotDX.gui.cHTML('#SRDotDX_options_pastebinUrl');
+					var optsAddFilteredRaids = SRDotDX.gui.cHTML('#SRDotDX_options_addFilteredRaids');
 					var rbUnvisitedPruningAggressive = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningAggressive');
 					var rbUnvisitedPruningModerate = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningModerate');
 					var rbUnvisitedPruningSlow = SRDotDX.gui.cHTML('#FPX_options_unvisitedPruningSlow');
@@ -2447,6 +2467,7 @@ function main() {
 					if (SRDotDX.config.showStatusOverlay) { optsStatusOverlay.ele().checked = 'checked' }
 					if (SRDotDX.config.confirmDeletes) { optsConfirmDeletes.ele().checked = 'checked' }
 					if (SRDotDX.config.autoPostPaste) { optsAutoPostPaste.ele().checked = 'checked' }
+					if (SRDotDX.config.addFilteredRaids) { optsAddFilteredRaids.ele().checked = 'checked' }
 		
 					if (SRDotDX.config.unvisitedRaidPruningMode == 0) {
 						rbUnvisitedPruningAggressive.ele().checked = true;
@@ -2536,6 +2557,10 @@ function main() {
 						if(this.checked){
 							setTimeout(function(){SRDotDX.purge()},1);
 						}
+					});
+
+					optsAddFilteredRaids.ele().addEventListener('click', function (){
+						SRDotDX.config.addFilteredRaids = this.checked;
 					});
 					
 					optsPrettyPost.ele().addEventListener('click', function(){
@@ -3563,11 +3588,11 @@ function main() {
 			valanazes:{name: 'Valanazes the Gold', shortname: 'Valanazes',  id: 'valanazes', stat: 'S', size:500, duration:128, health: [2400000000,3000000000,3840000000,4800000000,,]},
 			blobmonster:{name: 'Varlachleth', shortname: 'Varla',  id: 'blobmonster', stat: 'H', size:100, duration:168, health: [330000000,412500000,528000000,660000000,,]},
 			wexxa:{name: 'Wexxa the Worm-Tamer', shortname: 'Wexxa',  id: 'wexxa', stat: 'S', size:100, duration:72, health: [110000000,137500000,176000000,220000000,,]},
-			zombiehorde:{name: 'Zombie Horde', shortname: 'Zombies',  id: 'zombiehorde', stat: 'S', size:50, duration:48, health: [45000000,56250000,72000000,90000000,,]},
-			xessus:{name: 'Xessus of the Grim Wood', shortname: 'Xessus', id: 'xessus', stat: 'H', size:100, duration:48, health: [,,,1000000000,,]},
-			malchar:{name: 'Malchar the Tri-Eyed', shortname: 'Malchar', id: 'malchar', stat: 'H', size:100, duration:48, health: [,,,1000000000,,]},
-			krasgore:{name: 'Krasgore', shortname: 'Krasgore', id: 'krasgore', stat: 'H', size:100, duration:48, health: [,,,1000000000,,]},
-			nrlux:{name: 'N\'rlux the Devourer', shortname: 'N\'rlux', id: 'nrlux', stat: 'H', size:100, duration:48, health: [,,,20000000000,,]}
+			xessus:{name: 'Xessus of the Grim Wood', shortname: 'Xessus', id: 'xessus', stat: 'H', size:100, duration:48, health: [500000000,625000000,800000000,1000000000,,]},
+			malchar:{name: 'Malchar the Tri-Eyed', shortname: 'Malchar', id: 'malchar', stat: 'H', size:100, duration:48, health: [500000000,625000000,800000000,1000000000,,]},
+			krasgore:{name: 'Krasgore', shortname: 'Krasgore', id: 'krasgore', stat: 'H', size:100, duration:48, health: [500000000,625000000,800000000,1000000000,,]},
+			nrlux:{name: 'N\'rlux the Devourer', shortname: 'N\'rlux', id: 'nrlux', stat: 'H', size:100, duration:48, health: [10000000000,12500000000,16000000000,20000000000,,]},
+			zombiehorde:{name: 'Zombie Horde', shortname: 'Zombies',  id: 'zombiehorde', stat: 'S', size:50, duration:60, health: [45000000,56250000,72000000,90000000,,]}
 		},
 		raidSizes: {
 			10: { name: 'Small', visible: 'Yes', pruneTimers: [3600000,10800000,32400000]}, // 1h, 2h, 3h
