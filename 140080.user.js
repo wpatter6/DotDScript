@@ -1731,6 +1731,9 @@ function main() {
 				if(SRDotDX.gui.AutoJoinCurrentIndex < SRDotDX.gui.AutoJoinRaids.length){
 					SRDotDX.loadRaid(SRDotDX.gui.AutoJoinRaids[SRDotDX.gui.AutoJoinCurrentIndex].ele.firstChild.getElementsByTagName('a')[0].href);
 					SRDotDX.gui.AutoJoinCurrentIndex++;
+				} else {
+					// Reset joiner as failsafe for situations where the queue gets messed up somehow
+					SRDotDX.gui.ResetJoiner();
 				}
 			},
 			AutoJoinVisible: function (b, r) {
