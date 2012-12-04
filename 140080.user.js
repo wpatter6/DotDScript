@@ -772,8 +772,9 @@ function main() {
 			return text;
 		},
 		gui: {
-			addRaid: function (id, doFilter = true) {
+			addRaid: function (id, doFilter) {
 				var r = id;
+				if(typeof doFilter === "undefined") doFilter = true;
 				if(typeof id == "string" || typeof id == "number") r = SRDotDX.raidList.getRaid(id);
 				
 				if (r.boss) {
