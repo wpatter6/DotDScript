@@ -1715,6 +1715,7 @@ function main() {
 				SRDotDX.gui.AutoJoinCurrentDeads=0;
 				SRDotDX.gui.AutoJoinCurrentInvalids=0;
 				SRDotDX.gui.AutoJoinCurrentTotal=0;
+				SRDotDX.gui.AutoJoinCurrentIndex=0;
 				document.getElementById('AutoJoinVisibleButton').value='Join';
 			},
 			AutoJoin: false,
