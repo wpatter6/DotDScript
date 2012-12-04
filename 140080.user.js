@@ -4,7 +4,7 @@
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
 // @version        1.2.7
-// @date           11.30.2012
+// @date           12.04.2012
 // @grant          none
 // @include        *kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -1624,10 +1624,14 @@ function main() {
 						if(item.getAttribute("raidid")==id){
 							var raid = JSON.parse(JSON.stringify(SRDotDX.raidList.getRaid(id)));
 							raid.ele = item;
+							console.log("GetRaid: Returning raid");
 							return raid;
 						}
 					}
+				} else {
+					console.log("GetRaid: Not a number");
 				}
+				console.log("GetRaid: Returning null");
 				return null;
 			},
 			GetRaids: function (s) {//pass string to get raids you want, anything else to get selected raids, 
@@ -2869,18 +2873,22 @@ function main() {
 				id = SRDotDX.gui.GetRaidID(id);
 				if(!isRightClick){
 					var shortName = (SRDotDX.raids.hasOwnProperty(SRDotDX.raidList.raids[id].boss)) ? SRDotDX.raids[SRDotDX.raidList.raids[id].boss].shortname : "Unknown Raid";
+					var raid = SRDotDX.gui.GetRaid(id);
 					if(!SRDotDX.gui.AutoJoin){
 						SRDotDX.gui.AutoJoinCurrentTotal = 1;
-						SRDotDX.gui.AutoJoinRaids = [id];
+						SRDotDX.gui.AutoJoinRaids = [raid];
 						SRDotDX.gui.AutoJoin = true;
 						SRDotDX.gui.doStatusOutput("Joining " + shortName + "...");
-						SRDotDX.loadRaid(link);
+						SRDotDX.gui.AutoJoinNext();
 					} else {
 						SRDotDX.gui.AutoJoinCurrentTotal++;
 						SRDotDX.gui.doStatusOutput("Adding " + shortName + "...");
-						if(SRDotDX.gui.AutoJoinVisibleClicked) 
-							SRDotDX.gui.AutoJoinRaids.splice(SRDotDX.gui.AutoJoinCurrentIndex+1, 0, SRDotDX.gui.GetRaid(id));
-						else SRDotDX.gui.AutoJoinRaids.push(SRDotDX.gui.GetRaid(id));
+						if(SRDotDX.gui.AutoJoinVisibleClicked) {
+							SRDotDX.gui.AutoJoinRaids.splice(SRDotDX.gui.AutoJoinCurrentIndex, 0, raid);
+						}
+						else {
+							SRDotDX.gui.AutoJoinRaids.push(raid);
+						}
 					}
 				}
 				else if(document.getElementById('FPX_options_markVisitedRightClick').checked){

@@ -29,7 +29,8 @@ Contact Us: A list of ways to contact us for whatever reasons<br />
 4) Optimized the way raids are stored and saved.<br>
 5) Fixed the issue that made it impossible to join raids with unknown IDs (e.g. new world raids)<br>
 6) Fixed an issue with importing pastebins with newline characters in unexpected places.<br>
-7) Added an option of whether or not to add raids to your raid list if you have them filtered out.  <b>The new default behavior is to NOT add these raids.  This differs from the behavior of previous releases.  To restore the previous behavior, turn on the option after upgrading.</b><br><br>
+7) Added an option of whether or not to add raids to your raid list if you have them filtered out.  <b>The new default behavior is to NOT add these raids.  This differs from the behavior of previous releases.  To restore the previous behavior, turn on the option after upgrading.</b><br>
+8) Fixed the bug with auto-join queueing when clicking multiple raids quickly.<br><br>
 <b>1.2.6</b><br>
 1) Hotfix for new guild raids.<br><br>
 <b>1.2.5</b><br>
