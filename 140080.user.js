@@ -3808,8 +3808,8 @@ function main() {
 					if (SRDotDX.gui.AutoJoinCurrentIndex < SRDotDX.gui.AutoJoinRaids.length) {// join the next
 						SRDotDX.gui.doStatusOutput('Joining '+(SRDotDX.gui.AutoJoinCurrentIndex+1)+' of '+SRDotDX.gui.AutoJoinCurrentTotal+'. New: '+SRDotDX.gui.AutoJoinCurrentSuccesses+', Dead: '+SRDotDX.gui.AutoJoinCurrentDeads);
 						SRDotDX.gui.AutoJoinNext();
-						if(SRDotDX.config.asyncJoin && SRDotDX.gui.AutoJoinCurrentIndex+1 == SRDotDX.gui.AutoJoinCurrentTotal)
-							setTimeout("SRDotDX.gui.ResetJoiner();", SRDotDX.config.asyncJoinCount * 1000);
+						//if(SRDotDX.config.asyncJoin && SRDotDX.gui.AutoJoinCurrentIndex+1 == SRDotDX.gui.AutoJoinCurrentTotal)
+						//	setTimeout("SRDotDX.gui.ResetJoiner();", SRDotDX.config.asyncJoinCount * 1000);
 					}  
 					if(SRDotDX.gui.AutoJoinCurrentLanded == SRDotDX.gui.AutoJoinRaids.length){// finished auto-joining
 						console.log("[SRDotDX] Finished auto joining");
