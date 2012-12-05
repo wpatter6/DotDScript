@@ -22,6 +22,8 @@ Known Incompatibilities: If you're using one userscript, you're probably using s
 Contact Us: A list of ways to contact us for whatever reasons<br />
 &nbsp;</p>
 <h3><b>Changelog</b></h3><p>
+<b>1.2.9</b>
+1) Fixed a crash bug introduced in 1.2.7 for certain combinations of settings.
 <b>1.2.8</b>
 1) Hotfix for countess serpina url mismatch. <br><br>
 <b>1.2.7</b><br>

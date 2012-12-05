@@ -3,8 +3,8 @@
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        1.2.8
-// @date           12.04.2012
+// @version        1.2.9
+// @date           12.05.2012
 // @grant          none
 // @include        *kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -137,7 +137,7 @@ function main() {
 	window.elfade=function(elem,time){if(typeof time!='number')time=500;if(typeof elem=='string')elem=document.getElementById(elem);if(elem==null)return;var startOpacity=elem.style.opacity||1;elem.style.opacity=startOpacity;var tick=1/(time/100);(function go(){elem.style.opacity=Math.round((elem.style.opacity-tick)*100)/100;if(elem.style.opacity>0)setTimeout(go,100);else elem.style.display='none'})()}
 	
 	window.SRDotDX = {
-		version: {major: "1.2.8", minor: "wpatter6/JHunz"},
+		version: {major: "1.2.9", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -1763,7 +1763,7 @@ function main() {
 							}
 						} else {	
 							SRDotDX.gui.doStatusOutput('Joining 1 of '+ SRDotDX.gui.AutoJoinCurrentTotal);
-							SRDotDX.loadRaid(SRDotDX.gui.AutoJoinRaids[0].ele.firstChild.getElementsByTagName('a')[0].href);
+							SRDotDX.gui.AutoJoinNext();
 						}
 
 						console.log("[SRDotDX] Joining Started");
