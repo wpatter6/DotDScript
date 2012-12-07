@@ -3,8 +3,8 @@
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        1.2.9
-// @date           12.05.2012
+// @version        1.2.10
+// @date           12.07.2012
 // @grant          none
 // @include        *kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -137,7 +137,7 @@ function main() {
 	window.elfade=function(elem,time){if(typeof time!='number')time=500;if(typeof elem=='string')elem=document.getElementById(elem);if(elem==null)return;var startOpacity=elem.style.opacity||1;elem.style.opacity=startOpacity;var tick=1/(time/100);(function go(){elem.style.opacity=Math.round((elem.style.opacity-tick)*100)/100;if(elem.style.opacity>0)setTimeout(go,100);else elem.style.display='none'})()}
 	
 	window.SRDotDX = {
-		version: {major: "1.2.9", minor: "wpatter6/JHunz"},
+		version: {major: "1.2.10", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -225,10 +225,15 @@ function main() {
 					SRDotDX.config.filters[raidid] = [tempVal, tempVal, tempVal, tempVal, tempVal, tempVal];
 				} else if ((typeof SRDotDX.config.filters[raidid] != 'boolean') && (typeof SRDotDX.config.filters[raidid] != 'object')) {
 					var raid = SRDotDX.raids[raidid];
-					if (raid.size == 1 || raid.stat == 'H' || raid.stat == 'h') {
-						SRDotDX.config.filters[raidid] = [true, true, true, true, true, true];
+					if (typeof raid == 'object') {
+						if (raid.size == 1 || raid.stat == 'H' || raid.stat == 'h') {
+							SRDotDX.config.filters[raidid] = [true, true, true, true, true, true];
+						} else {
+							SRDotDX.config.filters[raidid] = [false, false, false, false, false];
+						}
 					} else {
-						SRDotDX.config.filters[raidid] = [false, false, false, false, false];
+						// Don't filter unknown raids
+						return false;
 					}
 				}
 					
