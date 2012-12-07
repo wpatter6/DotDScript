@@ -571,7 +571,7 @@ function main() {
 
 						} else {
 
-							r.optimalShare = r.fairShare * {"1": 1, "10":1.25, "13":1.25, "15":1.25, "50": 2.2, "100":2.3, "250": 1, "500": 1.5}[r.size];					
+							r.optimalShare = r.fairShare * {"1": 1, "10":1.25, "13":1.25, "15":1.25, "25":1.25, "50": 2.2, "100":2.3, "250": 1, "500": 1.5}[r.size];					
 							r.optimalShareText = SRDotDX.getShortNum(r.optimalShare);
 						}
 						
@@ -820,7 +820,7 @@ function main() {
 						else if (!isNaN(rd.health[r.diff-1])) {
 							var h = rd.health[r.diff -1];
 							var f = h / rd.size;
-							var o = f * {"1":1, "10":1.25, "15":1.25, "50":2.2, "100":2.3, "250":1,"500":1.5}[rd.size];
+							var o = f * {"1":1, "10":1.25, "15":1.25, "25":1.25, "50":2.2, "100":2.3, "250":1,"500":1.5}[rd.size];
 							info += '<div style="float: left; width: 49%;">';
 							info += 'Posted By:<br>In Room:<br>Timestamp:<br><br><hr>Difficulty:<br>Stats Used:<br>Size:<br>Health:<br>';
 							if (typeof rd.loottiers == 'object' && typeof rd.loottiers[r.diff-1] == 'object') {
@@ -2724,7 +2724,7 @@ function main() {
 								parentTable.attach('to','FPXRaidFilterWhatPersonal');
 							} else if (raid.stat == 'H' || raid.stat == 'h') {
 								parentTable.attach('to','FPXRaidFilterWhatGuild');
-							} else if (raid.size == 10 || raid.id == 'dragons_lair') {
+							} else if (raid.size == 10 || raid.id == 'dragons_lair' || raid.id == 'krugnug') {
 								parentTable.attach('to','FPXRaidFilterWhatSmall');
 							} else if (raid.id == 'serpina' || raid.id == 'tisiphone') {
 								parentTable.attach('to','FPXRaidFilterWhatSpecial');
@@ -3537,7 +3537,9 @@ function main() {
 			bogstench:{name: 'Bogstench', shortname: 'Bogstench',  id: 'bogstench', stat: 'S', size:250, duration:96, health: [450000000,562500000,720000000,900000000,,]},
 			'4ogre':{name: 'Briareus the Butcher', shortname: 'Briareus',  id: '4ogre', stat: 'S', size:10, duration:72, health: [4500000,5625000,7200000,9000000,,]},
 			bmane:{name: 'Bloodmane', shortname: 'Bmane',  id: 'bmane', stat: 'S', size:10, duration:72, health: [7000000,8750000,11200000,14000000,,]},
+			caracalla:{name: 'Caracalla', shortname: 'Caracalla',  id: 'caracalla', stat: 'S', size:500, duration:128, health: [,,,200000000000,,]},
 			harpy:{name: 'Celeano', shortname: 'Cel',  id: 'harpy', stat: 'H', size:10, duration:120, health: [3000000,3750000,4800000,6000000,,]},
+			centurion_marius:{name: 'Centurion Marius', shortname: 'Marius',  id: 'centurion_marius', stat: 'S', size:250, duration:96, health: [,,,40000000000,,]},
 			kobold:{name: 'Chieftain Horgrak', shortname: 'Horgrak',  id: 'kobold', stat: 'S', size:10, duration:168, health: [150000,187500,240000,300000,,]},
 			corrupterebus:{name: 'Corrupted Erebus', shortname: 'Corrupted', id: 'corrupterebus', stat: 'ESH', size:90000, duration:72, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited'], loottiers: [['1M','5M','10M','20M','50M','100M','150M','300M','450M','600M','750M','1B','2B','5B','20B'],[],[],[],[],[]]},
 			"serpina.jpg":{name: 'Countess Serpina', shortname: 'Countess',  id: 'serpina.jpg', stat: 'E', size:15, duration:5, health: [75000000,112500000,150000000,187500000,,]},
@@ -3571,7 +3573,9 @@ function main() {
 			kessovforts:{name: 'Kessov Forts', shortname: 'Forts',  id: 'kessovforts', stat: 'ESH', size:90000, duration:120, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited']},
 			kessovcastle:{name: 'Kessov Castle', shortname: 'Castle',  id: 'kessovcastle', stat: 'ESH', size:90000, duration:144, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited'],loottiers: [['1','1M','5M','10M','20M','50M','100M','150M','300M','450M','600M','750M','1B','2B','5B','50B'],[],[],[],[],[]]},
 			kalaxia:{name: 'Kalaxia The Far-Seer', shortname: 'Kalaxia',  id: 'kalaxia', stat: 'S', size:500, duration:96, health: [800000000,1000000000,1280000000,1600000000,,]},
+			krugnug:{name: 'Krugnug', shortname: 'Krugnug',  id: 'krugnug', stat: 'S', size:25, duration:48, health: [,,,4000000000,,]},
 			krykagrius:{name: 'Krykagrius', shortname: 'Krykagrius', id: 'krykagrius', stat: 'ESH', size:90000, duration:72, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited'], loottiers: [['1M','5M','10M','20M','50M','100M','150M','300M','450M','600M','750M','1B','2B','3B','4B','5B','10B','15B','20B'],[],[],[],[],[]]},
+			leonine_watcher:{name: 'Leonine', shortname: 'Leonine',  id: 'leonine_watcher', stat: 'S', size:100, duration:48, health: [,,,16000000000,,]},
 			tyranthius:{name: 'Lord Tyranthius', shortname: 'Tyr',  id: 'tyranthius', stat: 'S', size:500, duration:168, health: [600000000,750000000,960000000,1200000000,,]},
 			lunacy:{name: 'Lunatics', shortname: 'Lunatics',  id: 'lunacy', stat: 'H', size:50, duration:144, health: [180000000,225000000,288000000,360000000,,]},
 			lurker:{name: 'Lurking Horror', shortname: 'Lurking',  id: 'lurker', stat: 'S', size:100, duration:120, health: [35000000,43750000,56000000,70000000,,]},
@@ -3589,6 +3593,7 @@ function main() {
 			fairy_prince:{name: 'Prince Obyron', shortname: 'Obyron',  id: 'fairy_prince', stat: 'H', size:10, duration:120, health: [30000000,37500000,48000000,60000000,,]},
 			roc:{name: 'Ragetalon', shortname: 'Ragetalon',  id: 'roc', stat: 'H', size:100, duration:168, health: [110000000,137500000,176000000,220000000,,]},
 			rhalmarius_the_despoiler:{name: 'Rhalmarius the Despoiler', shortname: 'Rhal',  id: 'rhalmarius_the_despoiler', stat: 'H', size:100, duration:84, health: [500000000,1250000000,3125000000,7812500000,,]},
+			tomb_gargoyle:{name: 'Riddler Gargoyle', shortname: 'Riddler',  id: 'tomb_gargoyle', stat: 'S', size:50, duration:48, health: [,,,8000000000,,]},
 			rift:{name: 'Rift the Mauler', shortname: 'Rift',  id: 'rift', stat: 'S', size:100, duration:72, health: [125000000,156250000,200000000,250000000,,]},
 			crabshark:{name: 'Scuttlegore', shortname: 'Scuttle',  id: 'crabshark', stat: 'H', size:100, duration:168, health: [220000000,275000000,352000000,440000000,,]},
 			squid:{name: 'Scylla', shortname: 'Scylla',  id: 'squid', stat: 'S', size:50, duration:72, health: [25000000,31250000,40000000,50000000,,]},
@@ -3610,12 +3615,7 @@ function main() {
 			malchar:{name: 'Malchar the Tri-Eyed', shortname: 'Malchar', id: 'malchar', stat: 'H', size:100, duration:48, health: [500000000,625000000,800000000,1000000000,,]},
 			krasgore:{name: 'Krasgore', shortname: 'Krasgore', id: 'krasgore', stat: 'H', size:100, duration:48, health: [500000000,625000000,800000000,1000000000,,]},
 			nrlux:{name: 'N\'rlux the Devourer', shortname: 'N\'rlux', id: 'nrlux', stat: 'H', size:100, duration:48, health: [10000000000,12500000000,16000000000,20000000000,,]},
-			zombiehorde:{name: 'Zombie Horde', shortname: 'Zombies',  id: 'zombiehorde', stat: 'S', size:50, duration:60, health: [45000000,56250000,72000000,90000000,,]},
-			krugnug:{name: 'Krugnug', shortname: 'Krugnug',  id: 'krugnug', stat: 'S', size:25, duration:48, health: [,,,4000000000,,]},
-			caracalla:{name: 'Caracalla', shortname: 'Caracalla',  id: 'caracalla', stat: 'S', size:500, duration:128, health: [,,,200000000000,,]},
-			centurion_marius:{name: 'Centurion Marius', shortname: 'Marius',  id: 'centurion_marius', stat: 'S', size:250, duration:96, health: [,,,40000000000,,]},
-			tomb_gargoyle:{name: 'Riddler Gargoyle', shortname: 'Riddler',  id: 'tomb_gargoyle', stat: 'S', size:50, duration:48, health: [,,,8000000000,,]},
-			leonine_watcher:{name: 'Leonine', shortname: 'Leonine',  id: 'leonine_watcher', stat: 'S', size:100, duration:48, health: [,,,16000000000,,]}
+			zombiehorde:{name: 'Zombie Horde', shortname: 'Zombies',  id: 'zombiehorde', stat: 'S', size:50, duration:60, health: [45000000,56250000,72000000,90000000,,]}
 		},
 		raidSizes: {
 			10: { name: 'Small', visible: 'Yes', pruneTimers: [3600000,10800000,32400000]}, // 1h, 2h, 3h
