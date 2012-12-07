@@ -3,7 +3,7 @@
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        1.2.10
+// @version        1.2.11
 // @date           12.07.2012
 // @grant          none
 // @include        *kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
@@ -137,7 +137,7 @@ function main() {
 	window.elfade=function(elem,time){if(typeof time!='number')time=500;if(typeof elem=='string')elem=document.getElementById(elem);if(elem==null)return;var startOpacity=elem.style.opacity||1;elem.style.opacity=startOpacity;var tick=1/(time/100);(function go(){elem.style.opacity=Math.round((elem.style.opacity-tick)*100)/100;if(elem.style.opacity>0)setTimeout(go,100);else elem.style.display='none'})()}
 	
 	window.SRDotDX = {
-		version: {major: "1.2.10", minor: "wpatter6/JHunz"},
+		version: {major: "1.2.11", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
