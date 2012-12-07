@@ -3610,7 +3610,12 @@ function main() {
 			malchar:{name: 'Malchar the Tri-Eyed', shortname: 'Malchar', id: 'malchar', stat: 'H', size:100, duration:48, health: [500000000,625000000,800000000,1000000000,,]},
 			krasgore:{name: 'Krasgore', shortname: 'Krasgore', id: 'krasgore', stat: 'H', size:100, duration:48, health: [500000000,625000000,800000000,1000000000,,]},
 			nrlux:{name: 'N\'rlux the Devourer', shortname: 'N\'rlux', id: 'nrlux', stat: 'H', size:100, duration:48, health: [10000000000,12500000000,16000000000,20000000000,,]},
-			zombiehorde:{name: 'Zombie Horde', shortname: 'Zombies',  id: 'zombiehorde', stat: 'S', size:50, duration:60, health: [45000000,56250000,72000000,90000000,,]}
+			zombiehorde:{name: 'Zombie Horde', shortname: 'Zombies',  id: 'zombiehorde', stat: 'S', size:50, duration:60, health: [45000000,56250000,72000000,90000000,,]},
+			krugnug:{name: 'Krugnug', shortname: 'Krugnug',  id: 'krugnug', stat: 'S', size:25, duration:48, health: [,,,4000000000,,]},
+			caracalla:{name: 'Caracalla', shortname: 'Caracalla',  id: 'caracalla', stat: 'S', size:500, duration:128, health: [,,,200000000000,,]},
+			centurion_marius:{name: 'Centurion Marius', shortname: 'Marius',  id: 'centurion_marius', stat: 'S', size:250, duration:96, health: [,,,40000000000,,]},
+			tomb_gargoyle:{name: 'Riddler Gargoyle', shortname: 'Riddler',  id: 'tomb_gargoyle', stat: 'S', size:50, duration:48, health: [,,,8000000000,,]},
+			leonine_watcher:{name: 'Leonine', shortname: 'Leonine',  id: 'leonine_watcher', stat: 'S', size:100, duration:48, health: [,,,16000000000,,]}
 		},
 		raidSizes: {
 			10: { name: 'Small', visible: 'Yes', pruneTimers: [3600000,10800000,32400000]}, // 1h, 2h, 3h

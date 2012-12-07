@@ -24,6 +24,7 @@ Contact Us: A list of ways to contact us for whatever reasons<br />
 <h3><b>Changelog</b></h3><p>
 <b>1.2.10</b><br>
 1) Fixed a bug preventing unknown raids from being displayed
+2) Added basic info for the new raids (loot tiers and non-NM health are not yet included)
 <b>1.2.9</b><br>
 1) Fixed a crash bug introduced in 1.2.7 for certain combinations of settings.<br><br>
 <b>1.2.8</b><br>
