@@ -565,7 +565,7 @@ function main() {
 
 						if (typeof stats.loottiers == 'object' && typeof stats.loottiers[r.diff-1] == 'object') {
 							var tiers = stats.loottiers[r.diff-1];
-							var text = 'Tiered loot: ' + SRDotDX.getLootTierText(stats.id,(r.diff - 1));
+							var text = 'Tiered loot: ' + SRDotDX.getLootTierText(stats.id,(r.diff - 1),false);
 							r.optimalShare = 0;
 							r.optimalShareText = text;
 
@@ -581,10 +581,17 @@ function main() {
 						r.healthText = 'Unlimited';
 						if (typeof stats.loottiers == 'object' && typeof stats.loottiers[r.diff-1] == 'object' && stats.loottiers[r.diff-1][0]) {
 							// TODO: At some point, make the numeric FS/OS numbers here line up with the correct textual ones
-							r.fairshare = 1000000000;
-							r.optimalShare = 1000000000;
-							r.fairShareText = stats.loottiers[r.diff-1][0];
-							r.optimalShareText = stats.loottiers[r.diff-1][stats.loottiers[r.diff-1].length-1];
+							if (r.boss == 'winter_kessov') {
+								r.fairshare = 25000000;
+								r.optimalShare = 250000000;
+								r.fairShareText = SRDotDX.getLootTierText(stats.id,(r.diff - 1),true);
+								r.optimalShareText = stats.loottiers[r.diff - 1][stats.loottiers[r.diff - 1].length-1];
+							} else {
+								r.fairshare = 1000000000;
+								r.optimalShare = 1000000000;
+								r.fairShareText = stats.loottiers[r.diff-1][0];
+								r.optimalShareText = stats.loottiers[r.diff-1][stats.loottiers[r.diff-1].length-1];
+							}
 						} else {
 							r.fairShare = 1000000000;
 							r.fairShareText = SRDotDX.getShortNum(r.fairShare);
@@ -765,13 +772,19 @@ function main() {
 			if (stat.indexOf("e")>-1)r+=(r!=''?" and ":"")+"Energy";
 			return r;
 		},
-		getLootTierText: function (raidid, diffIndex) {
+		getLootTierText: function (raidid, diffIndex, omitLast) {
 			if (typeof SRDotDX.raids[raidid] != 'object' || typeof SRDotDX.raids[raidid].loottiers != 'object' || typeof SRDotDX.raids[raidid].loottiers[diffIndex] != 'object') {
 				return "";
 			}
 			var tiers = SRDotDX.raids[raidid].loottiers[diffIndex];
 			var text = tiers[0];
-			for (var i = 1;i<tiers.length;i+=1) {
+			var length;
+			if (omitLast) {
+				length = tiers.length - 1;
+			} else {
+				length = tiers.length;
+			}
+			for (var i = 1;i<length;i+=1) {
 				text = text + "/" + tiers[i] + " ";
 			}
 			return text;
@@ -3612,6 +3625,7 @@ function main() {
 			valanazes:{name: 'Valanazes the Gold', shortname: 'Valanazes',  id: 'valanazes', stat: 'S', size:500, duration:128, health: [2400000000,3000000000,3840000000,4800000000,,]},
 			blobmonster:{name: 'Varlachleth', shortname: 'Varla',  id: 'blobmonster', stat: 'H', size:100, duration:168, health: [330000000,412500000,528000000,660000000,,]},
 			wexxa:{name: 'Wexxa the Worm-Tamer', shortname: 'Wexxa',  id: 'wexxa', stat: 'S', size:100, duration:72, health: [110000000,137500000,176000000,220000000,,]},
+			winter_kessov:{name: 'Blood Will Run Cold', shortname: 'Cold Blood', id:'winter_kessov', stat: 'ESH', size:90000, duration:290, health: ['Unlimited','Unlimited','Unlimited','Unlimited','Unlimited','Unlimited'], loottiers: [['51 tiers.  Big ones at 5M','10M','75M','500M','1B','4.5B','25B','250B'],[],[],[],[],[]]},
 			xessus:{name: 'Xessus of the Grim Wood', shortname: 'Xessus', id: 'xessus', stat: 'H', size:100, duration:48, health: [500000000,625000000,800000000,1000000000,,]},
 			malchar:{name: 'Malchar the Tri-Eyed', shortname: 'Malchar', id: 'malchar', stat: 'H', size:100, duration:48, health: [500000000,625000000,800000000,1000000000,,]},
 			krasgore:{name: 'Krasgore', shortname: 'Krasgore', id: 'krasgore', stat: 'H', size:100, duration:48, health: [500000000,625000000,800000000,1000000000,,]},
@@ -3772,7 +3786,8 @@ function main() {
 				if (SRDotDX.gui.AutoJoin&&isJoining) {
 					SRDotDX.gui.AutoJoinCurrentSuccesses++;
 				} else {
-					SRDotDX.gui.doStatusOutput(SRDotDX.raids[SRDotDX.raidList.raids[lastJoinedRaidId].boss].shortname +" joined successfully.");
+					var shortName = (SRDotDX.raids.hasOwnProperty(SRDotDX.raidList.raids[lastJoinedRaidId].boss)) ? SRDotDX.raids[SRDotDX.raidList.raids[lastJoinedRaidId].boss].shortname : "Unknown Raid";	
+					SRDotDX.gui.doStatusOutput(shortname +" joined successfully.");
 				}
 
 			}
