@@ -3,7 +3,7 @@
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        1.2.12
+// @version        1.2.13
 // @date           12.07.2012
 // @grant          none
 // @include        *kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
@@ -137,7 +137,7 @@ function main() {
 	window.elfade=function(elem,time){if(typeof time!='number')time=500;if(typeof elem=='string')elem=document.getElementById(elem);if(elem==null)return;var startOpacity=elem.style.opacity||1;elem.style.opacity=startOpacity;var tick=1/(time/100);(function go(){elem.style.opacity=Math.round((elem.style.opacity-tick)*100)/100;if(elem.style.opacity>0)setTimeout(go,100);else elem.style.display='none'})()}
 	
 	window.SRDotDX = {
-		version: {major: "1.2.12", minor: "wpatter6/JHunz"},
+		version: {major: "1.2.13", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -3782,11 +3782,11 @@ function main() {
 
 			// message indicating the join was successful
 			if (/success/i.test(event.data)) {
-				console.log("[SRDotDX] Successful raid join " + lastJoinedRaidId);
+				console.log("[SRDotDX] Successful raid join " + lastJoinedRaidId + " : " + SRDotDX.raidList.raids[lastJoinedRaidId].boss);
 				if (SRDotDX.gui.AutoJoin&&isJoining) {
 					SRDotDX.gui.AutoJoinCurrentSuccesses++;
 				} else {
-					var shortName = (SRDotDX.raids.hasOwnProperty(SRDotDX.raidList.raids[lastJoinedRaidId].boss)) ? SRDotDX.raids[SRDotDX.raidList.raids[lastJoinedRaidId].boss].shortname : "Unknown Raid";	
+					var shortname = (SRDotDX.raids.hasOwnProperty(SRDotDX.raidList.raids[lastJoinedRaidId].boss)) ? SRDotDX.raids[SRDotDX.raidList.raids[lastJoinedRaidId].boss].shortname : "Unknown Raid";	
 					SRDotDX.gui.doStatusOutput(shortname +" joined successfully.");
 				}
 
