@@ -22,6 +22,9 @@ Known Incompatibilities: If you're using one userscript, you're probably using s
 Contact Us: A list of ways to contact us for whatever reasons<br />
 &nbsp;</p>
 <h3><b>Changelog</b></h3><p>
+<b>1.2.14</b><br>
+1) Bug fix for joining raids after the Kong redirect change.<br>
+2) Seriously, why are you still using this version?  Update to the RaidCatcher<br><br>
 <b>1.2.13</b><br>
 1) Bug fix for clicking raids.
 <br><br>

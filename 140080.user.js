@@ -3,8 +3,8 @@
 // @namespace      tag://kongregate
 // @description    Easier Kongregate's Dawn of the Dragons
 // @author         SReject, chairmansteve, JHunz, wpatter6
-// @version        1.2.13
-// @date           12.07.2012
+// @version        1.2.14
+// @date           03.20.2013
 // @grant          none
 // @include        *kongregate.com/games/5thPlanetGames/dawn-of-the-dragons*
 // @include        *pastebin.com*
@@ -137,7 +137,7 @@ function main() {
 	window.elfade=function(elem,time){if(typeof time!='number')time=500;if(typeof elem=='string')elem=document.getElementById(elem);if(elem==null)return;var startOpacity=elem.style.opacity||1;elem.style.opacity=startOpacity;var tick=1/(time/100);(function go(){elem.style.opacity=Math.round((elem.style.opacity-tick)*100)/100;if(elem.style.opacity>0)setTimeout(go,100);else elem.style.display='none'})()}
 	
 	window.SRDotDX = {
-		version: {major: "1.2.13", minor: "wpatter6/JHunz"},
+		version: {major: "1.2.14", minor: "wpatter6/JHunz"},
 		echo: function(msg){holodeck.activeDialogue().SRDotDX_echo(msg)},
 		config: (function(){
 			try {
@@ -2007,6 +2007,7 @@ function main() {
 					var pane = SRDotDX.gui.cHTML('div').set({id: 'lots_tab_pane'}).html(' \
 						<div class="room_name_container h6_alt mbs">DotD Extension - <span class="room_name" id="StatusOutput"></span></div> \
 						<div class="room_name_container h6_alt mbs" id="UpdateNotification" style="display:none">Your script version is out of date.  <a href="http://userscripts.org/scripts/show/140080" target="_blank">Update</a> <a href="#" onclick="document.getElementById(\'UpdateNotification\').style.display=\'none\'; return false;">Dismiss</a></div> \
+						<div class="room_name_container h6_alt mbs" id="NewScriptNotification" style="display:black">Seriously, we recommend updating to the new RaidCatcher script.  Go get it <a href="http://userscripts.org/scripts/show/157708" target="_blank">here</a>.&nbsp;&nbsp;<a href="#" onclick="document.getElementById(\'NewScriptNotification\').style.display=\'none\'; return false;">Dismiss</a></div> \
 						<ul id="SRDotDX_tabpane_tabs"> \
 							<li class="tab active"> \
 								<div class="tab_head" id="raids_tab">Raids</div> \
@@ -3464,14 +3465,14 @@ function main() {
 				iframe_options['kv_raid_id'] = r.id;
 				if(SRDotDX.config.refreshGameToJoin){
 					$('gameiframe').replace(new Element('iframe', {"id":"gameiframe","name":"gameiframe","style":"border:none;position:relative;z-index:1;","scrolling":"auto","border":0,"frameborder":0,"width":760,"height":700,"class":"dont_hide"}));
-					$('gameiframe').contentWindow.location.replace("http://web1.dawnofthedragons.com/kong?" + Object.toQueryString(iframe_options));
+					$('gameiframe').contentWindow.location.replace("http://web1.dawnofthedragons.com/kong/raidjoin.php?" + Object.toQueryString(iframe_options));
 				} else {
 					if(SRDotDX.config.asyncJoin){
 						var frameNum =SRDotDX.gui.getCurrentJoinFrame();
 						console.log("[SRDotDX] Async join frame " + frameNum);
-						document.getElementById('SRDotDX_JoinFrame_'+frameNum).src="http://web1.dawnofthedragons.com/kong?" + Object.toQueryString(iframe_options) + "&SRDotDX_frame="+frameNum;
+						document.getElementById('SRDotDX_JoinFrame_'+frameNum).src="http://web1.dawnofthedragons.com/kong/raidjoin.php?" + Object.toQueryString(iframe_options) + "&SRDotDX_frame="+frameNum;
 					} else
-						document.getElementById('SRDotDX_joiner').src="http://web1.dawnofthedragons.com/kong?" + Object.toQueryString(iframe_options);
+						document.getElementById('SRDotDX_joiner').src="http://web1.dawnofthedragons.com/kong/raidjoin.php?" + Object.toQueryString(iframe_options);
 				}
 				SRDotDX.gui.raidListItemUpdate(r.id);
 			}
